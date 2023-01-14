@@ -1,0 +1,78 @@
+[gd_scene load_steps=7 format=3 uid="uid://gy06q682mv2h"]
+
+[ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
+[ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i6375"]
+albedo_color = Color(0.101961, 0.101961, 0.101961, 1)
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_hftyp"]
+sky_top_color = Color(0.262745, 0.521569, 0.878431, 1)
+
+[sub_resource type="Sky" id="Sky_xbuw4"]
+sky_material = SubResource("ProceduralSkyMaterial_hftyp")
+
+[sub_resource type="Environment" id="Environment_rybih"]
+background_mode = 2
+sky = SubResource("Sky_xbuw4")
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_n3q4e")
+
+[node name="Control" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="Control"]
+layout_mode = 0
+offset_right = 40.0
+offset_bottom = 23.0
+text = "character_info"
+script = ExtResource("2_uv7ob")
+
+[node name="Buttons" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Button" type="Button" parent="Buttons"]
+layout_mode = 0
+offset_right = 98.0
+offset_bottom = 31.0
+text = "Join Server"
+
+[node name="Button2" type="Button" parent="Buttons"]
+layout_mode = 0
+offset_top = 31.0
+offset_right = 98.0
+offset_bottom = 62.0
+text = "Host Server"
+
+[node name="CSGBox3D" type="CSGBox3D" parent="."]
+size = Vector3(10, 1, 10)
+material = SubResource("StandardMaterial3D_i6375")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 4, 6)
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -0.707107, 0.707107, 0, -0.707107, -0.707107, 0, 0, 0)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_rybih")
+
+[node name="CharacterArray" type="Node" parent="."]
+
+[node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
+_spawnable_scenes = PackedStringArray("res://Character.tscn")
+spawn_path = NodePath("../CharacterArray")
+
+[connection signal="pressed" from="Buttons/Button" to="." method="_on_button_pressed" binds= [false]]
+[connection signal="pressed" from="Buttons/Button2" to="." method="_on_button_pressed" binds= [true]]
