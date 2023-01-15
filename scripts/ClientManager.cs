@@ -36,11 +36,13 @@ public partial class ClientManager : Node
 
     private void OnPacketReceived(long id, byte[] data)
     {
-        var state = StructHelper.ToStructure<GameState>(data);
+        var gameState = StructHelper.ToStructure<GameState>(data);
 
-        int senderId = state.Id;
-        Vector3 position = new Vector3(state.X, state.Y, state.Z);
-
-        GetNode<Node3D>("/root/Main/CharacterArray/" + senderId.ToString()).Position = position;
+        foreach (UserState state in gameState.States)
+        {
+            int senderId = state.Id;
+            var player = GetNode<Character>("/root/Main/CharacterArray/" + senderId.ToString());
+            player.ReceiveState(state);
+        }
     }
 }

@@ -4,9 +4,19 @@ using System;
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class Character : Node3D
 {
+    private StateInterpolator _stateInterpolator = new();
+
     public override void _Ready()
     {
         this.SetMultiplayerAuthority(Int32.Parse(this.Name));
+    }
+
+    public override void _Process(double delta)
+    {
+        if (Multiplayer.GetUniqueId() == 1)
+            return;
+
+        _stateInterpolator.InterpolateStates(this);
     }
 
     public override void _PhysicsProcess(double delta)
@@ -25,6 +35,12 @@ public partial class Character : Node3D
 
         byte[] data = StructHelper.ToByteArray(cmd);
 
-        (Multiplayer as SceneMultiplayer).SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.UnreliableOrdered);
+        (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
+            MultiplayerPeer.TransferModeEnum.Unreliable);
+    }
+
+    public void ReceiveState(UserState state)
+    {
+        _stateInterpolator.PushState(state);
     }
 }
