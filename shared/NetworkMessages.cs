@@ -14,6 +14,11 @@ public struct UserState
     public int Id;
     public float X, Y, Z;
     public double Time;
+
+    public Vector3 Position
+    {
+        get { return new Vector3(X, Y, Z); }
+    }
 }
 
 public struct GameState

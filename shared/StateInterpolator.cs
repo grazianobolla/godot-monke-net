@@ -31,8 +31,8 @@ public class StateInterpolator
 
             float interpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
 
-            var pastPos = new Vector3(_statesBuffer[0].X, _statesBuffer[0].Y, _statesBuffer[0].Z);
-            var futurePos = new Vector3(_statesBuffer[1].X, _statesBuffer[1].Y, _statesBuffer[1].Z);
+            var pastPos = _statesBuffer[0].Position;
+            var futurePos = _statesBuffer[1].Position;
 
             character.Position = pastPos.Lerp(futurePos, interpolationFactor);
         }
