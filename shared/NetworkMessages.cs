@@ -23,7 +23,7 @@ public struct UserState
 
 public struct GameState
 {
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 2)]
-    public UserState[] States = new UserState[2];
+    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
+    public UserState[] States = new UserState[1];
     public GameState() { }
 }

@@ -12,7 +12,7 @@ public class StateInterpolator
         BufferTime = bufferTime;
     }
 
-    public void InterpolateStates(Node3D character)
+    public void InterpolateStates(Node3D player)
     {
         // Point in time to render (in the past)
         // TODO: replace UNIX time with network sychronized time
@@ -34,7 +34,7 @@ public class StateInterpolator
             var pastPos = _statesBuffer[0].Position;
             var futurePos = _statesBuffer[1].Position;
 
-            character.Position = pastPos.Lerp(futurePos, interpolationFactor);
+            player.Position = pastPos.Lerp(futurePos, interpolationFactor);
         }
     }
 

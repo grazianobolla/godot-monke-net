@@ -41,7 +41,7 @@ public partial class ClientManager : Node
         foreach (UserState state in gameState.States)
         {
             int senderId = state.Id;
-            var player = GetNode<Character>("/root/Main/CharacterArray/" + senderId.ToString());
+            var player = GetNode<Player>("/root/Main/PlayerArray/" + senderId.ToString());
             player.ReceiveState(state);
         }
     }

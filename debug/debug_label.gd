@@ -1,7 +1,7 @@
 extends Label
 
 func _process(_delta):
-	var players = get_node("/root/Main/CharacterArray").get_children()
+	var players = get_node("/root/Main/PlayerArray").get_children()
 
 	self.text = ""
 	for player in players:

@@ -68,11 +68,11 @@ transform = Transform3D(1, 0, 0, 0, -0.707107, 0.707107, 0, -0.707107, -0.707107
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_rybih")
 
-[node name="CharacterArray" type="Node" parent="."]
+[node name="PlayerArray" type="Node" parent="."]
 
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
-_spawnable_scenes = PackedStringArray("res://Character.tscn")
-spawn_path = NodePath("../CharacterArray")
+_spawnable_scenes = PackedStringArray("res://Player.tscn")
+spawn_path = NodePath("../PlayerArray")
 
 [connection signal="pressed" from="Buttons/Button" to="." method="_on_button_pressed" binds= [false]]
 [connection signal="pressed" from="Buttons/Button2" to="." method="_on_button_pressed" binds= [true]]

@@ -5,10 +5,9 @@ using System;
 // Code executed on the server side only, handles network events
 public partial class ServerManager : Node
 {
-    [Export] private PackedScene _characterScene;
+    [Export] private PackedScene _playerScene;
     [Export] private int _port = 9999;
 
-    private NodePath _charArrayPath = "/root/Main/CharacterArray";
     private SceneMultiplayer _sceneMultiplayer = new();
     private Queue<UserCommand> _cmdsQueue = new();
 
@@ -19,31 +18,31 @@ public partial class ServerManager : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        var characterArray = GetNode(_charArrayPath).GetChildren();
+        var playerArray = GetNode("/root/Main/PlayerArray").GetChildren();
 
         // Process everything
         while (_cmdsQueue.Count > 0)
         {
             var cmd = _cmdsQueue.Dequeue();
-            var character = GetNode<Character>($"{_charArrayPath}/{cmd.Id}");
+            var player = GetNode<Player>($"/root/Main/PlayerArray/{cmd.Id}");
             var direction = new Vector3(cmd.DirX, 0, cmd.DirY);
-            character.Translate(direction * (float)delta * 4);
+            player.Translate(direction * (float)delta * 4);
         }
 
         // Pack and send UserStates
         var state = new GameState();
 
         double currentTime = Time.GetUnixTimeFromSystem();
-        for (int i = 0; i < characterArray.Count; i++)
+        for (int i = 0; i < playerArray.Count; i++)
         {
-            var character = characterArray[i] as Character;
+            var player = playerArray[i] as Player;
 
             UserState userState = new UserState
             {
-                Id = Int32.Parse(character.Name), //TODO: risky
-                X = character.Position.x,
-                Y = character.Position.y,
-                Z = character.Position.z,
+                Id = Int32.Parse(player.Name), //TODO: risky
+                X = player.Position.x,
+                Y = player.Position.y,
+                Z = player.Position.z,
                 Time = currentTime
             };
 
@@ -71,15 +70,15 @@ public partial class ServerManager : Node
 
     private void OnPeerConnected(long id)
     {
-        Node characterInstance = _characterScene.Instantiate();
-        characterInstance.Name = id.ToString();
-        GetNode(_charArrayPath).AddChild(characterInstance);
+        Node playerInstance = _playerScene.Instantiate();
+        playerInstance.Name = id.ToString();
+        GetNode("/root/Main/PlayerArray").AddChild(playerInstance);
         GD.Print("Peer ", id, " connected");
     }
 
     private void OnPeerDisconnected(long id)
     {
-        GetNode($"{_charArrayPath}/{id}").QueueFree();
+        GetNode($"/root/Main/PlayerArray/{id}").QueueFree();
         GD.Print("Peer ", id, " disconnected");
     }
 

@@ -2,7 +2,7 @@ using Godot;
 using System;
 
 // Wrapper scene spawned by the MultiplayerSpawner
-public partial class Character : Node3D
+public partial class Player : Node3D
 {
     private StateInterpolator _stateInterpolator = new();
 
