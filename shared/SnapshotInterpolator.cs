@@ -4,6 +4,8 @@ using System.Collections.Generic;
 public class SnapshotInterpolator
 {
     public double BufferTime; // Buffer size in seconds
+    public float InterpolationFactor { get; private set; }
+
     private List<GameSnapshot> _snapshotBuffer = new();
 
     public SnapshotInterpolator(double bufferTime = 0.1f)
@@ -28,7 +30,7 @@ public class SnapshotInterpolator
             double timeDiffBetweenStates = _snapshotBuffer[1].Time - _snapshotBuffer[0].Time;
             double renderDiff = renderTime - _snapshotBuffer[0].Time;
 
-            float interpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
+            InterpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
 
             var futureStates = _snapshotBuffer[1].States;
 
@@ -38,7 +40,7 @@ public class SnapshotInterpolator
                 UserState pastState = _snapshotBuffer[0].States[i];
 
                 var player = playersArray.GetNode<Player>(futureState.Id.ToString());
-                player.Position = pastState.Position.Lerp(futureState.Position, interpolationFactor);
+                player.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);
             }
         }
     }

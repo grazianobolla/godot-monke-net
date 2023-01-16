@@ -20,7 +20,7 @@ public partial class ClientManager : Node
     public override void _Process(double delta)
     {
         _snapshotInterpolator.InterpolateStates(GetNode("/root/Main/PlayerArray"));
-        GetNode<Label>("Debug/Label2").Text = $"buff count {_snapshotInterpolator.BufferCount}";
+        DebugInfo();
     }
 
     private void OnPacketReceived(long id, byte[] data)
@@ -48,5 +48,17 @@ public partial class ClientManager : Node
         _sceneMultiplayer.MultiplayerPeer = peer;
         GetTree().SetMultiplayer(_sceneMultiplayer);
         GD.Print("Client connected to ", _address, ":", _port);
+    }
+
+    private void DebugInfo()
+    {
+        var label = GetNode<Label>("Debug/Label2");
+        label.Modulate = Colors.White;
+        label.Text = $"buf {_snapshotInterpolator.BufferCount}";
+        label.Text += String.Format("\nint {0:0.00}", _snapshotInterpolator.InterpolationFactor);
+        label.Text += $"\nclk {Time.GetUnixTimeFromSystem()}";
+
+        if (_snapshotInterpolator.InterpolationFactor > 1)
+            label.Modulate = Colors.Red;
     }
 }

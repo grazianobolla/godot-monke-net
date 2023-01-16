@@ -16,6 +16,11 @@ public partial class ServerManager : Node
         Create();
     }
 
+    public override void _Process(double delta)
+    {
+        DebugInfo();
+    }
+
     public override void _PhysicsProcess(double delta)
     {
         var playerArray = GetNode("/root/Main/PlayerArray").GetChildren();
@@ -85,5 +90,11 @@ public partial class ServerManager : Node
     {
         UserCommand cmd = StructHelper.ToStructure<UserCommand>(data);
         _cmdsQueue.Enqueue(cmd);
+    }
+
+    private void DebugInfo()
+    {
+        var label = GetNode<Label>("Debug/Label2");
+        label.Text = $"clk {Time.GetUnixTimeFromSystem()}";
     }
 }
