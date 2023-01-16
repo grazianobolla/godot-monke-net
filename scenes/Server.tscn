@@ -1,10 +1,10 @@
-[gd_scene load_steps=3 format=3 uid="uid://bere55tq3ohd2"]
+[gd_scene load_steps=3 format=3 uid="uid://bog1us6frffkj"]
 
-[ext_resource type="Script" path="res://scripts/ServerManager.cs" id="1_t7vta"]
-[ext_resource type="PackedScene" uid="uid://duubgmdf4sh25" path="res://Player.tscn" id="2_judkm"]
+[ext_resource type="Script" path="res://server/ServerManager.cs" id="1_4nn7d"]
+[ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://Player.tscn" id="2_judkm"]
 
 [node name="Server" type="Node"]
-script = ExtResource("1_t7vta")
+script = ExtResource("1_4nn7d")
 _playerScene = ExtResource("2_judkm")
 
 [node name="Debug" type="Control" parent="."]

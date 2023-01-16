@@ -1,6 +1,6 @@
-[gd_scene load_steps=4 format=3 uid="uid://duubgmdf4sh25"]
+[gd_scene load_steps=4 format=3 uid="uid://dp0u7dohrllcb"]
 
-[ext_resource type="Script" path="res://scripts/Player.cs" id="1_b4cu1"]
+[ext_resource type="Script" path="res://client/Player.cs" id="1_5hxgr"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojigt"]
 resource_local_to_scene = true
@@ -8,7 +8,7 @@ resource_local_to_scene = true
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
 [node name="Player" type="Node3D"]
-script = ExtResource("1_b4cu1")
+script = ExtResource("1_5hxgr")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_ojigt")

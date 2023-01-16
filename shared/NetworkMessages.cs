@@ -1,29 +1,70 @@
 using Godot;
-using System.Runtime.InteropServices;
+using System.Collections.Generic;
+using MessagePack;
 
-// Encapsulates user input and other states
-public struct UserCommand
+namespace NetMessage
 {
-    public int Id;
-    public float DirX, DirY;
-}
+    [MessagePack.Union(0, typeof(UserCommand))]
+    [MessagePack.Union(1, typeof(GameSnapshot))]
+    [MessagePack.Union(2, typeof(Sync))]
+    public interface ICommand { }
 
-// Encapsulates current game state for a player
-public struct UserState
-{
-    public int Id;
-    public float X, Y, Z;
-
-    public Vector3 Position
+    // Encapsulates user input and other client actions
+    [MessagePackObject]
+    public partial struct UserCommand : ICommand
     {
-        get { return new Vector3(X, Y, Z); }
-    }
-}
+        [Key(0)]
+        public int Id;
 
-public struct GameSnapshot
-{
-    [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
-    public UserState[] States = new UserState[1];
-    public double Time;
-    public GameSnapshot(double time) { Time = time; }
+        [Key(1)]
+        public float DirX;
+
+        [Key(2)]
+        public float DirY;
+    }
+
+    // Game state for a given point in time
+    [MessagePackObject]
+    public partial struct GameSnapshot : ICommand
+    {
+        [Key(0)]
+        public UserState[] States;
+
+        [Key(1)]
+        public ulong Time;
+    }
+
+    // Used to calculate latency
+    [MessagePackObject]
+    public partial struct Sync : ICommand
+    {
+        [Key(0)]
+        public int ClientTime;
+
+        [Key(1)]
+        public int ServerTime;
+    }
+
+    // Encapsulates current state for a player (gets sent with gameSnapshot)
+    [MessagePackObject]
+    public partial struct UserState
+    {
+        [Key(0)]
+        public int Id;
+
+        [Key(1)]
+        public float X;
+
+        [Key(2)]
+        public float Y;
+
+        [Key(3)]
+        public float Z;
+
+        [IgnoreMember]
+        public Vector3 Position
+        {
+            get { return new Vector3(X, Y, Z); }
+        }
+    }
 }

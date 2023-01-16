@@ -3,22 +3,21 @@ using System.Collections.Generic;
 
 public class SnapshotInterpolator
 {
-    public double BufferTime; // Buffer size in seconds
+    public int BufferTime; // Buffer size in milliseconds
     public float InterpolationFactor { get; private set; }
 
-    private List<GameSnapshot> _snapshotBuffer = new();
+    private List<NetMessage.GameSnapshot> _snapshotBuffer = new();
 
-    public SnapshotInterpolator(double bufferTime = 0.1f)
+    public SnapshotInterpolator(int bufferTime)
     {
         BufferTime = bufferTime;
     }
 
-    public void InterpolateStates(Node playersArray)
+    public void InterpolateStates(Node playersArray, int clock)
     {
         // Point in time to render (in the past)
         // TODO: replace UNIX time with network sychronized time
-        double currentTime = Time.GetUnixTimeFromSystem();
-        double renderTime = currentTime - BufferTime;
+        double renderTime = clock - BufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {
@@ -37,8 +36,8 @@ public class SnapshotInterpolator
 
             for (int i = 0; i < futureStates.Length; i++)
             {
-                UserState futureState = _snapshotBuffer[1].States[i];
-                UserState pastState = _snapshotBuffer[0].States[i];
+                NetMessage.UserState futureState = _snapshotBuffer[1].States[i];
+                NetMessage.UserState pastState = _snapshotBuffer[0].States[i];
 
                 var player = playersArray.GetNode<Player>(futureState.Id.ToString());
                 player.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);
@@ -46,7 +45,7 @@ public class SnapshotInterpolator
         }
     }
 
-    public void PushState(GameSnapshot snapshot)
+    public void PushState(NetMessage.GameSnapshot snapshot)
     {
         if (_snapshotBuffer.Count <= 0 || snapshot.Time > _snapshotBuffer[_snapshotBuffer.Count - 1].Time)
         {

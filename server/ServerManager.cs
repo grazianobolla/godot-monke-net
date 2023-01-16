@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using System;
+using MessagePack;
 
 // Code executed on the server side only, handles network events
 public partial class ServerManager : Node
@@ -9,7 +10,7 @@ public partial class ServerManager : Node
     [Export] private int _port = 9999;
 
     private SceneMultiplayer _sceneMultiplayer = new();
-    private Queue<UserCommand> _cmdsQueue = new();
+    private Queue<NetMessage.UserCommand> _cmdsQueue = new();
 
     public override void _Ready()
     {
@@ -35,14 +36,17 @@ public partial class ServerManager : Node
         }
 
         // Pack and send GameSnapshot
-        double currentTime = Time.GetUnixTimeFromSystem();
-        var state = new GameSnapshot(currentTime);
+        var snapshot = new NetMessage.GameSnapshot
+        {
+            Time = Time.GetTicksMsec(),
+            States = new NetMessage.UserState[playerArray.Count]
+        };
 
         for (int i = 0; i < playerArray.Count; i++)
         {
             var player = playerArray[i] as Player;
 
-            UserState userState = new UserState
+            var userState = new NetMessage.UserState
             {
                 Id = Int32.Parse(player.Name), //TODO: risky
                 X = player.Position.x,
@@ -50,10 +54,12 @@ public partial class ServerManager : Node
                 Z = player.Position.z
             };
 
-            state.States[i] = userState;
+            snapshot.States[i] = userState;
         }
 
-        _sceneMultiplayer.SendBytes(StructHelper.ToByteArray(state), 0,
+        byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);
+
+        _sceneMultiplayer.SendBytes(data, 0,
             MultiplayerPeer.TransferModeEnum.Unreliable);
     }
 
@@ -88,13 +94,24 @@ public partial class ServerManager : Node
 
     private void OnPacketReceived(long id, byte[] data)
     {
-        UserCommand cmd = StructHelper.ToStructure<UserCommand>(data);
-        _cmdsQueue.Enqueue(cmd);
+        var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+
+        switch (command)
+        {
+            case NetMessage.UserCommand userCmd:
+                _cmdsQueue.Enqueue(userCmd);
+                break;
+
+            case NetMessage.Sync sync:
+                sync.ServerTime = (int)Time.GetTicksMsec();
+                _sceneMultiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable);
+                break;
+        }
     }
 
     private void DebugInfo()
     {
         var label = GetNode<Label>("Debug/Label2");
-        label.Text = $"clk {Time.GetUnixTimeFromSystem()}";
+        label.Text = $"clk {Time.GetTicksMsec()}";
     }
 }
