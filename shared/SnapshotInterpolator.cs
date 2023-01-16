@@ -17,7 +17,8 @@ public class SnapshotInterpolator
     {
         // Point in time to render (in the past)
         // TODO: replace UNIX time with network sychronized time
-        double renderTime = Time.GetUnixTimeFromSystem() - BufferTime;
+        double currentTime = Time.GetUnixTimeFromSystem();
+        double renderTime = currentTime - BufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {

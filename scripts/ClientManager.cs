@@ -10,22 +10,27 @@ public partial class ClientManager : Node
 
     private SceneMultiplayer _sceneMultiplayer = new();
     private SnapshotInterpolator _snapshotInterpolator;
+    private Node _playersArray;
+
+    private int _pkgCounter = 0, _pkgSec = 0;
 
     public override void _Ready()
     {
+        _playersArray = GetNode("/root/Main/PlayerArray");
         _snapshotInterpolator = new(_interpBufferLenght);
         Connect();
     }
 
     public override void _Process(double delta)
     {
-        _snapshotInterpolator.InterpolateStates(GetNode("/root/Main/PlayerArray"));
+        _snapshotInterpolator.InterpolateStates(_playersArray);
         DebugInfo();
     }
 
     private void OnPacketReceived(long id, byte[] data)
     {
-        //targetNetPos = blablabal;
+        _pkgCounter++;
+
         var gameSnapshot = StructHelper.ToStructure<GameSnapshot>(data);
         _snapshotInterpolator.PushState(gameSnapshot);
     }
@@ -54,11 +59,18 @@ public partial class ClientManager : Node
     {
         var label = GetNode<Label>("Debug/Label2");
         label.Modulate = Colors.White;
-        label.Text = $"buf {_snapshotInterpolator.BufferCount}";
-        label.Text += String.Format("\nint {0:0.00}", _snapshotInterpolator.InterpolationFactor);
+        label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
+        label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
         label.Text += $"\nclk {Time.GetUnixTimeFromSystem()}";
+        label.Text += $"\npps {_pkgSec}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;
+    }
+
+    private void OnTimerOut()
+    {
+        _pkgSec = _pkgCounter;
+        _pkgCounter = 0;
     }
 }

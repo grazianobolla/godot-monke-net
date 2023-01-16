@@ -37,7 +37,6 @@ text = "buf 0 int 0
 clk 0 png 0"
 
 [node name="Timer" type="Timer" parent="."]
-wait_time = 5.0
 autostart = true
 
-[connection signal="timeout" from="Timer" to="." method="OnLatencyTimerTimeout"]
+[connection signal="timeout" from="Timer" to="." method="OnTimerOut"]
