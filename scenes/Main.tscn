@@ -1,7 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://gy06q682mv2h"]
+[gd_scene load_steps=9 format=3 uid="uid://gy06q682mv2h"]
 
 [ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
 [ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
+[ext_resource type="Script" path="res://debug/CubeRotation.gd" id="3_od4jj"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i6375"]
 albedo_color = Color(0.101961, 0.101961, 0.101961, 1)
@@ -15,6 +16,8 @@ sky_material = SubResource("ProceduralSkyMaterial_hftyp")
 [sub_resource type="Environment" id="Environment_rybih"]
 background_mode = 2
 sky = SubResource("Sky_xbuw4")
+
+[sub_resource type="BoxMesh" id="BoxMesh_5p16j"]
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_n3q4e")
@@ -73,6 +76,11 @@ environment = SubResource("Environment_rybih")
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 _spawnable_scenes = PackedStringArray("res://Player.tscn")
 spawn_path = NodePath("../PlayerArray")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("BoxMesh_5p16j")
+script = ExtResource("3_od4jj")
 
 [connection signal="pressed" from="Buttons/Button" to="." method="_on_button_pressed" binds= [false]]
 [connection signal="pressed" from="Buttons/Button2" to="." method="_on_button_pressed" binds= [true]]

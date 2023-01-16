@@ -29,10 +29,10 @@ public partial class ServerManager : Node
             player.Translate(direction * (float)delta * 4);
         }
 
-        // Pack and send UserStates
-        var state = new GameState();
-
+        // Pack and send GameSnapshot
         double currentTime = Time.GetUnixTimeFromSystem();
+        var state = new GameSnapshot(currentTime);
+
         for (int i = 0; i < playerArray.Count; i++)
         {
             var player = playerArray[i] as Player;
@@ -42,8 +42,7 @@ public partial class ServerManager : Node
                 Id = Int32.Parse(player.Name), //TODO: risky
                 X = player.Position.x,
                 Y = player.Position.y,
-                Z = player.Position.z,
-                Time = currentTime
+                Z = player.Position.z
             };
 
             state.States[i] = userState;

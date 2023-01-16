@@ -13,7 +13,6 @@ public struct UserState
 {
     public int Id;
     public float X, Y, Z;
-    public double Time;
 
     public Vector3 Position
     {
@@ -21,9 +20,10 @@ public struct UserState
     }
 }
 
-public struct GameState
+public struct GameSnapshot
 {
     [MarshalAs(UnmanagedType.ByValArray, SizeConst = 1)]
     public UserState[] States = new UserState[1];
-    public GameState() { }
+    public double Time;
+    public GameSnapshot(double time) { Time = time; }
 }

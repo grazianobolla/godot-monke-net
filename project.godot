@@ -27,4 +27,4 @@ project/assembly_name="multiplayer-base"
 
 [physics]
 
-common/physics_ticks_per_second=20
+common/physics_ticks_per_second=30
