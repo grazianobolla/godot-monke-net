@@ -11,12 +11,9 @@ public partial class ClientManager : Node
 
     private SceneMultiplayer _multiplayer = new();
     private SnapshotInterpolator _snapshotInterpolator;
-    private ClientClock _clock = new();
-    private NetworkPinger _netPinger;
+    private NetworkClock _netClock;
     private Node _entityArray;
 
-    private bool _firstPing = true;
-    private int _packetDelta = 0;
     private int _packetTickDifference = 0;
 
     public override void _Ready()
@@ -26,43 +23,24 @@ public partial class ClientManager : Node
         _entityArray = GetNode("/root/Main/EntityArray");
         _snapshotInterpolator = new(_interpBufferLenght);
 
-        _netPinger = GetNode<NetworkPinger>("NetworkPinger");
-        _netPinger.Initialize(_multiplayer);
-        _netPinger.LatencyCalculated += OnLatencyCalculated;
+        _netClock = GetNode<NetworkClock>("NetworkClock");
+        _netClock.Initialize(_multiplayer);
     }
 
     public override void _Process(double delta)
     {
-        _clock.AdjustClock(delta, _packetDelta);
-        _packetDelta = 0;
-
-        _snapshotInterpolator.InterpolateStates(_entityArray, ClientClock.Ticks);
+        _snapshotInterpolator.InterpolateStates(_entityArray, _netClock.Ticks);
         DebugInfo(delta);
-    }
-
-    private void OnLatencyCalculated(int lastServerTicks, int latency, int packetDelta)
-    {
-        // Sync the timer clock the first time we do a ping
-        if (_firstPing)
-        {
-            _clock.Setup(lastServerTicks, latency);
-            _firstPing = false;
-            return;
-        }
-
-        _packetDelta = packetDelta;
     }
 
     private void OnPacketReceived(long id, byte[] data)
     {
         var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
 
-        switch (command)
+        if (command is NetMessage.GameSnapshot snapshot)
         {
-            case NetMessage.GameSnapshot snapshot:
-                _snapshotInterpolator.PushState(snapshot);
-                _packetTickDifference = ClientClock.Ticks - snapshot.Time;
-                break;
+            _snapshotInterpolator.PushState(snapshot);
+            _packetTickDifference = _netClock.Ticks - snapshot.Time;
         }
     }
 
@@ -89,8 +67,8 @@ public partial class ClientManager : Node
         label.Modulate = Colors.White;
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
-        label.Text += $"\nclk {ClientClock.Ticks} diff {_packetTickDifference}";
-        label.Text += $"\nping {_netPinger.Latency} pkg delta {_netPinger.PacketDelta}";
+        label.Text += $"\nclk {_netClock.Ticks} diff_last {_packetTickDifference}ms";
+        label.Text += $"\nping {_netClock.Latency} diff_avg {_netClock.PacketDelta}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;

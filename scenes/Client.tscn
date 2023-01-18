@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=3 uid="uid://eykxehuqerja"]
 
 [ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
-[ext_resource type="Script" path="res://client/NetworkPinger.cs" id="2_ex1me"]
+[ext_resource type="Script" path="res://client/NetworkClock.cs" id="2_c2fu1"]
 
 [node name="Client" type="Node"]
 script = ExtResource("1_y3i7q")
@@ -37,11 +37,11 @@ grow_vertical = 0
 text = "buf 0 int 0
 clk 0 png 0"
 
-[node name="NetworkPinger" type="Node" parent="."]
-script = ExtResource("2_ex1me")
+[node name="NetworkClock" type="Node" parent="."]
+script = ExtResource("2_c2fu1")
 
-[node name="Timer" type="Timer" parent="NetworkPinger"]
+[node name="Timer" type="Timer" parent="NetworkClock"]
 wait_time = 0.5
 autostart = true
 
-[connection signal="timeout" from="NetworkPinger/Timer" to="NetworkPinger" method="OnTimerOut"]
+[connection signal="timeout" from="NetworkClock/Timer" to="NetworkClock" method="OnTimerOut"]

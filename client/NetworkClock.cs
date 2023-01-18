@@ -2,23 +2,26 @@ using Godot;
 using System.Collections.Generic;
 using MessagePack;
 
-// Client side functionaly that calculates latency and other network related stuff
-public partial class NetworkPinger : Node
+// Keeps tracks of delays in the network and adjusts a clock to always be in sync with the server
+// also calculates latency
+public partial class NetworkClock : Node
 {
     [Signal]
-    public delegate void LatencyCalculatedEventHandler(int lastServerTime, int latency, int packetDelta);
+    public delegate void LatencyCalculatedEventHandler(int latency, int packetDelta);
 
-    [Export] private int _sampleSize = 5;
+    [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateSeconds = 0.5f;
-    [Export] private int _minimumLatency = 20;
     [Export] private int _minimumPacketDelta = 20;
 
+    public int Ticks { get; private set; } = 0;
     public int Latency { get; private set; } = 0;
     public int PacketDelta { get; private set; } = 0;
 
-    private List<int> _latencyValues = new();
     private List<int> _packetDeltaValues = new();
     private SceneMultiplayer _multiplayer;
+    private bool _firstPing = true; // Used to sync the timer the first time we receive a ping
+    private int _lastPacketDelta = 0;
+    private double _decimalCollector = 0;
 
     public void Initialize(SceneMultiplayer multiplayer)
     {
@@ -28,28 +31,49 @@ public partial class NetworkPinger : Node
         GetNode<Timer>("Timer").WaitTime = _sampleRateSeconds;
     }
 
+    public override void _Process(double delta)
+    {
+        AdjustClock(delta, _lastPacketDelta);
+        _lastPacketDelta = 0;
+    }
+
     private void SyncReceived(NetMessage.Sync sync)
     {
+        CalculateValues(sync);
+    }
+
+    private void CalculateValues(NetMessage.Sync sync)
+    {
         // Latency as the difference between when the packet was sent and when it came back divided by 2
-        var currentLatency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
+        Latency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Difference in time between the received packet server time and the client clock
-        var currentPacketDelta = sync.ServerTime - ClientClock.Ticks;
+        var currentPacketDelta = sync.ServerTime - Ticks;
 
-        _latencyValues.Add(currentLatency);
         _packetDeltaValues.Add(currentPacketDelta);
 
-        if (_latencyValues.Count >= _sampleSize)
+        if (_packetDeltaValues.Count >= _sampleSize)
         {
-            int latencyAvg = ReturnSmoothAverage(_latencyValues, _minimumLatency);
             int packetDeltaAvg = ReturnSmoothAverage(_packetDeltaValues, _minimumPacketDelta);
-            _latencyValues.Clear();
             _packetDeltaValues.Clear();
+            PacketDelta = _lastPacketDelta = packetDeltaAvg;
 
-            Latency = latencyAvg;
-            PacketDelta = packetDeltaAvg;
+            EmitSignal(SignalName.LatencyCalculated, Latency, PacketDelta);
+        }
+    }
 
-            EmitSignal(SignalName.LatencyCalculated, sync.ServerTime, Latency, PacketDelta);
+    private void AdjustClock(double delta, int offset)
+    {
+        int msDelta = (int)(delta * 1000.0);
+
+        Ticks += msDelta + offset;
+
+        // Prevent clock drift
+        _decimalCollector += (delta * 1000.0) - msDelta;
+        if (_decimalCollector >= 1.00)
+        {
+            Ticks += 1;
+            _decimalCollector -= 1.0;
         }
     }
 
