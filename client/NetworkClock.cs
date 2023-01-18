@@ -6,18 +6,16 @@ using MessagePack;
 // also calculates latency
 public partial class NetworkClock : Node
 {
-    [Signal]
-    public delegate void LatencyCalculatedEventHandler(int latency, int packetDelta);
-
-    [Export] private int _sampleSize = 11;
-    [Export] private float _sampleRateSeconds = 0.5f;
+    [Export] private int _sampleSize = 5;
+    [Export] private float _sampleRateSeconds = 1;
     [Export] private int _minimumPacketDelta = 20;
 
-    public int Ticks { get; private set; } = 0;
+    public int Ticks { get; private set; } = 200;
     public int Latency { get; private set; } = 0;
     public int PacketDelta { get; private set; } = 0;
 
     private List<int> _packetDeltaValues = new();
+
     private SceneMultiplayer _multiplayer;
     private bool _firstPing = true; // Used to sync the timer the first time we receive a ping
     private int _lastPacketDelta = 0;
@@ -48,7 +46,7 @@ public partial class NetworkClock : Node
         Latency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Difference in time between the received packet server time and the client clock
-        var currentPacketDelta = sync.ServerTime - Ticks;
+        int currentPacketDelta = sync.ServerTime - Ticks;
 
         _packetDeltaValues.Add(currentPacketDelta);
 
@@ -56,9 +54,8 @@ public partial class NetworkClock : Node
         {
             int packetDeltaAvg = ReturnSmoothAverage(_packetDeltaValues, _minimumPacketDelta);
             _packetDeltaValues.Clear();
-            PacketDelta = _lastPacketDelta = packetDeltaAvg;
 
-            EmitSignal(SignalName.LatencyCalculated, Latency, PacketDelta);
+            PacketDelta = _lastPacketDelta = packetDeltaAvg;
         }
     }
 

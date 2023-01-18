@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://dp0u7dohrllcb"]
+[gd_scene load_steps=5 format=3 uid="uid://dp0u7dohrllcb"]
 
 [ext_resource type="Script" path="res://client/Player.cs" id="1_5hxgr"]
 
@@ -8,9 +8,14 @@ albedo_color = Color(1, 0, 1, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
-[node name="Player" type="Node3D"]
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_avjc0"]
+
+[node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_5hxgr")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_n5ck7")
 mesh = SubResource("CapsuleMesh_x0vba")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_avjc0")

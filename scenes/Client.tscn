@@ -39,6 +39,8 @@ clk 0 png 0"
 
 [node name="NetworkClock" type="Node" parent="."]
 script = ExtResource("2_c2fu1")
+_sampleSize = 11
+_sampleRateSeconds = 0.5
 
 [node name="Timer" type="Timer" parent="NetworkClock"]
 wait_time = 0.5

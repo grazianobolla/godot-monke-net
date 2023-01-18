@@ -7,7 +7,7 @@ resource_local_to_scene = true
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
-[node name="ServerPlayer" type="Node3D"]
+[node name="ServerPlayer" type="CharacterBody3D"]
 script = ExtResource("1_cbmgq")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
