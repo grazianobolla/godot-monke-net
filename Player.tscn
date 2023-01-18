@@ -2,8 +2,9 @@
 
 [ext_resource type="Script" path="res://client/Player.cs" id="1_5hxgr"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojigt"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5ck7"]
 resource_local_to_scene = true
+albedo_color = Color(1, 0, 1, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
@@ -11,5 +12,5 @@ resource_local_to_scene = true
 script = ExtResource("1_5hxgr")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-material_override = SubResource("StandardMaterial3D_ojigt")
+material_override = SubResource("StandardMaterial3D_n5ck7")
 mesh = SubResource("CapsuleMesh_x0vba")

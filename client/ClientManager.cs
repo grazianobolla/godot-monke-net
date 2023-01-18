@@ -13,7 +13,7 @@ public partial class ClientManager : Node
     private SnapshotInterpolator _snapshotInterpolator;
     private ClientClock _clock = new();
     private NetworkPinger _netPinger;
-    private Node _playersArray;
+    private Node _entityArray;
 
     private bool _firstPing = true;
     private int _deltaLatency = 0;
@@ -24,7 +24,7 @@ public partial class ClientManager : Node
     {
         Connect();
 
-        _playersArray = GetNode("/root/Main/PlayerArray");
+        _entityArray = GetNode("/root/Main/EntityArray");
         _snapshotInterpolator = new(_interpBufferLenght);
 
         _netPinger = GetNode<NetworkPinger>("NetworkPinger");
@@ -37,7 +37,7 @@ public partial class ClientManager : Node
         _clock.AdjustClock(delta, _deltaLatency);
         _deltaLatency = 0;
 
-        _snapshotInterpolator.InterpolateStates(_playersArray, _clock.Ticks);
+        _snapshotInterpolator.InterpolateStates(_entityArray, _clock.Ticks);
         DebugInfo(delta);
     }
 

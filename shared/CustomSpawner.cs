@@ -48,6 +48,7 @@ public partial class CustomSpawner : MultiplayerSpawner
             GD.Print("Spawned dummy");
             Node player = _dummyScene.Instantiate();
             player.Name = id.ToString();
+            player.SetMultiplayerAuthority(id);
             return player;
         }
     }

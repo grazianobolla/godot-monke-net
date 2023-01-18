@@ -6,10 +6,9 @@ using MessagePack;
 // Code executed on the server side only, handles network events
 public partial class ServerManager : Node
 {
-    [Export] private PackedScene _playerScene;
     [Export] private int _port = 9999;
 
-    private SceneMultiplayer _sceneMultiplayer = new();
+    private SceneMultiplayer _multiplayer = new();
     private Queue<NetMessage.UserCommand> _cmdsQueue = new();
 
     public override void _Ready()
@@ -19,39 +18,43 @@ public partial class ServerManager : Node
 
     public override void _Process(double delta)
     {
+        // Process entity commands
+        while (_cmdsQueue.Count > 0)
+        {
+            var cmd = _cmdsQueue.Dequeue();
+            var entity = GetNode($"/root/Main/EntityArray/{cmd.Id}");
+
+            if (entity is ServerPlayer player)
+            {
+                var direction = new Vector3(cmd.DirX, 0, cmd.DirY);
+                player.ProcessMovement(direction);
+            }
+        }
+
         DebugInfo();
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        var playerArray = GetNode("/root/Main/PlayerArray").GetChildren();
+        var entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 
-        // Process everything
-        while (_cmdsQueue.Count > 0)
-        {
-            var cmd = _cmdsQueue.Dequeue();
-            var player = GetNode<Player>($"/root/Main/PlayerArray/{cmd.Id}");
-            var direction = new Vector3(cmd.DirX, 0, cmd.DirY);
-            player.Translate(direction * (float)delta * 4);
-        }
-
-        // Pack and send GameSnapshot
+        // Pack and send GameSnapshot with all entities and their information
         var snapshot = new NetMessage.GameSnapshot
         {
             Time = (int)Time.GetTicksMsec(),
-            States = new NetMessage.UserState[playerArray.Count]
+            States = new NetMessage.UserState[entityArray.Count]
         };
 
-        for (int i = 0; i < playerArray.Count; i++)
+        for (int i = 0; i < entityArray.Count; i++)
         {
-            var player = playerArray[i] as Player;
+            var entitiy = entityArray[i] as Node3D; //player
 
             var userState = new NetMessage.UserState
             {
-                Id = Int32.Parse(player.Name), //TODO: risky
-                X = player.Position.x,
-                Y = player.Position.y,
-                Z = player.Position.z
+                Id = Int32.Parse(entitiy.Name), //TODO: risky
+                X = entitiy.Position.x,
+                Y = entitiy.Position.y,
+                Z = entitiy.Position.z
             };
 
             snapshot.States[i] = userState;
@@ -59,7 +62,7 @@ public partial class ServerManager : Node
 
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);
 
-        _sceneMultiplayer.SendBytes(data, 0,
+        _multiplayer.SendBytes(data, 0,
             MultiplayerPeer.TransferModeEnum.Unreliable);
     }
 
@@ -75,7 +78,8 @@ public partial class ServerManager : Node
 
             case NetMessage.Sync sync:
                 sync.ServerTime = (int)Time.GetTicksMsec();
-                _sceneMultiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable);
+                _multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id,
+                MultiplayerPeer.TransferModeEnum.Unreliable);
                 break;
         }
     }
@@ -88,21 +92,21 @@ public partial class ServerManager : Node
 
     private void OnPeerDisconnected(long id)
     {
-        GetNode($"/root/Main/PlayerArray/{id}").QueueFree();
+        GetNode($"/root/Main/EntityArray/{id}").QueueFree();
         GD.Print("Peer ", id, " disconnected");
     }
 
     private void Create()
     {
-        _sceneMultiplayer.PeerConnected += OnPeerConnected;
-        _sceneMultiplayer.PeerDisconnected += OnPeerDisconnected;
-        _sceneMultiplayer.PeerPacket += OnPacketReceived;
+        _multiplayer.PeerConnected += OnPeerConnected;
+        _multiplayer.PeerDisconnected += OnPeerDisconnected;
+        _multiplayer.PeerPacket += OnPacketReceived;
 
         ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
         peer.CreateServer(_port);
 
-        _sceneMultiplayer.MultiplayerPeer = peer;
-        GetTree().SetMultiplayer(_sceneMultiplayer);
+        _multiplayer.MultiplayerPeer = peer;
+        GetTree().SetMultiplayer(_multiplayer);
 
         GD.Print("Server listening on ", _port);
     }

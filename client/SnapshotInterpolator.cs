@@ -40,7 +40,7 @@ public class SnapshotInterpolator
                 NetMessage.UserState futureState = _snapshotBuffer[NEXT_FUTURE].States[i];
                 NetMessage.UserState pastState = _snapshotBuffer[RECENT_PAST].States[i];
 
-                var player = playersArray.GetNode<Player>(futureState.Id.ToString());
+                var player = playersArray.GetNode<Node3D>(futureState.Id.ToString());
                 player.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);
             }
         }

@@ -1,11 +1,9 @@
-[gd_scene load_steps=3 format=3 uid="uid://bog1us6frffkj"]
+[gd_scene load_steps=2 format=3 uid="uid://bog1us6frffkj"]
 
 [ext_resource type="Script" path="res://server/ServerManager.cs" id="1_4nn7d"]
-[ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://Player.tscn" id="2_judkm"]
 
 [node name="Server" type="Node"]
 script = ExtResource("1_4nn7d")
-_playerScene = ExtResource("2_judkm")
 
 [node name="Debug" type="Control" parent="."]
 layout_mode = 3
