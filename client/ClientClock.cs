@@ -3,21 +3,21 @@ using Godot;
 
 public class ClientClock
 {
-    public int Ticks { get; private set; } = 0;
+    public static int Ticks { get; private set; } = 0;
 
     private double _decimalCollector = 0;
 
-    public void Setup(int serverTicks, int latency)
+    public void Setup(int serverTicks, int offset)
     {
-        Ticks = serverTicks + latency;
+        Ticks = serverTicks + offset;
         GD.Print($"Client clock synced to {Ticks}");
     }
 
-    public void AdjustClock(double delta, int deltaLatency)
+    public void AdjustClock(double delta, int offset)
     {
         int msDelta = (int)(delta * 1000.0);
 
-        Ticks += msDelta + deltaLatency;
+        Ticks += msDelta + offset;
 
         // Prevent clock drift
         _decimalCollector += (delta * 1000.0) - msDelta;
