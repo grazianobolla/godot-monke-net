@@ -8,6 +8,9 @@ public class SnapshotInterpolator
 
     private List<NetMessage.GameSnapshot> _snapshotBuffer = new();
 
+    private const int RECENT_PAST = 0;
+    private const int NEXT_FUTURE = 1;
+
     public SnapshotInterpolator(int bufferTime)
     {
         BufferTime = bufferTime;
@@ -27,17 +30,17 @@ public class SnapshotInterpolator
                 _snapshotBuffer.RemoveAt(0);
             }
 
-            double timeDiffBetweenStates = _snapshotBuffer[1].Time - _snapshotBuffer[0].Time;
-            double renderDiff = renderTime - _snapshotBuffer[0].Time;
+            double timeDiffBetweenStates = _snapshotBuffer[NEXT_FUTURE].Time - _snapshotBuffer[RECENT_PAST].Time;
+            double renderDiff = renderTime - _snapshotBuffer[RECENT_PAST].Time;
 
             InterpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
 
-            var futureStates = _snapshotBuffer[1].States;
+            var futureStates = _snapshotBuffer[NEXT_FUTURE].States;
 
             for (int i = 0; i < futureStates.Length; i++)
             {
-                NetMessage.UserState futureState = _snapshotBuffer[1].States[i];
-                NetMessage.UserState pastState = _snapshotBuffer[0].States[i];
+                NetMessage.UserState futureState = _snapshotBuffer[NEXT_FUTURE].States[i];
+                NetMessage.UserState pastState = _snapshotBuffer[RECENT_PAST].States[i];
 
                 var player = playersArray.GetNode<Player>(futureState.Id.ToString());
                 player.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);

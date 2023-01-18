@@ -31,7 +31,7 @@ namespace NetMessage
         public UserState[] States;
 
         [Key(1)]
-        public ulong Time;
+        public int Time;
     }
 
     // Used to calculate latency

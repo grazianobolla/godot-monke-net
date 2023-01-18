@@ -38,7 +38,7 @@ public partial class ServerManager : Node
         // Pack and send GameSnapshot
         var snapshot = new NetMessage.GameSnapshot
         {
-            Time = Time.GetTicksMsec(),
+            Time = (int)Time.GetTicksMsec(),
             States = new NetMessage.UserState[playerArray.Count]
         };
 

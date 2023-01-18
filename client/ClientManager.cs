@@ -9,82 +9,64 @@ public partial class ClientManager : Node
     [Export] private int _port = 9999;
     [Export] private int _interpBufferLenght = 100;
 
-    public int Clock { get; private set; } = 0;
-
-    private SceneMultiplayer _sceneMultiplayer = new();
+    private SceneMultiplayer _multiplayer = new();
     private SnapshotInterpolator _snapshotInterpolator;
+    private ClientClock _clock = new();
+    private NetworkPinger _netPinger;
     private Node _playersArray;
 
-    //TODO: remove -----------------------------
-    private int _pkgCounter = 0, _pkgSec = 0, deltaLatency;
-    float offset = 0;
-    double decColl = 0;
-    bool ft = true;
-    //------------------------------------------
+    private bool _firstPing = true;
+    private int _deltaLatency = 0;
+
+    private int _packetTickDifference = 0;
 
     public override void _Ready()
     {
+        Connect();
+
         _playersArray = GetNode("/root/Main/PlayerArray");
         _snapshotInterpolator = new(_interpBufferLenght);
-        GetNode<NetworkPinger>("NetworkPinger").LatencyCalculated += OnLatencyCalculated;
-        Connect();
+
+        _netPinger = GetNode<NetworkPinger>("NetworkPinger");
+        _netPinger.Initialize(_multiplayer);
+        _netPinger.LatencyCalculated += OnLatencyCalculated;
     }
 
     public override void _Process(double delta)
     {
-        AdjustClock(delta);
-        _snapshotInterpolator.InterpolateStates(_playersArray, Clock);
+        _clock.AdjustClock(delta, _deltaLatency);
+        _deltaLatency = 0;
+
+        _snapshotInterpolator.InterpolateStates(_playersArray, _clock.Ticks);
         DebugInfo(delta);
     }
 
-    private void AdjustClock(double delta)
+    private void OnLatencyCalculated(int lastServerTicks, int latency, int deltaLatency)
     {
-        Clock += (int)(delta * 1000.0) + deltaLatency;
-        Clock += (int)offset;
-
-        deltaLatency = 0;
-
-        decColl += (delta * 1000.0) - (int)(delta * 1000.0);
-        if (decColl >= 1.00)
+        // Sync the timer clock the first time we do a ping
+        if (_firstPing)
         {
-            Clock += 1;
-            decColl -= 1.0;
-        }
-    }
-
-    private void OnLatencyCalculated(int lastServerTime, int latency, int delta)
-    {
-        deltaLatency = delta;
-
-        if (ft)
-        {
-            Clock = lastServerTime + latency;
-            GD.Print("set cloick to ", Clock);
-            ft = false;
+            _clock.Setup(lastServerTicks, latency);
+            _firstPing = false;
         }
 
-        GD.Print($"Got latency {latency} delta {delta}");
+        _deltaLatency = deltaLatency;
+
+        GD.Print($"Got latency {latency} delta {deltaLatency}");
     }
 
     private void OnPacketReceived(long id, byte[] data)
     {
-        _pkgCounter++;
-
         var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
 
         switch (command)
         {
             case NetMessage.GameSnapshot snapshot:
                 _snapshotInterpolator.PushState(snapshot);
-                break;
-
-            case NetMessage.Sync sync:
-                GetNode<NetworkPinger>("NetworkPinger").SyncReceived(sync, Clock);
+                _packetTickDifference = _clock.Ticks - snapshot.Time;
                 break;
         }
     }
-
-    private void OnPeerConnected(long id) { }
 
     private void OnConnectedToServer()
     {
@@ -93,41 +75,26 @@ public partial class ClientManager : Node
 
     private void Connect()
     {
-        _sceneMultiplayer.PeerConnected += OnPeerConnected;
-        _sceneMultiplayer.ConnectedToServer += OnConnectedToServer;
-        _sceneMultiplayer.PeerPacket += OnPacketReceived;
+        _multiplayer.ConnectedToServer += OnConnectedToServer;
+        _multiplayer.PeerPacket += OnPacketReceived;
 
         ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
         peer.CreateClient(_address, _port);
-        _sceneMultiplayer.MultiplayerPeer = peer;
-        GetTree().SetMultiplayer(_sceneMultiplayer);
+        _multiplayer.MultiplayerPeer = peer;
+        GetTree().SetMultiplayer(_multiplayer);
         GD.Print("Client connected to ", _address, ":", _port);
     }
 
     private void DebugInfo(double delta)
     {
-        if (Input.IsActionPressed("w"))
-            offset += (float)delta * 100;
-        else if (Input.IsActionPressed("s"))
-            offset -= (float)delta * 100;
-        else if (Input.IsActionPressed("ui_accept"))
-            offset = 0;
-
         var label = GetNode<Label>("Debug/Label2");
         label.Modulate = Colors.White;
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
-        label.Text += $"\nclk {Clock} ofs {offset}";
-        label.Text += $"\npps {_pkgSec} dcol {decColl}";
+        label.Text += $"\nclk {_clock.Ticks} diff {_packetTickDifference}";
+        label.Text += $"\nping {_netPinger.Latency} delta {_netPinger.DeltaLatency}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;
-    }
-
-    private void OnTimerOut()
-    {
-        _pkgSec = _pkgCounter;
-        _pkgCounter = 0;
-        GetNode<NetworkPinger>("NetworkPinger").SendSync(Clock);
     }
 }

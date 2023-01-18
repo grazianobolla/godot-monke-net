@@ -40,8 +40,8 @@ clk 0 png 0"
 [node name="NetworkPinger" type="Node" parent="."]
 script = ExtResource("2_ex1me")
 
-[node name="Timer" type="Timer" parent="."]
+[node name="Timer" type="Timer" parent="NetworkPinger"]
 wait_time = 0.5
 autostart = true
 
-[connection signal="timeout" from="Timer" to="." method="OnTimerOut"]
+[connection signal="timeout" from="NetworkPinger/Timer" to="NetworkPinger" method="OnTimerOut"]
