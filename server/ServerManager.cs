@@ -63,35 +63,6 @@ public partial class ServerManager : Node
             MultiplayerPeer.TransferModeEnum.Unreliable);
     }
 
-    private void Create()
-    {
-        _sceneMultiplayer.PeerConnected += OnPeerConnected;
-        _sceneMultiplayer.PeerDisconnected += OnPeerDisconnected;
-        _sceneMultiplayer.PeerPacket += OnPacketReceived;
-
-        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
-        peer.CreateServer(_port);
-
-        _sceneMultiplayer.MultiplayerPeer = peer;
-        GetTree().SetMultiplayer(_sceneMultiplayer);
-
-        GD.Print("Server listening on ", _port);
-    }
-
-    private void OnPeerConnected(long id)
-    {
-        Node playerInstance = _playerScene.Instantiate();
-        playerInstance.Name = id.ToString();
-        GetNode("/root/Main/PlayerArray").AddChild(playerInstance);
-        GD.Print("Peer ", id, " connected");
-    }
-
-    private void OnPeerDisconnected(long id)
-    {
-        GetNode($"/root/Main/PlayerArray/{id}").QueueFree();
-        GD.Print("Peer ", id, " disconnected");
-    }
-
     private void OnPacketReceived(long id, byte[] data)
     {
         var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
@@ -107,6 +78,33 @@ public partial class ServerManager : Node
                 _sceneMultiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable);
                 break;
         }
+    }
+
+    private void OnPeerConnected(long id)
+    {
+        Node playerInstance = GetNode<MultiplayerSpawner>("/root/Main/MultiplayerSpawner").Spawn(id);
+        GD.Print("Peer ", id, " connected");
+    }
+
+    private void OnPeerDisconnected(long id)
+    {
+        GetNode($"/root/Main/PlayerArray/{id}").QueueFree();
+        GD.Print("Peer ", id, " disconnected");
+    }
+
+    private void Create()
+    {
+        _sceneMultiplayer.PeerConnected += OnPeerConnected;
+        _sceneMultiplayer.PeerDisconnected += OnPeerDisconnected;
+        _sceneMultiplayer.PeerPacket += OnPacketReceived;
+
+        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
+        peer.CreateServer(_port);
+
+        _sceneMultiplayer.MultiplayerPeer = peer;
+        GetTree().SetMultiplayer(_sceneMultiplayer);
+
+        GD.Print("Server listening on ", _port);
     }
 
     private void DebugInfo()

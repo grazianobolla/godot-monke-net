@@ -7,9 +7,7 @@ public class SnapshotInterpolator
     public float InterpolationFactor { get; private set; }
 
     private List<NetMessage.GameSnapshot> _snapshotBuffer = new();
-
-    private const int RECENT_PAST = 0;
-    private const int NEXT_FUTURE = 1;
+    private const int RECENT_PAST = 0, NEXT_FUTURE = 1;
 
     public SnapshotInterpolator(int bufferTime)
     {
@@ -19,7 +17,6 @@ public class SnapshotInterpolator
     public void InterpolateStates(Node playersArray, int clock)
     {
         // Point in time to render (in the past)
-        // TODO: replace UNIX time with network sychronized time
         double renderTime = clock - BufferTime;
 
         if (_snapshotBuffer.Count > 1)
@@ -39,6 +36,7 @@ public class SnapshotInterpolator
 
             for (int i = 0; i < futureStates.Length; i++)
             {
+                //TODO: check if the player is aviable in both states
                 NetMessage.UserState futureState = _snapshotBuffer[NEXT_FUTURE].States[i];
                 NetMessage.UserState pastState = _snapshotBuffer[RECENT_PAST].States[i];
 

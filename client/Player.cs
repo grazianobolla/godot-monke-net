@@ -5,11 +5,6 @@ using MessagePack;
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class Player : Node3D
 {
-    public override void _Ready()
-    {
-        this.SetMultiplayerAuthority(Int32.Parse(this.Name));
-    }
-
     public override void _PhysicsProcess(double delta)
     {
         if (!this.IsMultiplayerAuthority() || Multiplayer.GetUniqueId() == 1)

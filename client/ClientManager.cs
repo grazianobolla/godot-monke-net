@@ -51,8 +51,6 @@ public partial class ClientManager : Node
         }
 
         _deltaLatency = deltaLatency;
-
-        GD.Print($"Got latency {latency} delta {deltaLatency}");
     }
 
     private void OnPacketReceived(long id, byte[] data)
