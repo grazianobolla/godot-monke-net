@@ -7,14 +7,15 @@ using MessagePack;
 public partial class NetworkClock : Node
 {
     [Signal]
-    public delegate void LatencyCalculatedEventHandler(int latencyAverage, int offsetAverage);
+    public delegate void LatencyCalculatedEventHandler(int latencyAverage, int offsetAverage, int jitter);
 
-    [Export] private int _sampleSize = 5;
-    [Export] private float _sampleRateSeconds = 1;
+    [Export] private int _sampleSize = 11;
+    [Export] private float _sampleRateMs = 500;
 
     public int Ticks { get; private set; } = 200;
     public int Latency { get; private set; } = 0;
     public int Offset { get; private set; } = 0;
+    public int Jitter { get; private set; } = 0;
 
     private List<int> _offsetValues = new();
     private List<int> _latencyValues = new();
@@ -28,7 +29,7 @@ public partial class NetworkClock : Node
         _multiplayer = multiplayer;
         _multiplayer.PeerPacket += OnPacketReceived;
 
-        GetNode<Timer>("Timer").WaitTime = _sampleRateSeconds;
+        GetNode<Timer>("Timer").WaitTime = _sampleRateMs / 1000.0f;
     }
 
     public override void _Process(double delta)
@@ -55,10 +56,14 @@ public partial class NetworkClock : Node
 
         if (_offsetValues.Count >= _sampleSize)
         {
+            _offsetValues.Sort();
+            _latencyValues.Sort();
+
             int offsetAverage = ReturnSmoothAverage(_offsetValues, 20);
+            Jitter = _latencyValues[_latencyValues.Count - 1] - _latencyValues[0];
             int latencyAverage = ReturnSmoothAverage(_latencyValues, 20);
 
-            EmitSignal(SignalName.LatencyCalculated, latencyAverage, offsetAverage);
+            EmitSignal(SignalName.LatencyCalculated, latencyAverage, offsetAverage, Jitter);
 
             _lastOffset = offsetAverage; // For adjusting the clock
 
@@ -105,7 +110,6 @@ public partial class NetworkClock : Node
 
         return sampleCount / samples.Count;
     }
-
 
     private void OnTimerOut()
     {

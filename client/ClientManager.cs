@@ -8,11 +8,16 @@ public partial class ClientManager : Node
     [Export] private string _address = "localhost";
     [Export] private int _port = 9999;
     [Export] private int _lerpBufferWindow = 50;
+    [Export] private int _maxLerp = 150;
 
     private SceneMultiplayer _multiplayer = new();
     private SnapshotInterpolator _snapshotInterpolator = new();
     private NetworkClock _netClock;
     private Node _entityArray;
+
+    // Debug only
+    private int _packetCounter = 0;
+    private int _packetsPerSecond = 0;
 
     public override void _Ready()
     {
@@ -39,11 +44,13 @@ public partial class ClientManager : Node
         {
             _snapshotInterpolator.PushState(snapshot);
         }
+
+        _packetCounter += 1;
     }
 
-    private void OnLatencyCalculated(int latencyAverage, int offsetAverage)
+    private void OnLatencyCalculated(int latencyAverage, int offsetAverage, int jitter)
     {
-        _snapshotInterpolator.BufferTime = latencyAverage + _lerpBufferWindow;
+        _snapshotInterpolator.BufferTime = Mathf.Clamp(latencyAverage + _lerpBufferWindow, 0, _maxLerp);
     }
 
     private void OnConnectedToServer()
@@ -67,12 +74,19 @@ public partial class ClientManager : Node
     {
         var label = GetNode<Label>("Debug/Label2");
         label.Modulate = Colors.White;
+
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
         label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {_netClock.Ticks} ofst {_netClock.Offset}ms";
-        label.Text += $"\nping {_netClock.Latency}ms delay {_snapshotInterpolator.BufferTime + _netClock.Latency}ms";
+        label.Text += $"\nping {_netClock.Latency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;
+    }
+
+    private void OnDebugTimerOut()
+    {
+        _packetsPerSecond = _packetCounter;
+        _packetCounter = 0;
     }
 }
