@@ -14,8 +14,6 @@ public partial class ClientManager : Node
     private NetworkClock _netClock;
     private Node _entityArray;
 
-    private int _packetTickDifference = 0;
-
     public override void _Ready()
     {
         Connect();
@@ -40,7 +38,6 @@ public partial class ClientManager : Node
         if (command is NetMessage.GameSnapshot snapshot)
         {
             _snapshotInterpolator.PushState(snapshot);
-            _packetTickDifference = _netClock.Ticks - snapshot.Time;
         }
     }
 
@@ -67,8 +64,8 @@ public partial class ClientManager : Node
         label.Modulate = Colors.White;
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
-        label.Text += $"\nclk {_netClock.Ticks} diff_last {_packetTickDifference}ms";
-        label.Text += $"\nping {_netClock.Latency} diff_avg {_netClock.PacketDelta}";
+        label.Text += $"\nclk {_netClock.Ticks} ofst {_netClock.Offset}ms";
+        label.Text += $"\nping {_netClock.Latency}ms";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;

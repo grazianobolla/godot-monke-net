@@ -12,13 +12,13 @@ public partial class NetworkClock : Node
 
     public int Ticks { get; private set; } = 200;
     public int Latency { get; private set; } = 0;
-    public int PacketDelta { get; private set; } = 0;
+    public int Offset { get; private set; } = 0;
 
-    private List<int> _packetDeltaValues = new();
+    private List<int> _offsetValues = new();
 
     private SceneMultiplayer _multiplayer;
     private bool _firstPing = true; // Used to sync the timer the first time we receive a ping
-    private int _lastPacketDelta = 0;
+    private int _lastOffset = 0;
     private double _decimalCollector = 0;
 
     public void Initialize(SceneMultiplayer multiplayer)
@@ -31,8 +31,8 @@ public partial class NetworkClock : Node
 
     public override void _Process(double delta)
     {
-        AdjustClock(delta, _lastPacketDelta);
-        _lastPacketDelta = 0;
+        AdjustClock(delta, _lastOffset);
+        _lastOffset = 0;
     }
 
     private void SyncReceived(NetMessage.Sync sync)
@@ -45,17 +45,16 @@ public partial class NetworkClock : Node
         // Latency as the difference between when the packet was sent and when it came back divided by 2
         Latency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
-        // Difference in time between the received packet server time and the client clock
-        int currentPacketDelta = sync.ServerTime - Ticks;
+        // Time difference between our clock and the server clock accounting for latency
+        int currentOffset = (sync.ServerTime - Ticks) + Latency;
 
-        _packetDeltaValues.Add(currentPacketDelta);
+        _offsetValues.Add(currentOffset);
 
-        if (_packetDeltaValues.Count >= _sampleSize)
+        if (_offsetValues.Count >= _sampleSize)
         {
-            int packetDeltaAvg = ReturnSmoothAverage(_packetDeltaValues, _minimumPacketDelta);
-            _packetDeltaValues.Clear();
-
-            PacketDelta = _lastPacketDelta = packetDeltaAvg;
+            int offsetAverage = ReturnSmoothAverage(_offsetValues, _minimumPacketDelta);
+            Offset = _lastOffset = offsetAverage;
+            _offsetValues.Clear();
         }
     }
 
