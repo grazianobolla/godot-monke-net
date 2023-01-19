@@ -24,6 +24,10 @@ window/size/viewport_height=500
 
 project/assembly_name="multiplayer-base"
 
+[editor]
+
+export/convert_text_resources_to_binary=true
+
 [input]
 
 w={
@@ -39,4 +43,4 @@ s={
 
 [physics]
 
-common/physics_ticks_per_second=20
+common/physics_ticks_per_second=30

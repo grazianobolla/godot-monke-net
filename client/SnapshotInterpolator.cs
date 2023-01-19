@@ -7,11 +7,12 @@ public class SnapshotInterpolator
     public float InterpolationFactor { get; private set; }
 
     private List<NetMessage.GameSnapshot> _snapshotBuffer = new();
-    private const int RECENT_PAST = 0, NEXT_FUTURE = 1;
+    private const int RecentPast = 0, NextFuture = 1;
+    private const int InitialBufferTime = 100;
 
-    public SnapshotInterpolator(int bufferTime)
+    public SnapshotInterpolator()
     {
-        BufferTime = bufferTime;
+        BufferTime = InitialBufferTime;
     }
 
     public void InterpolateStates(Node playersArray, int clock)
@@ -27,18 +28,18 @@ public class SnapshotInterpolator
                 _snapshotBuffer.RemoveAt(0);
             }
 
-            double timeDiffBetweenStates = _snapshotBuffer[NEXT_FUTURE].Time - _snapshotBuffer[RECENT_PAST].Time;
-            double renderDiff = renderTime - _snapshotBuffer[RECENT_PAST].Time;
+            double timeDiffBetweenStates = _snapshotBuffer[NextFuture].Time - _snapshotBuffer[RecentPast].Time;
+            double renderDiff = renderTime - _snapshotBuffer[RecentPast].Time;
 
             InterpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
 
-            var futureStates = _snapshotBuffer[NEXT_FUTURE].States;
+            var futureStates = _snapshotBuffer[NextFuture].States;
 
             for (int i = 0; i < futureStates.Length; i++)
             {
                 //TODO: check if the player is aviable in both states
-                NetMessage.UserState futureState = _snapshotBuffer[NEXT_FUTURE].States[i];
-                NetMessage.UserState pastState = _snapshotBuffer[RECENT_PAST].States[i];
+                NetMessage.UserState futureState = _snapshotBuffer[NextFuture].States[i];
+                NetMessage.UserState pastState = _snapshotBuffer[RecentPast].States[i];
 
                 var player = playersArray.GetNode<Node3D>(futureState.Id.ToString());
                 player.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);

@@ -6,18 +6,20 @@ using MessagePack;
 // also calculates latency
 public partial class NetworkClock : Node
 {
+    [Signal]
+    public delegate void LatencyCalculatedEventHandler(int latencyAverage, int offsetAverage);
+
     [Export] private int _sampleSize = 5;
     [Export] private float _sampleRateSeconds = 1;
-    [Export] private int _minimumPacketDelta = 20;
 
     public int Ticks { get; private set; } = 200;
     public int Latency { get; private set; } = 0;
     public int Offset { get; private set; } = 0;
 
     private List<int> _offsetValues = new();
+    private List<int> _latencyValues = new();
 
     private SceneMultiplayer _multiplayer;
-    private bool _firstPing = true; // Used to sync the timer the first time we receive a ping
     private int _lastOffset = 0;
     private double _decimalCollector = 0;
 
@@ -46,15 +48,22 @@ public partial class NetworkClock : Node
         Latency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Time difference between our clock and the server clock accounting for latency
-        int currentOffset = (sync.ServerTime - Ticks) + Latency;
+        Offset = (sync.ServerTime - Ticks) + Latency;
 
-        _offsetValues.Add(currentOffset);
+        _offsetValues.Add(Offset);
+        _latencyValues.Add(Latency);
 
         if (_offsetValues.Count >= _sampleSize)
         {
-            int offsetAverage = ReturnSmoothAverage(_offsetValues, _minimumPacketDelta);
-            Offset = _lastOffset = offsetAverage;
+            int offsetAverage = ReturnSmoothAverage(_offsetValues, 20);
+            int latencyAverage = ReturnSmoothAverage(_latencyValues, 20);
+
+            EmitSignal(SignalName.LatencyCalculated, latencyAverage, offsetAverage);
+
+            _lastOffset = offsetAverage; // For adjusting the clock
+
             _offsetValues.Clear();
+            _latencyValues.Clear();
         }
     }
 
