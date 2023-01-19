@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://dp0u7dohrllcb"]
 
-[ext_resource type="Script" path="res://client/Player.cs" id="1_5hxgr"]
+[ext_resource type="Script" path="res://client/ClientPlayer.cs" id="1_yjjti"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5ck7"]
 resource_local_to_scene = true
@@ -11,7 +11,7 @@ albedo_color = Color(1, 0, 1, 1)
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_avjc0"]
 
 [node name="Player" type="CharacterBody3D"]
-script = ExtResource("1_5hxgr")
+script = ExtResource("1_yjjti")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_n5ck7")

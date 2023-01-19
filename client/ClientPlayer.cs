@@ -3,7 +3,7 @@ using System;
 using MessagePack;
 
 // Wrapper scene spawned by the MultiplayerSpawner
-public partial class Player : Node3D
+public partial class ClientPlayer : Node3D
 {
     public override void _PhysicsProcess(double delta)
     {

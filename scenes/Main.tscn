@@ -1,10 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://c21iwjvll5byi"]
+[gd_scene load_steps=13 format=3 uid="uid://diku3qvdru8sy"]
 
 [ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
 [ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
 [ext_resource type="Script" path="res://debug/CubeRotation.gd" id="3_od4jj"]
 [ext_resource type="Script" path="res://shared/CustomSpawner.cs" id="3_tt4b3"]
-[ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://Player.tscn" id="4_ssnj7"]
+[ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://ClientPlayer.tscn" id="4_35anr"]
 [ext_resource type="PackedScene" uid="uid://1fbyoad8h8gr" path="res://ServerPlayer.tscn" id="5_lgfx3"]
 [ext_resource type="PackedScene" uid="uid://dgltayb5g40lt" path="res://DummyPlayer.tscn" id="6_82wv5"]
 
@@ -83,7 +83,7 @@ environment = SubResource("Environment_rybih")
 [node name="MultiplayerSpawner" type="MultiplayerSpawner" parent="."]
 spawn_path = NodePath("../EntityArray")
 script = ExtResource("3_tt4b3")
-_playerScene = ExtResource("4_ssnj7")
+_playerScene = ExtResource("4_35anr")
 _serverPlayerScene = ExtResource("5_lgfx3")
 _dummyScene = ExtResource("6_82wv5")
 
