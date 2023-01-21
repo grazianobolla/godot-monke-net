@@ -26,8 +26,7 @@ public partial class ServerManager : Node
 
             if (entity is ServerPlayer player)
             {
-                var direction = new Vector3(cmd.DirX, 0, cmd.DirY);
-                player.ProcessMovement(direction);
+                player.Input = cmd.Direction;
             }
         }
 
@@ -47,14 +46,14 @@ public partial class ServerManager : Node
 
         for (int i = 0; i < entityArray.Count; i++)
         {
-            var entitiy = entityArray[i] as Node3D; //player
+            var player = entityArray[i] as ServerPlayer; //player
 
             var userState = new NetMessage.UserState
             {
-                Id = Int32.Parse(entitiy.Name), //TODO: risky
-                X = entitiy.Position.x,
-                Y = entitiy.Position.y,
-                Z = entitiy.Position.z
+                Id = Int32.Parse(player.Name), //TODO: risky
+                X = player.Position.x,
+                Y = player.Position.y,
+                Z = player.Position.z
             };
 
             snapshot.States[i] = userState;

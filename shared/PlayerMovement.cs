@@ -4,7 +4,7 @@ public partial class PlayerMovement : Node
 {
     private CharacterBody3D _body;
 
-    private const float Speed = 5.0f;
+    private const float MaxSpeed = 5.0f;
     private const float JumpVelocity = 9f;
 
     public override void _Ready()
@@ -12,32 +12,28 @@ public partial class PlayerMovement : Node
         _body = GetParent<CharacterBody3D>();
     }
 
-    public void CalculateMovement(double delta, Vector2 inputDir, bool isJumping)
+    public static Vector3 ComputeMotion(Vector3 velocity, Vector2 input, bool onFloor, bool isJumping, double delta)
     {
-        Vector3 _velocity = _body.Velocity;
-
         // Add the gravity
-        if (!_body.IsOnFloor())
-            _velocity.y -= 9 * (float)delta;
+        if (!onFloor)
+            velocity.y -= 9 * (float)delta;
 
         // Handle Jump
-        if (isJumping && _body.IsOnFloor())
-            _velocity.y = JumpVelocity;
+        if (isJumping && onFloor)
+            velocity.y = JumpVelocity;
 
-        Vector3 direction = (_body.Transform.basis * new Vector3(inputDir.x, 0, inputDir.y)).Normalized();
+        Vector3 direction = new Vector3(input.x, 0, input.y).Normalized();
 
         if (direction != Vector3.Zero)
         {
-            _velocity.x = direction.x * Speed;
-            _velocity.z = direction.z * Speed;
+            velocity.x = direction.x * MaxSpeed;
+            velocity.z = direction.z * MaxSpeed;
         }
         else
         {
-            _velocity.x = Mathf.MoveToward(_body.Velocity.x, 0, Speed);
-            _velocity.z = Mathf.MoveToward(_body.Velocity.z, 0, Speed);
+            velocity *= 0.85f;
         }
 
-        _body.Velocity = _velocity;
-        _body.MoveAndSlide();
+        return velocity;
     }
 }

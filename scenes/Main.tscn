@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://diku3qvdru8sy"]
+[gd_scene load_steps=14 format=3 uid="uid://diku3qvdru8sy"]
 
 [ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
 [ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
@@ -22,6 +22,9 @@ background_mode = 2
 sky = SubResource("Sky_xbuw4")
 
 [sub_resource type="BoxMesh" id="BoxMesh_5p16j"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ctf4l"]
+albedo_color = Color(0.0392157, 1, 0.219608, 1)
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_n3q4e")
@@ -64,6 +67,7 @@ text = "Host Server"
 
 [node name="CSGBox3D" type="CSGBox3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0)
+use_collision = true
 size = Vector3(10, 1, 10)
 material = SubResource("StandardMaterial3D_i6375")
 
@@ -91,6 +95,13 @@ _dummyScene = ExtResource("6_82wv5")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, 0)
 mesh = SubResource("BoxMesh_5p16j")
 script = ExtResource("3_od4jj")
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
+material_override = SubResource("StandardMaterial3D_ctf4l")
+use_collision = true
+radius = 1.0
+sides = 16
 
 [connection signal="pressed" from="Buttons/Button" to="." method="_on_button_pressed" binds= [false]]
 [connection signal="pressed" from="Buttons/Button2" to="." method="_on_button_pressed" binds= [true]]

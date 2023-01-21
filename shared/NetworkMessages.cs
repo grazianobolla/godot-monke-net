@@ -21,6 +21,12 @@ namespace NetMessage
 
         [Key(2)]
         public float DirY;
+
+        [IgnoreMember]
+        public Vector2 Direction
+        {
+            get { return new Vector2(DirX, DirY); }
+        }
     }
 
     // Game state for a given point in time
