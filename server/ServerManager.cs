@@ -21,12 +21,18 @@ public partial class ServerManager : Node
         // Process entity commands
         while (_cmdsQueue.Count > 0)
         {
-            var cmd = _cmdsQueue.Dequeue();
-            var entity = GetNode($"/root/Main/EntityArray/{cmd.Id}");
+            var userCmd = _cmdsQueue.Dequeue();
+            var entity = GetNode($"/root/Main/EntityArray/{userCmd.Id}");
 
             if (entity is ServerPlayer player)
             {
-                player.Input = cmd.Direction;
+                foreach (var cmd in userCmd.Commands)
+                {
+                    if (cmd.Stamp > player.Stamp)
+                    {
+                        player.Move(cmd);
+                    }
+                }
             }
         }
 
@@ -53,7 +59,8 @@ public partial class ServerManager : Node
                 Id = Int32.Parse(player.Name), //TODO: risky
                 X = player.Position.x,
                 Y = player.Position.y,
-                Z = player.Position.z
+                Z = player.Position.z,
+                Stamp = player.Stamp
             };
 
             snapshot.States[i] = userState;
@@ -62,7 +69,7 @@ public partial class ServerManager : Node
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);
 
         _multiplayer.SendBytes(data, 0,
-            MultiplayerPeer.TransferModeEnum.Unreliable);
+            MultiplayerPeer.TransferModeEnum.UnreliableOrdered, 0);
     }
 
     private void OnPacketReceived(long id, byte[] data)
@@ -78,7 +85,7 @@ public partial class ServerManager : Node
             case NetMessage.Sync sync:
                 sync.ServerTime = (int)Time.GetTicksMsec();
                 _multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id,
-                MultiplayerPeer.TransferModeEnum.Unreliable);
+                MultiplayerPeer.TransferModeEnum.Unreliable, 1);
                 break;
         }
     }

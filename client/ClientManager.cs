@@ -43,6 +43,16 @@ public partial class ClientManager : Node
         if (command is NetMessage.GameSnapshot snapshot)
         {
             _snapshotInterpolator.PushState(snapshot);
+
+            foreach (NetMessage.UserState state in snapshot.States)
+            {
+                var entity = _entityArray.GetNode(state.Id.ToString());
+
+                if (entity is ClientPlayer player && player.IsMultiplayerAuthority())
+                {
+                    player.ReceiveState(state);
+                }
+            }
         }
 
         _packetCounter += 1;

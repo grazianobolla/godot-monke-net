@@ -12,28 +12,8 @@ public partial class PlayerMovement : Node
         _body = GetParent<CharacterBody3D>();
     }
 
-    public static Vector3 ComputeMotion(Vector3 velocity, Vector2 input, bool onFloor, bool isJumping, double delta)
+    public static Vector3 ComputeMotion(Vector2 input)
     {
-        // Add the gravity
-        if (!onFloor)
-            velocity.y -= 9 * (float)delta;
-
-        // Handle Jump
-        if (isJumping && onFloor)
-            velocity.y = JumpVelocity;
-
-        Vector3 direction = new Vector3(input.x, 0, input.y).Normalized();
-
-        if (direction != Vector3.Zero)
-        {
-            velocity.x = direction.x * MaxSpeed;
-            velocity.z = direction.z * MaxSpeed;
-        }
-        else
-        {
-            velocity *= 0.85f;
-        }
-
-        return velocity;
+        return new Vector3(input.x, 0, input.y).Normalized() * (1 / 30.0f) * 5;
     }
 }

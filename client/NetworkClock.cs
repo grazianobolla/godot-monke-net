@@ -119,7 +119,7 @@ public partial class NetworkClock : Node
         };
 
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
-        _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable);
+        _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
     }
 
     private void OnPacketReceived(long id, byte[] data)

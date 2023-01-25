@@ -3,11 +3,11 @@ using System;
 
 public partial class ServerPlayer : CharacterBody3D
 {
-    public Vector2 Input { get; set; } = Vector2.Zero;
+    public uint Stamp { get; set; } = 0;
 
-    public override void _PhysicsProcess(double delta)
+    public void Move(NetMessage.MoveCommand moveCommand)
     {
-        Velocity = PlayerMovement.ComputeMotion(Velocity, Input, IsOnFloor(), false, delta);
-        MoveAndSlide();
+        Stamp = moveCommand.Stamp;
+        Position += PlayerMovement.ComputeMotion(moveCommand.Direction);
     }
 }

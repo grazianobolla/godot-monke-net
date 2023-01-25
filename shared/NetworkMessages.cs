@@ -17,10 +17,21 @@ namespace NetMessage
         public int Id;
 
         [Key(1)]
+        public MoveCommand[] Commands;
+    }
+
+    // Encapsulates user input and other client actions
+    [MessagePackObject]
+    public partial struct MoveCommand
+    {
+        [Key(1)]
         public float DirX;
 
         [Key(2)]
         public float DirY;
+
+        [Key(3)]
+        public uint Stamp;
 
         [IgnoreMember]
         public Vector2 Direction
@@ -28,7 +39,6 @@ namespace NetMessage
             get { return new Vector2(DirX, DirY); }
         }
     }
-
     // Game state for a given point in time
     [MessagePackObject]
     public partial struct GameSnapshot : ICommand
@@ -66,6 +76,9 @@ namespace NetMessage
 
         [Key(3)]
         public float Z;
+
+        [Key(4)]
+        public uint Stamp;
 
         [IgnoreMember]
         public Vector3 Position
