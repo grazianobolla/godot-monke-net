@@ -3,14 +3,11 @@ using System;
 
 public partial class CustomSpawner : MultiplayerSpawner
 {
-    [Export]
-    private PackedScene _playerScene;
+    [Export] private PackedScene _playerScene;
+    [Export] private PackedScene _serverPlayerScene;
+    [Export] private PackedScene _dummyScene;
 
-    [Export]
-    private PackedScene _serverPlayerScene;
-
-    [Export]
-    private PackedScene _dummyScene;
+    public static ClientPlayer LocalPlayer;
 
     public override void _Ready()
     {
@@ -40,6 +37,7 @@ public partial class CustomSpawner : MultiplayerSpawner
             Node player = _playerScene.Instantiate();
             player.Name = id.ToString();
             player.SetMultiplayerAuthority(id);
+            LocalPlayer = player as ClientPlayer;
             return player;
         }
 

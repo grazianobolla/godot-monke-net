@@ -34,7 +34,7 @@ public partial class ClientPlayer : CharacterBody3D
         if (div > 0.05f)
         {
             Position = state.Position;
-            GD.PrintErr($"Reconciliating got {lastPos} userat {Position}");
+            GD.PrintErr($"Reconciliating got {lastPos} user at {Position}");
         }
     }
 
@@ -49,14 +49,12 @@ public partial class ClientPlayer : CharacterBody3D
 
         _commands.Add(cmd);
 
-
         var userCmd = new NetMessage.UserCommand
         {
             Id = Multiplayer.GetUniqueId(),
             Commands = _commands.ToArray()
         };
 
-        GD.Print($"Sending {_commands.Count - 1} redundant cmds!");
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
             byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(userCmd);
@@ -71,5 +69,10 @@ public partial class ClientPlayer : CharacterBody3D
     private void MoveLocally(NetMessage.MoveCommand command)
     {
         Position += PlayerMovement.ComputeMotion(command.Direction);
+    }
+
+    public int RedundantPackets
+    {
+        get { return _commands.Count; }
     }
 }

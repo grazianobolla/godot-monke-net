@@ -46,11 +46,9 @@ public partial class ClientManager : Node
 
             foreach (NetMessage.UserState state in snapshot.States)
             {
-                var entity = _entityArray.GetNode(state.Id.ToString());
-
-                if (entity is ClientPlayer player && player.IsMultiplayerAuthority())
+                if (state.Id == Multiplayer.GetUniqueId())
                 {
-                    player.ReceiveState(state);
+                    CustomSpawner.LocalPlayer.ReceiveState(state);
                 }
             }
         }
@@ -89,6 +87,7 @@ public partial class ClientManager : Node
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
         label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {_netClock.Ticks} ofst {_netClock.Offset}ms";
         label.Text += $"\nping {_netClock.Latency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
+        label.Text += $"\nred {CustomSpawner.LocalPlayer.RedundantPackets}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;

@@ -41,11 +41,11 @@ public class SnapshotInterpolator
                 NetMessage.UserState futureState = _snapshotBuffer[NextFuture].States[i];
                 NetMessage.UserState pastState = _snapshotBuffer[RecentPast].States[i];
 
-                var player = playersArray.GetNode<Node3D>(futureState.Id.ToString());
+                var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString());
 
-                if (player.IsMultiplayerAuthority() == false)
+                if (dummy.IsMultiplayerAuthority() == false)
                 {
-                    player.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);
+                    dummy.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);
                 }
             }
         }
