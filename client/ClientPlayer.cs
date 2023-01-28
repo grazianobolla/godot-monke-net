@@ -42,8 +42,8 @@ public partial class ClientPlayer : CharacterBody3D
     {
         var cmd = new NetMessage.MoveCommand
         {
-            DirX = input.x,
-            DirY = input.y,
+            DirX = input.X,
+            DirY = input.Y,
             Stamp = _stampCounter
         };
 

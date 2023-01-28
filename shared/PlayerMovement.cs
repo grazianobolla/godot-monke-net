@@ -14,6 +14,6 @@ public partial class PlayerMovement : Node
 
     public static Vector3 ComputeMotion(Vector2 input)
     {
-        return new Vector3(input.x, 0, input.y).Normalized() * (1 / 30.0f) * 5;
+        return new Vector3(input.X, 0, input.Y).Normalized() * (1 / 60.0f) * 5;
     }
 }

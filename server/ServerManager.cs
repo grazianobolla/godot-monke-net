@@ -18,6 +18,13 @@ public partial class ServerManager : Node
 
     public override void _Process(double delta)
     {
+        DebugInfo();
+    }
+
+    public override void _PhysicsProcess(double delta)
+    {
+        var entityArray = GetNode("/root/Main/EntityArray").GetChildren();
+
         // Process entity commands
         while (_cmdsQueue.Count > 0)
         {
@@ -36,13 +43,6 @@ public partial class ServerManager : Node
             }
         }
 
-        DebugInfo();
-    }
-
-    public override void _PhysicsProcess(double delta)
-    {
-        var entityArray = GetNode("/root/Main/EntityArray").GetChildren();
-
         // Pack and send GameSnapshot with all entities and their information
         var snapshot = new NetMessage.GameSnapshot
         {
@@ -57,9 +57,9 @@ public partial class ServerManager : Node
             var userState = new NetMessage.UserState
             {
                 Id = Int32.Parse(player.Name), //TODO: risky
-                X = player.Position.x,
-                Y = player.Position.y,
-                Z = player.Position.z,
+                X = player.Position.X,
+                Y = player.Position.Y,
+                Z = player.Position.Z,
                 Stamp = player.Stamp
             };
 
