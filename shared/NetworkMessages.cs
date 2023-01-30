@@ -31,7 +31,7 @@ namespace NetMessage
         public float DirY;
 
         [Key(3)]
-        public uint Stamp;
+        public int Stamp;
 
         [IgnoreMember]
         public Vector2 Direction
@@ -39,6 +39,7 @@ namespace NetMessage
             get { return new Vector2(DirX, DirY); }
         }
     }
+
     // Game state for a given point in time
     [MessagePackObject]
     public partial struct GameSnapshot : ICommand
@@ -78,7 +79,7 @@ namespace NetMessage
         public float Z;
 
         [Key(4)]
-        public uint Stamp;
+        public int Stamp;
 
         [IgnoreMember]
         public Vector3 Position

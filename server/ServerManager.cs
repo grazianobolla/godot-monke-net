@@ -10,6 +10,7 @@ public partial class ServerManager : Node
 
     private SceneMultiplayer _multiplayer = new();
     private Queue<NetMessage.UserCommand> _cmdsQueue = new();
+    private Godot.Collections.Array<Godot.Node> entityArray;
 
     public override void _Ready()
     {
@@ -23,9 +24,15 @@ public partial class ServerManager : Node
 
     public override void _PhysicsProcess(double delta)
     {
-        var entityArray = GetNode("/root/Main/EntityArray").GetChildren();
+        entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 
-        // Process entity commands
+        ProcessPendingPackets();
+        BroadcastSnapshot();
+    }
+
+    // Process corresponding packets for this tick
+    private void ProcessPendingPackets()
+    {
         while (_cmdsQueue.Count > 0)
         {
             var userCmd = _cmdsQueue.Dequeue();
@@ -42,8 +49,11 @@ public partial class ServerManager : Node
                 }
             }
         }
+    }
 
-        // Pack and send GameSnapshot with all entities and their information
+    // Pack and send GameSnapshot with all entities and their information
+    private void BroadcastSnapshot()
+    {
         var snapshot = new NetMessage.GameSnapshot
         {
             Time = (int)Time.GetTicksMsec(),

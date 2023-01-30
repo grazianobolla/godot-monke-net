@@ -3,7 +3,7 @@ using System;
 
 public partial class ServerPlayer : CharacterBody3D
 {
-    public uint Stamp { get; set; } = 0;
+    public int Stamp { get; set; } = 0;
 
     public void Move(NetMessage.MoveCommand moveCommand)
     {

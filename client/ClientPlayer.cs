@@ -5,8 +5,6 @@ using MessagePack;
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class ClientPlayer : CharacterBody3D
 {
-    private uint _stampCounter = 0;
-
     private List<NetMessage.MoveCommand> _commands = new();
 
     public override void _PhysicsProcess(double delta)
@@ -14,7 +12,6 @@ public partial class ClientPlayer : CharacterBody3D
         Vector2 input = Input.GetVector("ui_left", "ui_right", "ui_up", "ui_down");
         var cmd = SendInput(input);
         MoveLocally(cmd);
-        _stampCounter++;
     }
 
     public void ReceiveState(NetMessage.UserState state)
@@ -44,7 +41,7 @@ public partial class ClientPlayer : CharacterBody3D
         {
             DirX = input.X,
             DirY = input.Y,
-            Stamp = _stampCounter
+            Stamp = NetworkClock.Clock
         };
 
         _commands.Add(cmd);

@@ -12,7 +12,9 @@ public partial class NetworkClock : Node
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 500;
 
-    public int Ticks { get; private set; } = 200;
+    ///Current synced server time
+    public static int Clock { get; private set; } = 0;
+
     public int Latency { get; private set; } = 0;
     public int Offset { get; private set; } = 0;
     public int Jitter { get; private set; } = 0;
@@ -49,7 +51,7 @@ public partial class NetworkClock : Node
         Latency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Time difference between our clock and the server clock accounting for latency
-        Offset = (sync.ServerTime - Ticks) + Latency;
+        Offset = (sync.ServerTime - Clock) + Latency;
 
         _offsetValues.Add(Offset);
         _latencyValues.Add(Latency);
@@ -76,13 +78,13 @@ public partial class NetworkClock : Node
     {
         int msDelta = (int)(delta * 1000.0);
 
-        Ticks += msDelta + offset;
+        Clock += msDelta + offset;
 
         // Prevent clock drift
         _decimalCollector += (delta * 1000.0) - msDelta;
         if (_decimalCollector >= 1.00)
         {
-            Ticks += 1;
+            Clock += 1;
             _decimalCollector -= 1.0;
         }
     }

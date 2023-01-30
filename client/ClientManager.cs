@@ -32,7 +32,7 @@ public partial class ClientManager : Node
 
     public override void _Process(double delta)
     {
-        _snapshotInterpolator.InterpolateStates(_entityArray, _netClock.Ticks);
+        _snapshotInterpolator.InterpolateStates(_entityArray, NetworkClock.Clock);
         DebugInfo(delta);
     }
 
@@ -85,7 +85,7 @@ public partial class ClientManager : Node
 
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
-        label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {_netClock.Ticks} ofst {_netClock.Offset}ms";
+        label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {NetworkClock.Clock} ofst {_netClock.Offset}ms";
         label.Text += $"\nping {_netClock.Latency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
         label.Text += $"\nred {CustomSpawner.LocalPlayer.RedundantPackets}";
 
