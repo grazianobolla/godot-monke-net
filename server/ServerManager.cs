@@ -1,5 +1,4 @@
 using Godot;
-using System.Collections.Generic;
 using System;
 using MessagePack;
 
@@ -9,7 +8,6 @@ public partial class ServerManager : Node
     [Export] private int _port = 9999;
 
     private SceneMultiplayer _multiplayer = new();
-    private Queue<NetMessage.UserCommand> _cmdsQueue = new();
     private Godot.Collections.Array<Godot.Node> entityArray;
 
     public override void _Ready()
@@ -33,21 +31,9 @@ public partial class ServerManager : Node
     // Process corresponding packets for this tick
     private void ProcessPendingPackets()
     {
-        while (_cmdsQueue.Count > 0)
+        foreach (ServerPlayer player in entityArray)
         {
-            var userCmd = _cmdsQueue.Dequeue();
-            var entity = GetNode($"/root/Main/EntityArray/{userCmd.Id}");
-
-            if (entity is ServerPlayer player)
-            {
-                foreach (var cmd in userCmd.Commands)
-                {
-                    if (cmd.Stamp > player.Stamp)
-                    {
-                        player.Move(cmd);
-                    }
-                }
-            }
+            player.ProcessPendingCommands();
         }
     }
 
@@ -67,9 +53,7 @@ public partial class ServerManager : Node
             var userState = new NetMessage.UserState
             {
                 Id = Int32.Parse(player.Name), //TODO: risky
-                X = player.Position.X,
-                Y = player.Position.Y,
-                Z = player.Position.Z,
+                PosArray = new float[3] { player.Position.X, player.Position.Y, player.Position.Z },
                 Stamp = player.Stamp
             };
 
@@ -89,7 +73,8 @@ public partial class ServerManager : Node
         switch (command)
         {
             case NetMessage.UserCommand userCmd:
-                _cmdsQueue.Enqueue(userCmd);
+                ServerPlayer player = GetNode($"/root/Main/EntityArray/{userCmd.Id}") as ServerPlayer;
+                player.PushCommand(userCmd);
                 break;
 
             case NetMessage.Sync sync:

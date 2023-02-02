@@ -11,6 +11,7 @@ resource_local_to_scene = true
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_jo7y7"]
 
 [node name="ServerPlayer" type="CharacterBody3D"]
+collision_layer = 0
 script = ExtResource("1_cbmgq")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]

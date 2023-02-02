@@ -9,8 +9,27 @@ public partial class PlayerMovement : Node
         _body = GetParent<CharacterBody3D>();
     }
 
-    public static Vector3 ComputeMotion(Vector2 input)
+    public static Vector3 ComputeMotion(CharacterBody3D body, Vector3 velocity, Vector2 input, double delta)
     {
-        return new Vector3(input.X, 0, input.Y).Normalized() * (1 / 30.0f) * 5;
+        Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
+
+        if (direction != Vector3.Zero)
+        {
+            velocity.X = direction.X * 5;
+            velocity.Z = direction.Z * 5;
+        }
+        else
+        {
+            velocity *= 0.9f;
+        }
+
+        KinematicCollision3D coll = body.MoveAndCollide(velocity * (float)delta, true);
+
+        if (coll != null)
+        {
+            velocity = velocity.Slide(coll.GetNormal());
+        }
+
+        return velocity;
     }
 }

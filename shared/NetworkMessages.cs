@@ -1,5 +1,4 @@
 using Godot;
-using System.Collections.Generic;
 using MessagePack;
 
 namespace NetMessage
@@ -8,6 +7,17 @@ namespace NetMessage
     [MessagePack.Union(1, typeof(GameSnapshot))]
     [MessagePack.Union(2, typeof(Sync))]
     public interface ICommand { }
+
+    // Used to calculate latency
+    [MessagePackObject]
+    public partial struct Sync : ICommand
+    {
+        [Key(0)]
+        public int ClientTime;
+
+        [Key(1)]
+        public int ServerTime;
+    }
 
     // Encapsulates user input and other client actions
     [MessagePackObject]
@@ -24,19 +34,26 @@ namespace NetMessage
     [MessagePackObject]
     public partial struct MoveCommand
     {
+        [Key(0)]
+        public byte Input;
+
         [Key(1)]
-        public float DirX;
-
-        [Key(2)]
-        public float DirY;
-
-        [Key(3)]
         public int Stamp;
 
         [IgnoreMember]
         public Vector2 Direction
         {
-            get { return new Vector2(DirX, DirY); }
+            get
+            {
+                Vector2 direction = Vector2.Zero;
+
+                if ((Input & 0x1) > 0) direction.X += 1;
+                if ((Input & 0x2) > 0) direction.X -= 1;
+                if ((Input & 0x4) > 0) direction.Y -= 1;
+                if ((Input & 0x8) > 0) direction.Y += 1;
+
+                return direction.Normalized();
+            }
         }
     }
 
@@ -51,40 +68,23 @@ namespace NetMessage
         public int Time;
     }
 
-    // Used to calculate latency
-    [MessagePackObject]
-    public partial struct Sync : ICommand
-    {
-        [Key(0)]
-        public int ClientTime;
-
-        [Key(1)]
-        public int ServerTime;
-    }
-
     // Encapsulates current state for a player (gets sent with gameSnapshot)
     [MessagePackObject]
     public partial struct UserState
     {
         [Key(0)]
-        public int Id;
+        public int Id; // Player ID
 
         [Key(1)]
-        public float X;
+        public float[] PosArray; // Player position
 
         [Key(2)]
-        public float Y;
-
-        [Key(3)]
-        public float Z;
-
-        [Key(4)]
-        public int Stamp;
+        public int Stamp; // Last processed stamp
 
         [IgnoreMember]
         public Vector3 Position
         {
-            get { return new Vector3(X, Y, Z); }
+            get { return new Vector3(PosArray[0], PosArray[1], PosArray[2]); }
         }
     }
 }

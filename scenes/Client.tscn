@@ -45,6 +45,7 @@ _sampleRateMs = 100.0
 autostart = true
 
 [node name="Timer" type="Timer" parent="."]
+process_callback = 0
 autostart = true
 
 [connection signal="timeout" from="NetworkClock/Timer" to="NetworkClock" method="OnTimerOut"]

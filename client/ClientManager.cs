@@ -16,8 +16,8 @@ public partial class ClientManager : Node
     private Node _entityArray;
 
     // Debug only
-    private int _packetCounter = 0;
-    private int _packetsPerSecond = 0;
+    private int _packetCounter = 0, _packetsPerSecond = 0;
+    private double _sentPerSecond = 0, _recPerSecond = 0;
 
     public override void _Ready()
     {
@@ -87,7 +87,9 @@ public partial class ClientManager : Node
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
         label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {NetworkClock.Clock} ofst {_netClock.Offset}ms";
         label.Text += $"\nping {_netClock.Latency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
-        label.Text += $"\nred {CustomSpawner.LocalPlayer.RedundantPackets}";
+
+        label.Text += $"\nrdn {CustomSpawner.LocalPlayer.RedundantPackets}";
+        label.Text += $" tx {_sentPerSecond} rx {_recPerSecond}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)
             label.Modulate = Colors.Red;
@@ -97,5 +99,9 @@ public partial class ClientManager : Node
     {
         _packetsPerSecond = _packetCounter;
         _packetCounter = 0;
+
+        var enetHost = (Multiplayer.MultiplayerPeer as ENetMultiplayerPeer).Host;
+        _sentPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.SentData);
+        _recPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.ReceivedData);
     }
 }
