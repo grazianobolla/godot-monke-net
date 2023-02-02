@@ -27,34 +27,10 @@ namespace NetMessage
         public int Id;
 
         [Key(1)]
-        public MoveCommand[] Commands;
-    }
-
-    // Encapsulates user input and other client actions
-    [MessagePackObject]
-    public partial struct MoveCommand
-    {
-        [Key(0)]
-        public byte Input;
-
-        [Key(1)]
         public int Stamp;
 
-        [IgnoreMember]
-        public Vector2 Direction
-        {
-            get
-            {
-                Vector2 direction = Vector2.Zero;
-
-                if ((Input & 0x1) > 0) direction.X += 1;
-                if ((Input & 0x2) > 0) direction.X -= 1;
-                if ((Input & 0x4) > 0) direction.Y -= 1;
-                if ((Input & 0x8) > 0) direction.Y += 1;
-
-                return direction.Normalized();
-            }
-        }
+        [Key(2)]
+        public byte[] Commands;
     }
 
     // Game state for a given point in time
@@ -86,5 +62,14 @@ namespace NetMessage
         {
             get { return new Vector3(PosArray[0], PosArray[1], PosArray[2]); }
         }
+    }
+
+    public enum InputFlags
+    {
+        Forward = 0b_0000_0001,
+        Backward = 0b_0000_0010,
+        Left = 0b_0000_0100,
+        Right = 0b_0000_1000,
+        Jump = 0b_0001_0000
     }
 }

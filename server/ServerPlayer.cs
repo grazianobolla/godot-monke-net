@@ -1,41 +1,52 @@
 using Godot;
 using System.Collections.Generic;
 
+struct InputData
+{
+    public byte Input;
+    public int Stamp;
+}
+
 public partial class ServerPlayer : CharacterBody3D
 {
     public int Stamp { get; set; } = 0;
 
-    private List<NetMessage.MoveCommand> _pendingCommands = new();
+    private List<InputData> _pendingInputs = new();
     private int _lastStampReceived = 0;
 
     private Vector3 _velocity = Vector3.Zero;
 
     public void ProcessPendingCommands()
     {
-        foreach (var moveCmd in _pendingCommands)
+        foreach (var moveCmd in _pendingInputs)
         {
             Move(moveCmd);
         }
 
-        _pendingCommands.Clear();
+        _pendingInputs.Clear();
     }
 
     public void PushCommand(NetMessage.UserCommand command)
     {
-        foreach (var moveCmd in command.Commands)
+        int firstStamp = command.Stamp - command.Commands.Length + 1;
+
+        for (int i = 0; i < command.Commands.Length; i++)
         {
-            if (moveCmd.Stamp == _lastStampReceived + 1)
+            byte input = command.Commands[i];
+            int stamp = firstStamp + i;
+
+            if (stamp == _lastStampReceived + 1)
             {
-                _pendingCommands.Add(moveCmd);
-                _lastStampReceived = moveCmd.Stamp;
+                _pendingInputs.Add(new InputData { Stamp = stamp, Input = input });
+                _lastStampReceived = stamp;
             }
         }
     }
 
-    private void Move(NetMessage.MoveCommand moveCommand)
+    private void Move(InputData input)
     {
-        Stamp = moveCommand.Stamp;
-        _velocity = PlayerMovement.ComputeMotion(this, _velocity, moveCommand.Direction, 1 / 30.0);
+        Stamp = input.Stamp;
+        _velocity = PlayerMovement.ComputeMotion(this, _velocity, PlayerMovement.InputToDirection(input.Input), 1 / 30.0);
         MoveAndCollide(_velocity * (1 / 30.0f));
     }
 }

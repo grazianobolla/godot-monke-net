@@ -1,19 +1,20 @@
 using Godot;
 using System.Collections.Generic;
 using MessagePack;
+using NetMessage;
 
 struct PositionHistory
 {
     public int Stamp;
     public Vector3 Position;
 }
+
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class ClientPlayer : CharacterBody3D
 {
-    public const int REDUNDANCY_PACKETS = 6;
-    public int RedundantPackets { get; private set; } = 0;
+    public const int REDUNDANCY_PACKETS = 3;
 
-    private NetMessage.MoveCommand[] _commands = new NetMessage.MoveCommand[REDUNDANCY_PACKETS];
+    private List<byte> _commands = new();
     private List<PositionHistory> _history = new();
     private int _seqStamp = 0;
 
@@ -22,8 +23,10 @@ public partial class ClientPlayer : CharacterBody3D
     public override void _PhysicsProcess(double delta)
     {
         byte input = PackInput();
-        var cmd = SendInput(input);
-        MoveLocally(cmd);
+
+        SendInput(input);
+        MoveLocally(input);
+
         _history.Add(new PositionHistory { Stamp = _seqStamp, Position = this.Position });
         _seqStamp++;
     }
@@ -41,23 +44,21 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
-    private NetMessage.MoveCommand SendInput(byte input)
+    private void SendInput(byte input)
     {
-        var cmd = new NetMessage.MoveCommand
+        if (_commands.Count >= REDUNDANCY_PACKETS)
         {
-            Input = input,
-            Stamp = _seqStamp
-        };
+            _commands.RemoveAt(0); //TODO: Lazy!
+        }
 
-        _commands[_seqStamp % REDUNDANCY_PACKETS] = cmd;
+        _commands.Add(input);
 
         var userCmd = new NetMessage.UserCommand
         {
             Id = Multiplayer.GetUniqueId(),
-            Commands = _commands
+            Stamp = _seqStamp,
+            Commands = _commands.ToArray()
         };
-
-        RedundantPackets = userCmd.Commands.Length;
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
@@ -66,13 +67,11 @@ public partial class ClientPlayer : CharacterBody3D
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
                 MultiplayerPeer.TransferModeEnum.UnreliableOrdered, 0);
         }
-
-        return cmd;
     }
 
-    private void MoveLocally(NetMessage.MoveCommand command)
+    private void MoveLocally(byte input)
     {
-        _velocity = PlayerMovement.ComputeMotion(this, _velocity, command.Direction, 1 / 30.0);
+        _velocity = PlayerMovement.ComputeMotion(this, _velocity, PlayerMovement.InputToDirection(input), 1 / 30.0);
         MoveAndCollide(_velocity * (1 / 30.0f));
     }
 
@@ -80,10 +79,10 @@ public partial class ClientPlayer : CharacterBody3D
     {
         byte input = 0;
 
-        if (Input.IsActionPressed("ui_right")) input |= 0x1;
-        if (Input.IsActionPressed("ui_left")) input |= 0x2;
-        if (Input.IsActionPressed("ui_up")) input |= 0x4;
-        if (Input.IsActionPressed("ui_down")) input |= 0x8;
+        if (Input.IsActionPressed("ui_right")) input |= (byte)InputFlags.Right;
+        if (Input.IsActionPressed("ui_left")) input |= (byte)InputFlags.Left;
+        if (Input.IsActionPressed("ui_up")) input |= (byte)InputFlags.Forward;
+        if (Input.IsActionPressed("ui_down")) input |= (byte)InputFlags.Backward;
 
         return input;
     }
