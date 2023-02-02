@@ -11,19 +11,28 @@ public partial class ServerPlayer : CharacterBody3D
 {
     public int Stamp { get; set; } = 0;
 
-    private List<InputData> _pendingInputs = new();
+    private Queue<InputData> _pendingInputs = new();
     private int _lastStampReceived = 0;
 
     private Vector3 _velocity = Vector3.Zero;
 
+    //TODO: this should be dynamic, currently the queue will fill at 4 ticks,
+    // that's a constant 133ms delay, but will perform ok in bad network conditions
+    private int _packetWindow = 4;
+
     public void ProcessPendingCommands()
     {
-        foreach (var moveCmd in _pendingInputs)
+        if (_pendingInputs.Count <= 0)
+            return;
+
+        while (_pendingInputs.Count > _packetWindow)
         {
-            Move(moveCmd);
+            var input = _pendingInputs.Dequeue();
+            GD.PrintErr($"Dropping package {input.Stamp}");
         }
 
-        _pendingInputs.Clear();
+        var moveCmd = _pendingInputs.Dequeue();
+        Move(moveCmd);
     }
 
     public void PushCommand(NetMessage.UserCommand command)
@@ -32,13 +41,16 @@ public partial class ServerPlayer : CharacterBody3D
 
         for (int i = 0; i < command.Commands.Length; i++)
         {
-            byte input = command.Commands[i];
-            int stamp = firstStamp + i;
-
-            if (stamp == _lastStampReceived + 1)
+            var inputData = new InputData
             {
-                _pendingInputs.Add(new InputData { Stamp = stamp, Input = input });
-                _lastStampReceived = stamp;
+                Stamp = firstStamp + i,
+                Input = command.Commands[i]
+            };
+
+            if (inputData.Stamp >= _lastStampReceived + 1)
+            {
+                _pendingInputs.Enqueue(inputData);
+                _lastStampReceived = inputData.Stamp;
             }
         }
     }

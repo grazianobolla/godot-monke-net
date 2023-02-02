@@ -12,19 +12,18 @@ struct PositionHistory
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class ClientPlayer : CharacterBody3D
 {
-    public const int REDUNDANCY_PACKETS = 3;
+    public const int REDUNDANCY_PACKETS = 6;
 
     private List<byte> _commands = new();
     private List<PositionHistory> _history = new();
-    private int _seqStamp = 0;
 
     private Vector3 _velocity = Vector3.Zero;
+    private int _seqStamp = 0;
 
     public override void _PhysicsProcess(double delta)
     {
         byte input = PackInput();
-
-        SendInput(input);
+        SendInput(input, _seqStamp);
         MoveLocally(input);
 
         _history.Add(new PositionHistory { Stamp = _seqStamp, Position = this.Position });
@@ -44,7 +43,7 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
-    private void SendInput(byte input)
+    private void SendInput(byte input, int timeStamp)
     {
         if (_commands.Count >= REDUNDANCY_PACKETS)
         {
@@ -56,7 +55,7 @@ public partial class ClientPlayer : CharacterBody3D
         var userCmd = new NetMessage.UserCommand
         {
             Id = Multiplayer.GetUniqueId(),
-            Stamp = _seqStamp,
+            Stamp = timeStamp,
             Commands = _commands.ToArray()
         };
 

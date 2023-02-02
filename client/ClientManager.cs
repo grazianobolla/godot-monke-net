@@ -83,7 +83,7 @@ public partial class ClientManager : Node
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
         label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {NetworkClock.Clock} ofst {_netClock.Offset}ms";
-        label.Text += $"\nping {_netClock.Latency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
+        label.Text += $"\nping {_netClock.InmediateLatency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
         label.Text += $"\ntx {_sentPerSecond} rx {_recPerSecond}";
 
         if (_snapshotInterpolator.InterpolationFactor > 1)

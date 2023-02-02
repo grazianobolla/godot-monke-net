@@ -15,6 +15,7 @@ public partial class NetworkClock : Node
     ///Current synced server time
     public static int Clock { get; private set; } = 0;
 
+    public int InmediateLatency { get; private set; } = 0;
     public int Latency { get; private set; } = 0;
     public int Offset { get; private set; } = 0;
     public int Jitter { get; private set; } = 0;
@@ -48,13 +49,13 @@ public partial class NetworkClock : Node
     private void CalculateValues(NetMessage.Sync sync)
     {
         // Latency as the difference between when the packet was sent and when it came back divided by 2
-        Latency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
+        InmediateLatency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Time difference between our clock and the server clock accounting for latency
-        Offset = (sync.ServerTime - Clock) + Latency;
+        Offset = (sync.ServerTime - Clock) + InmediateLatency;
 
         _offsetValues.Add(Offset);
-        _latencyValues.Add(Latency);
+        _latencyValues.Add(InmediateLatency);
 
         if (_offsetValues.Count >= _sampleSize)
         {
@@ -63,9 +64,9 @@ public partial class NetworkClock : Node
 
             int offsetAverage = ReturnSmoothAverage(_offsetValues, 20);
             Jitter = _latencyValues[_latencyValues.Count - 1] - _latencyValues[0];
-            int latencyAverage = ReturnSmoothAverage(_latencyValues, 20);
+            Latency = ReturnSmoothAverage(_latencyValues, 20);
 
-            EmitSignal(SignalName.LatencyCalculated, latencyAverage, offsetAverage, Jitter);
+            EmitSignal(SignalName.LatencyCalculated, Latency, offsetAverage, Jitter);
 
             _lastOffset = offsetAverage; // For adjusting the clock
 
@@ -117,7 +118,8 @@ public partial class NetworkClock : Node
     {
         var sync = new NetMessage.Sync
         {
-            ClientTime = (int)Time.GetTicksMsec()
+            ClientTime = (int)Time.GetTicksMsec(),
+            ServerTime = 0
         };
 
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
