@@ -28,7 +28,7 @@ public partial class ServerPlayer : CharacterBody3D
         while (_pendingInputs.Count > _packetWindow)
         {
             var input = _pendingInputs.Dequeue();
-            GD.PrintErr($"Dropping package {input.Stamp}");
+            GD.PrintErr($"Server dropping package {input.Stamp}");
         }
 
         var moveCmd = _pendingInputs.Dequeue();

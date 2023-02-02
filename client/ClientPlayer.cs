@@ -30,16 +30,18 @@ public partial class ClientPlayer : CharacterBody3D
         _seqStamp++;
     }
 
+    //TODO: fix reconciliation, jitter unless still
+    // have a second character body!
     public void ReceiveState(NetMessage.UserState state)
     {
         _history.RemoveAll(entry => (entry.Stamp < state.Stamp));
 
         var deviation = _history[0].Position - state.Position;
 
-        if (deviation.Length() > 0.05f)
+        if (deviation.Length() > 0)
         {
             this.Position = state.Position;
-            GD.PrintErr("Reconciliating!");
+            GD.PrintErr($"Reconciliating stamp {state.Stamp}");
         }
     }
 
