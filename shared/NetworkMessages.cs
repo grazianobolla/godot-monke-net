@@ -27,10 +27,17 @@ namespace NetMessage
         public int Id;
 
         [Key(1)]
+        public UserInput[] Commands;
+    }
+
+    [MessagePackObject]
+    public partial struct UserInput
+    {
+        [Key(0)]
         public int Stamp;
 
-        [Key(2)]
-        public byte[] Commands;
+        [Key(1)]
+        public byte Keys;
     }
 
     // Game state for a given point in time
@@ -55,12 +62,21 @@ namespace NetMessage
         public float[] PosArray; // Player position
 
         [Key(2)]
+        public float[] VelArray; // Player velocity
+
+        [Key(3)]
         public int Stamp; // Last processed stamp
 
         [IgnoreMember]
         public Vector3 Position
         {
             get { return new Vector3(PosArray[0], PosArray[1], PosArray[2]); }
+        }
+
+        [IgnoreMember]
+        public Vector3 Velocity
+        {
+            get { return new Vector3(VelArray[0], VelArray[1], VelArray[2]); }
         }
     }
 

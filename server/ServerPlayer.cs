@@ -1,24 +1,17 @@
 using Godot;
 using System.Collections.Generic;
 
-struct InputData
-{
-    public byte Input;
-    public int Stamp;
-}
-
 public partial class ServerPlayer : CharacterBody3D
 {
-    public int Stamp { get; set; } = 0;
+    public int Stamp { get; private set; } = 0;
+    public Vector3 Vel { get; private set; } = Vector3.Zero;
 
-    private Queue<InputData> _pendingInputs = new();
+    private Queue<NetMessage.UserInput> _pendingInputs = new();
     private int _lastStampReceived = 0;
 
-    private Vector3 _velocity = Vector3.Zero;
-
-    //TODO: this should be dynamic, currently the queue will fill at 4 ticks,
-    // that's a constant 133ms delay, but will perform ok in bad network conditions
-    private int _packetWindow = 4;
+    //TODO: this should be dynamic, currently the queue will fill at 3 ticks,
+    // that's a constant 100ms delay, but will perform ok in bad network conditions
+    private int _packetWindow = 3;
 
     public void ProcessPendingCommands()
     {
@@ -28,37 +21,43 @@ public partial class ServerPlayer : CharacterBody3D
         while (_pendingInputs.Count > _packetWindow)
         {
             var input = _pendingInputs.Dequeue();
-            GD.PrintErr($"Server dropping package {input.Stamp}");
+            GD.PrintErr($"Server dropping package {input.Stamp} count {_pendingInputs.Count}");
         }
 
-        var moveCmd = _pendingInputs.Dequeue();
-        Move(moveCmd);
+        var userInput = _pendingInputs.Dequeue();
+        Move(userInput);
     }
 
     public void PushCommand(NetMessage.UserCommand command)
     {
-        int firstStamp = command.Stamp - command.Commands.Length + 1;
-
-        for (int i = 0; i < command.Commands.Length; i++)
+        foreach (NetMessage.UserInput userInput in command.Commands)
         {
-            var inputData = new InputData
+            if (userInput.Stamp == _lastStampReceived + 1)
             {
-                Stamp = firstStamp + i,
-                Input = command.Commands[i]
-            };
-
-            if (inputData.Stamp >= _lastStampReceived + 1)
-            {
-                _pendingInputs.Enqueue(inputData);
-                _lastStampReceived = inputData.Stamp;
+                _pendingInputs.Enqueue(userInput);
+                _lastStampReceived = userInput.Stamp;
             }
         }
     }
 
-    private void Move(InputData input)
+    private void Move(NetMessage.UserInput userInput)
     {
-        Stamp = input.Stamp;
-        _velocity = PlayerMovement.ComputeMotion(this, _velocity, PlayerMovement.InputToDirection(input.Input), 1 / 30.0);
-        MoveAndCollide(_velocity * (1 / 30.0f));
+        Stamp = userInput.Stamp;
+        Vel = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, Vel, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
+        Position += Vel * (1 / 30.0f);
+    }
+
+    private int _extStamp = 0;
+    private bool StampCheck(int stamp)
+    {
+        bool ok = true;
+        if (stamp != _extStamp + 1)
+        {
+            GD.PrintErr($"Missed stamp {_extStamp + 1}");
+            ok = false;
+        }
+
+        _extStamp = stamp;
+        return ok;
     }
 }

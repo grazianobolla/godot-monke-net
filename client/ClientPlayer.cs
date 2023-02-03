@@ -3,62 +3,57 @@ using System.Collections.Generic;
 using MessagePack;
 using NetMessage;
 
-struct PositionHistory
-{
-    public int Stamp;
-    public Vector3 Position;
-}
-
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class ClientPlayer : CharacterBody3D
 {
-    public const int REDUNDANCY_PACKETS = 6;
-
-    private List<byte> _commands = new();
-    private List<PositionHistory> _history = new();
-
-    private Vector3 _velocity = Vector3.Zero;
+    private List<NetMessage.UserInput> _userInputs = new();
     private int _seqStamp = 0;
+    private Vector3 _velocity = Vector3.Zero;
 
     public override void _PhysicsProcess(double delta)
     {
-        byte input = PackInput();
-        SendInput(input, _seqStamp);
-        MoveLocally(input);
-
-        _history.Add(new PositionHistory { Stamp = _seqStamp, Position = this.Position });
+        var userInput = GenerateUserInput();
+        _userInputs.Add(userInput);
+        SendInputs();
+        MoveLocally(userInput);
         _seqStamp++;
     }
 
-    //TODO: fix reconciliation, jitter unless still
-    // have a second character body!
     public void ReceiveState(NetMessage.UserState state)
     {
-        _history.RemoveAll(entry => (entry.Stamp < state.Stamp));
+        _userInputs.RemoveAll(input => input.Stamp <= state.Stamp);
 
-        var deviation = _history[0].Position - state.Position;
+        Transform3D virtualTransform = this.GlobalTransform;
+        virtualTransform.Origin = state.Position;
+
+        Vector3 resultPosition = state.Position;
+        Vector3 velocity = state.Velocity;
+
+        foreach (var userInput in _userInputs)
+        {
+            velocity = PlayerMovement.ComputeMotion(this.GetRid(), virtualTransform, velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
+            resultPosition += velocity * (1 / 30.0f);
+            virtualTransform.Origin = resultPosition;
+        }
+
+        var deviation = resultPosition - Position;
 
         if (deviation.Length() > 0)
         {
-            this.Position = state.Position;
-            GD.PrintErr($"Reconciliating stamp {state.Stamp}");
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch!");
+
+            // Reconciliation with authoritative state
+            this.Position = resultPosition;
+            _velocity = velocity;
         }
     }
 
-    private void SendInput(byte input, int timeStamp)
+    private void SendInputs()
     {
-        if (_commands.Count >= REDUNDANCY_PACKETS)
-        {
-            _commands.RemoveAt(0); //TODO: Lazy!
-        }
-
-        _commands.Add(input);
-
         var userCmd = new NetMessage.UserCommand
         {
             Id = Multiplayer.GetUniqueId(),
-            Stamp = timeStamp,
-            Commands = _commands.ToArray()
+            Commands = _userInputs.ToArray()
         };
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
@@ -70,21 +65,27 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
-    private void MoveLocally(byte input)
+    private void MoveLocally(NetMessage.UserInput userInput)
     {
-        _velocity = PlayerMovement.ComputeMotion(this, _velocity, PlayerMovement.InputToDirection(input), 1 / 30.0);
-        MoveAndCollide(_velocity * (1 / 30.0f));
+        _velocity = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, _velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
+        Position += _velocity * (1 / 30.0f);
     }
 
-    private byte PackInput()
+    private NetMessage.UserInput GenerateUserInput()
     {
-        byte input = 0;
+        byte keys = 0;
 
-        if (Input.IsActionPressed("ui_right")) input |= (byte)InputFlags.Right;
-        if (Input.IsActionPressed("ui_left")) input |= (byte)InputFlags.Left;
-        if (Input.IsActionPressed("ui_up")) input |= (byte)InputFlags.Forward;
-        if (Input.IsActionPressed("ui_down")) input |= (byte)InputFlags.Backward;
+        if (Input.IsActionPressed("right")) keys |= (byte)InputFlags.Right;
+        if (Input.IsActionPressed("left")) keys |= (byte)InputFlags.Left;
+        if (Input.IsActionPressed("forward")) keys |= (byte)InputFlags.Forward;
+        if (Input.IsActionPressed("backward")) keys |= (byte)InputFlags.Backward;
 
-        return input;
+        var userInput = new NetMessage.UserInput
+        {
+            Stamp = _seqStamp,
+            Keys = keys
+        };
+
+        return userInput;
     }
 }

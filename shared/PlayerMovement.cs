@@ -11,7 +11,7 @@ public partial class PlayerMovement : Node
         _body = GetParent<CharacterBody3D>();
     }
 
-    public static Vector3 ComputeMotion(CharacterBody3D body, Vector3 velocity, Vector2 input, double delta)
+    public static Vector3 ComputeMotion(Rid rid, Transform3D from, Vector3 velocity, Vector2 input, double delta)
     {
         Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
 
@@ -22,14 +22,20 @@ public partial class PlayerMovement : Node
         }
         else
         {
-            velocity *= 0.89f;
+            velocity *= 0.85f;
         }
 
-        KinematicCollision3D coll = body.MoveAndCollide(velocity * (float)delta, true);
+        var testParameters = new PhysicsTestMotionParameters3D();
+        testParameters.From = from;
+        testParameters.Motion = velocity * (float)delta;
 
-        if (coll != null)
+        var collResult = new PhysicsTestMotionResult3D();
+
+        bool hasCollided = PhysicsServer3D.BodyTestMotion(rid, testParameters, collResult);
+
+        if (hasCollided)
         {
-            velocity = velocity.Slide(coll.GetNormal());
+            velocity = velocity.Slide(collResult.GetCollisionNormal());
         }
 
         return velocity;

@@ -54,6 +54,7 @@ public partial class ServerManager : Node
             {
                 Id = Int32.Parse(player.Name), //TODO: risky
                 PosArray = new float[3] { player.Position.X, player.Position.Y, player.Position.Z },
+                VelArray = new float[3] { player.Vel.X, player.Vel.Y, player.Vel.Z },
                 Stamp = player.Stamp
             };
 
