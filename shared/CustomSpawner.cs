@@ -25,8 +25,9 @@ public partial class CustomSpawner : MultiplayerSpawner
         if (Multiplayer.GetUniqueId() == 1)
         {
             GD.Print("Spawned server character");
-            Node player = _serverPlayerScene.Instantiate();
+            ServerPlayer player = _serverPlayerScene.Instantiate() as ServerPlayer;
             player.Name = id.ToString();
+            player.MultiplayerID = id;
             return player;
         }
 

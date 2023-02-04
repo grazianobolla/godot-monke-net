@@ -3,8 +3,8 @@ using System.Collections.Generic;
 
 public partial class ServerPlayer : CharacterBody3D
 {
+    public int MultiplayerID { get; set; } = 0;
     public int Stamp { get; private set; } = 0;
-    public Vector3 Vel { get; private set; } = Vector3.Zero;
 
     private Queue<NetMessage.UserInput> _pendingInputs = new();
     private int _lastStampReceived = 0;
@@ -21,7 +21,7 @@ public partial class ServerPlayer : CharacterBody3D
         while (_pendingInputs.Count > _packetWindow)
         {
             var input = _pendingInputs.Dequeue();
-            GD.PrintErr($"Server dropping package {input.Stamp} count {_pendingInputs.Count}");
+            GD.PrintErr($"Server dropping package {input.Stamp} for {MultiplayerID}"); //TODO: this is not very good
         }
 
         var userInput = _pendingInputs.Dequeue();
@@ -43,21 +43,7 @@ public partial class ServerPlayer : CharacterBody3D
     private void Move(NetMessage.UserInput userInput)
     {
         Stamp = userInput.Stamp;
-        Vel = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, Vel, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
-        Position += Vel * (1 / 30.0f);
-    }
-
-    private int _extStamp = 0;
-    private bool StampCheck(int stamp)
-    {
-        bool ok = true;
-        if (stamp != _extStamp + 1)
-        {
-            GD.PrintErr($"Missed stamp {_extStamp + 1}");
-            ok = false;
-        }
-
-        _extStamp = stamp;
-        return ok;
+        this.Velocity = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, this.Velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
+        Position += this.Velocity * (1 / 30.0f);
     }
 }

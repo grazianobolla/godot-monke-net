@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 window/size/viewport_width=500
 window/size/viewport_height=500
+window/vsync/vsync_mode=0
 
 [dotnet]
 

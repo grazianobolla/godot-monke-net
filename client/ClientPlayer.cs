@@ -6,9 +6,10 @@ using NetMessage;
 // Wrapper scene spawned by the MultiplayerSpawner
 public partial class ClientPlayer : CharacterBody3D
 {
+    public int RedundantInputs { get; private set; } = 0;
+
     private List<NetMessage.UserInput> _userInputs = new();
     private int _seqStamp = 0;
-    private Vector3 _velocity = Vector3.Zero;
 
     public override void _PhysicsProcess(double delta)
     {
@@ -23,28 +24,26 @@ public partial class ClientPlayer : CharacterBody3D
     {
         _userInputs.RemoveAll(input => input.Stamp <= state.Stamp);
 
-        Transform3D virtualTransform = this.GlobalTransform;
-        virtualTransform.Origin = state.Position;
+        Transform3D expectedTransform = this.GlobalTransform;
+        expectedTransform.Origin = state.Position;
 
-        Vector3 resultPosition = state.Position;
-        Vector3 velocity = state.Velocity;
+        Vector3 expectedVelocity = state.Velocity;
 
         foreach (var userInput in _userInputs)
         {
-            velocity = PlayerMovement.ComputeMotion(this.GetRid(), virtualTransform, velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
-            resultPosition += velocity * (1 / 30.0f);
-            virtualTransform.Origin = resultPosition;
+            expectedVelocity = PlayerMovement.ComputeMotion(this.GetRid(), expectedTransform, expectedVelocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
+            expectedTransform.Origin += expectedVelocity * (1 / 30.0f);
         }
 
-        var deviation = resultPosition - Position;
+        var deviation = expectedTransform.Origin - Position;
 
         if (deviation.Length() > 0)
         {
             GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch!");
 
             // Reconciliation with authoritative state
-            this.Position = resultPosition;
-            _velocity = velocity;
+            this.GlobalTransform = expectedTransform;
+            this.Velocity = expectedVelocity;
         }
     }
 
@@ -55,6 +54,8 @@ public partial class ClientPlayer : CharacterBody3D
             Id = Multiplayer.GetUniqueId(),
             Commands = _userInputs.ToArray()
         };
+
+        RedundantInputs = userCmd.Commands.Length;
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
@@ -67,8 +68,8 @@ public partial class ClientPlayer : CharacterBody3D
 
     private void MoveLocally(NetMessage.UserInput userInput)
     {
-        _velocity = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, _velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
-        Position += _velocity * (1 / 30.0f);
+        this.Velocity = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, this.Velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
+        Position += this.Velocity * (1 / 30.0f);
     }
 
     private NetMessage.UserInput GenerateUserInput()

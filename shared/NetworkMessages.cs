@@ -34,7 +34,7 @@ namespace NetMessage
     public partial struct UserInput
     {
         [Key(0)]
-        public int Stamp;
+        public int Stamp; //TODO: OPTIMIZE TO NOT SEND MULTIPLE STAMPS! only one needed
 
         [Key(1)]
         public byte Keys;
