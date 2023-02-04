@@ -43,7 +43,13 @@ public partial class ServerPlayer : CharacterBody3D
     private void Move(NetMessage.UserInput userInput)
     {
         Stamp = userInput.Stamp;
-        this.Velocity = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, this.Velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
-        Position += this.Velocity * (1 / 30.0f);
+
+        this.Velocity = PlayerMovement.ComputeMotion(
+            this.GetRid(),
+            this.GlobalTransform,
+            this.Velocity,
+            PlayerMovement.InputToDirection(userInput.Keys));
+
+        Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
     }
 }

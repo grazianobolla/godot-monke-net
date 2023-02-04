@@ -86,6 +86,7 @@ namespace NetMessage
         Backward = 0b_0000_0010,
         Left = 0b_0000_0100,
         Right = 0b_0000_1000,
-        Jump = 0b_0001_0000
+        Space = 0b_0001_0000,
+        Shift = 0b_0010_0000,
     }
 }

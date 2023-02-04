@@ -31,8 +31,13 @@ public partial class ClientPlayer : CharacterBody3D
 
         foreach (var userInput in _userInputs)
         {
-            expectedVelocity = PlayerMovement.ComputeMotion(this.GetRid(), expectedTransform, expectedVelocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
-            expectedTransform.Origin += expectedVelocity * (1 / 30.0f);
+            expectedVelocity = PlayerMovement.ComputeMotion(
+                this.GetRid(),
+                expectedTransform,
+                expectedVelocity,
+                PlayerMovement.InputToDirection(userInput.Keys));
+
+            expectedTransform.Origin += expectedVelocity * (float)PlayerMovement.FRAME_DELTA;
         }
 
         var deviation = expectedTransform.Origin - Position;
@@ -68,8 +73,13 @@ public partial class ClientPlayer : CharacterBody3D
 
     private void MoveLocally(NetMessage.UserInput userInput)
     {
-        this.Velocity = PlayerMovement.ComputeMotion(this.GetRid(), this.GlobalTransform, this.Velocity, PlayerMovement.InputToDirection(userInput.Keys), 1 / 30.0);
-        Position += this.Velocity * (1 / 30.0f);
+        this.Velocity = PlayerMovement.ComputeMotion(
+            this.GetRid(),
+            this.GlobalTransform,
+            this.Velocity,
+            PlayerMovement.InputToDirection(userInput.Keys));
+
+        Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
     }
 
     private NetMessage.UserInput GenerateUserInput()
@@ -80,6 +90,8 @@ public partial class ClientPlayer : CharacterBody3D
         if (Input.IsActionPressed("left")) keys |= (byte)InputFlags.Left;
         if (Input.IsActionPressed("forward")) keys |= (byte)InputFlags.Forward;
         if (Input.IsActionPressed("backward")) keys |= (byte)InputFlags.Backward;
+        if (Input.IsActionPressed("space")) keys |= (byte)InputFlags.Space;
+        if (Input.IsActionPressed("shift")) keys |= (byte)InputFlags.Shift;
 
         var userInput = new NetMessage.UserInput
         {

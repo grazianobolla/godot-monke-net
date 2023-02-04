@@ -1,24 +1,18 @@
 using Godot;
 using NetMessage;
 
-public partial class PlayerMovement : Node
+public static class PlayerMovement
 {
-    private CharacterBody3D _body;
-    private const int SPEED = 5;
+    public static double FRAME_DELTA = (1.0 / Engine.PhysicsTicksPerSecond);
 
-    public override void _Ready()
-    {
-        _body = GetParent<CharacterBody3D>();
-    }
-
-    public static Vector3 ComputeMotion(Rid rid, Transform3D from, Vector3 velocity, Vector2 input, double delta)
+    public static Vector3 ComputeMotion(Rid rid, Transform3D from, Vector3 velocity, Vector2 input)
     {
         Vector3 direction = new Vector3(input.X, 0, input.Y).Normalized();
 
         if (direction != Vector3.Zero)
         {
-            velocity.X = direction.X * SPEED;
-            velocity.Z = direction.Z * SPEED;
+            velocity.X = direction.X * 5;
+            velocity.Z = direction.Z * 5;
         }
         else
         {
@@ -27,7 +21,7 @@ public partial class PlayerMovement : Node
 
         var testParameters = new PhysicsTestMotionParameters3D();
         testParameters.From = from;
-        testParameters.Motion = velocity * (float)delta;
+        testParameters.Motion = velocity * (float)FRAME_DELTA;
 
         var collResult = new PhysicsTestMotionResult3D();
 
