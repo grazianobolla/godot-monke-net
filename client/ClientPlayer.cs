@@ -42,13 +42,13 @@ public partial class ClientPlayer : CharacterBody3D
 
         var deviation = expectedTransform.Origin - Position;
 
-        if (deviation.Length() > 0)
+        if (deviation.Length() > 0.05f)
         {
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch!");
-
             // Reconciliation with authoritative state
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
+
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch!");
         }
     }
 

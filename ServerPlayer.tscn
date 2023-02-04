@@ -1,7 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://1fbyoad8h8gr"]
+[gd_scene load_steps=5 format=3 uid="uid://1fbyoad8h8gr"]
 
 [ext_resource type="Script" path="res://server/ServerPlayer.cs" id="1_cbmgq"]
-[ext_resource type="Script" path="res://shared/PlayerMovement.cs" id="2_b8o23"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojigt"]
 resource_local_to_scene = true
@@ -20,6 +19,3 @@ mesh = SubResource("CapsuleMesh_x0vba")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_jo7y7")
-
-[node name="PlayerMovement" type="Node" parent="."]
-script = ExtResource("2_b8o23")

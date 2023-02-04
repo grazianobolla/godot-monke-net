@@ -9,9 +9,8 @@ public partial class ServerPlayer : CharacterBody3D
     private Queue<NetMessage.UserInput> _pendingInputs = new();
     private int _lastStampReceived = 0;
 
-    //TODO: this should be dynamic, currently the queue will fill at 3 ticks,
-    // that's a constant 100ms delay, but will perform ok in bad network conditions
-    private int _packetWindow = 3;
+    //TODO: this should be dynamic, currently the queue will fill at 4 ticks
+    private int _packetWindow = 4;
 
     public void ProcessPendingCommands()
     {

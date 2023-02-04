@@ -6,7 +6,7 @@ albedo_color = Color(0.941176, 0.615686, 0, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
-[node name="Player" type="Node3D"]
+[node name="Dummy" type="Node3D"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_n6bau")
