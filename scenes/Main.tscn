@@ -1,12 +1,12 @@
-[gd_scene load_steps=14 format=3 uid="uid://diku3qvdru8sy"]
+[gd_scene load_steps=14 format=3]
 
 [ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
 [ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
 [ext_resource type="Script" path="res://debug/CubeRotation.gd" id="3_od4jj"]
 [ext_resource type="Script" path="res://shared/CustomSpawner.cs" id="3_tt4b3"]
-[ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://ClientPlayer.tscn" id="4_35anr"]
-[ext_resource type="PackedScene" uid="uid://1fbyoad8h8gr" path="res://ServerPlayer.tscn" id="5_lgfx3"]
-[ext_resource type="PackedScene" uid="uid://dgltayb5g40lt" path="res://DummyPlayer.tscn" id="6_82wv5"]
+[ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://players/ClientPlayer.tscn" id="4_35anr"]
+[ext_resource type="PackedScene" uid="uid://1fbyoad8h8gr" path="res://players/ServerPlayer.tscn" id="5_lgfx3"]
+[ext_resource type="PackedScene" uid="uid://dgltayb5g40lt" path="res://players/DummyPlayer.tscn" id="6_82wv5"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i6375"]
 albedo_color = Color(0.101961, 0.101961, 0.101961, 1)

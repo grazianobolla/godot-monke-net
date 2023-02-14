@@ -1,6 +1,6 @@
 [gd_scene load_steps=5 format=3 uid="uid://1fbyoad8h8gr"]
 
-[ext_resource type="Script" path="res://server/ServerPlayer.cs" id="1_cbmgq"]
+[ext_resource type="Script" path="res://server/ServerPlayer.cs" id="1_o80wb"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojigt"]
 resource_local_to_scene = true
@@ -11,7 +11,7 @@ resource_local_to_scene = true
 
 [node name="ServerPlayer" type="CharacterBody3D"]
 collision_layer = 0
-script = ExtResource("1_cbmgq")
+script = ExtResource("1_o80wb")
 
 [node name="Mesh" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_ojigt")
