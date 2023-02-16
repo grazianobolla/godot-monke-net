@@ -19,26 +19,27 @@ public partial class CustomSpawner : MultiplayerSpawner
 
     private Node CustomSpawnFunction(Variant data)
     {
-        int id = (int)data;
+        int spawnedPlayerID = (int)data;
+        int localID = Multiplayer.GetUniqueId();
 
         // Server character for simulation
-        if (Multiplayer.GetUniqueId() == 1)
+        if (localID == 1)
         {
             GD.Print("Spawned server character");
             ServerPlayer player = _serverPlayerScene.Instantiate() as ServerPlayer;
-            player.Name = id.ToString();
-            player.MultiplayerID = id;
+            player.Name = spawnedPlayerID.ToString();
+            player.MultiplayerID = spawnedPlayerID;
             return player;
         }
 
         // Client player
-        if (id == Multiplayer.GetUniqueId())
+        if (localID == spawnedPlayerID)
         {
             GD.Print("Spawned client player");
-            Node player = _playerScene.Instantiate();
-            player.Name = id.ToString();
-            player.SetMultiplayerAuthority(id);
-            LocalPlayer = player as ClientPlayer;
+            ClientPlayer player = _playerScene.Instantiate() as ClientPlayer;
+            player.Name = spawnedPlayerID.ToString();
+            player.SetMultiplayerAuthority(spawnedPlayerID);
+            LocalPlayer = player;
             return player;
         }
 
@@ -46,8 +47,8 @@ public partial class CustomSpawner : MultiplayerSpawner
         {
             GD.Print("Spawned dummy");
             Node player = _dummyScene.Instantiate();
-            player.Name = id.ToString();
-            player.SetMultiplayerAuthority(id);
+            player.Name = spawnedPlayerID.ToString();
+            player.SetMultiplayerAuthority(spawnedPlayerID);
             return player;
         }
     }
