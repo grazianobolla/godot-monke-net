@@ -10,7 +10,7 @@ public partial class ServerPlayer : CharacterBody3D
     private int _lastStampReceived = 0;
 
     //TODO: this should be dynamic, currently the queue will fill at 4 ticks
-    private int _packetWindow = 3;
+    private int _packetWindow = 4;
 
     public void ProcessPendingCommands()
     {
