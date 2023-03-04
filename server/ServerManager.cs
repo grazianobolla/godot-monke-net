@@ -10,6 +10,9 @@ public partial class ServerManager : Node
     private SceneMultiplayer _multiplayer = new();
     private Godot.Collections.Array<Godot.Node> entityArray;
 
+    private const int NET_TICKRATE = 30; //hz
+    private double _netTickCounter = 0;
+
     public override void _Ready()
     {
         Create();
@@ -18,13 +21,23 @@ public partial class ServerManager : Node
     public override void _Process(double delta)
     {
         DebugInfo();
+
+        _netTickCounter += delta;
+        if (_netTickCounter >= (1.0 / NET_TICKRATE))
+        {
+            NetworkProcess();
+            _netTickCounter = 0;
+        }
     }
 
     public override void _PhysicsProcess(double delta)
     {
         entityArray = GetNode("/root/Main/EntityArray").GetChildren();
-
         ProcessPendingPackets();
+    }
+
+    private void NetworkProcess() // Called every NET_TICKRATE hz
+    {
         BroadcastSnapshot();
     }
 
@@ -49,16 +62,7 @@ public partial class ServerManager : Node
         for (int i = 0; i < entityArray.Count; i++)
         {
             var player = entityArray[i] as ServerPlayer; //player
-
-            var userState = new NetMessage.UserState
-            {
-                Id = Int32.Parse(player.Name), //TODO: risky
-                PosArray = new float[3] { player.Position.X, player.Position.Y, player.Position.Z },
-                VelArray = new float[3] { player.Velocity.X, player.Velocity.Y, player.Velocity.Z },
-                Stamp = player.Stamp
-            };
-
-            snapshot.States[i] = userState;
+            snapshot.States[i] = player.GetCurrentState();
         }
 
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);

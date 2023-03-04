@@ -10,7 +10,7 @@ public partial class ServerPlayer : CharacterBody3D
     private int _lastStampReceived = 0;
 
     //TODO: this should be dynamic, currently the queue will fill at 4 ticks
-    private int _packetWindow = 4;
+    private int _packetWindow = 3;
 
     public void ProcessPendingCommands()
     {
@@ -20,7 +20,6 @@ public partial class ServerPlayer : CharacterBody3D
         while (_pendingInputs.Count > _packetWindow)
         {
             var input = _pendingInputs.Dequeue();
-            GD.PrintErr($"Server dropping package {input.Stamp} for {MultiplayerID}"); //TODO: this is not very good
         }
 
         var userInput = _pendingInputs.Dequeue();
@@ -50,5 +49,17 @@ public partial class ServerPlayer : CharacterBody3D
             PlayerMovement.InputToDirection(userInput.Keys));
 
         Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
+    }
+
+
+    public NetMessage.UserState GetCurrentState()
+    {
+        return new NetMessage.UserState
+        {
+            Id = MultiplayerID,
+            PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },
+            VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z },
+            Stamp = this.Stamp
+        };
     }
 }

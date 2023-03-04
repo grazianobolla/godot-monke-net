@@ -16,7 +16,7 @@ public partial class ClientManager : Node
     private Node _entityArray;
 
     // Debug only
-    private double _sentPerSecond = 0, _recPerSecond = 0, _packetsPerSecond = 0;
+    private double _sentPerSecond = 0, _recPerSecond = 0, _packetsPerSecond = 0, _sentPacketsPerSecond = 0;
 
     public override void _Ready()
     {
@@ -83,7 +83,7 @@ public partial class ClientManager : Node
         label.Text = $"buf {_snapshotInterpolator.BufferCount} ";
         label.Text += String.Format("int {0:0.00}", _snapshotInterpolator.InterpolationFactor);
         label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {NetworkClock.Clock} ofst {_netClock.Offset}ms";
-        label.Text += $"\nping {_netClock.InmediateLatency}ms pps {_packetsPerSecond} jit {_netClock.Jitter}";
+        label.Text += $"\nping {_netClock.InmediateLatency}ms r_pps {_packetsPerSecond} t_pps {_sentPacketsPerSecond} jit {_netClock.Jitter}";
 
         if (CustomSpawner.LocalPlayer != null)
         {
@@ -100,5 +100,6 @@ public partial class ClientManager : Node
         _sentPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.SentData);
         _recPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.ReceivedData);
         _packetsPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.ReceivedPackets);
+        _sentPacketsPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.SentPackets);
     }
 }

@@ -9,11 +9,9 @@ This multiplayer template includes the impmenentation of:
 You can use it to speed up your developing process, it is based on the client/auth-server model.
 
 There are some improvements still left to do, mainly:
-- The tickrate of the simulation in defined by the physics_process, which right now is set at 60hz, which might be too much.
 - Separate CSP and Reconciliation into different classes, keep code clean.
 - Player to Player collisions are not implemented, can be easily added but they depend heavily on the type of game.
 - Comment a bunch of the code, make it easier to understand for learning purposes.
-- Reduce net usage a little bit.
 
 ## Usage
 You will need Godot 4.X and C# with at least Net6
