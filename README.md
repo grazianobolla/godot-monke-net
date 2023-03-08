@@ -26,4 +26,7 @@ The three windows represent (from left to right) a Client, the Server and a Clie
 
 Keep in mind I can't show Client Side Prediction on a video, you will have to download the project yourself.
 
+## FPS Example
+If you want to see a working example of how this can be made into a FPS game take a look at [this](https://github.com/grazianobolla/ricepot).
+
 **Contact me on Discord (Raz#4584) I will be happy to help**
