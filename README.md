@@ -1,4 +1,7 @@
 # Godot 4 Multiplayer Template
+
+### I'm working on fixing the jitter in Windows, works just fine on Linux.
+
 This multiplayer template includes the impmenentation of:
 
 - Client Side Prediction and Reconciliation
