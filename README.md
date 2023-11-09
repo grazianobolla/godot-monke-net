@@ -1,6 +1,6 @@
 # Godot 4 Multiplayer Template
 
-### I'm working on fixing the jitter in Windows, works just fine on Linux.
+> This was made using the beta version of Godot 4, as of 09/11/23 I'm working on making it work on the release version, you can wait or use the latest beta versions of Godot 4.
 
 This multiplayer template includes the impmenentation of:
 
