@@ -1,6 +1,6 @@
 # Godot 4 Multiplayer Template
 
-> This was made using the beta version of Godot 4, as of 09/11/23 I'm working on making it work on the release version, you can wait or use the latest beta versions of Godot 4.
+> This was made using the beta version of Godot 4, as of 09/11/23 It was tested with Godot_v4.1.3-stable_mono_linux_x86_64, works OK
 
 This multiplayer template includes the impmenentation of:
 
