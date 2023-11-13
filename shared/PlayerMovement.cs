@@ -3,7 +3,7 @@ using NetMessage;
 
 public static class PlayerMovement
 {
-    public static double FRAME_DELTA = (1.0 / Engine.PhysicsTicksPerSecond);
+    public static double FRAME_DELTA = 1.0 / Engine.PhysicsTicksPerSecond;
 
     public static Vector3 ComputeMotion(Rid rid, Transform3D from, Vector3 velocity, Vector2 input)
     {
@@ -19,11 +19,11 @@ public static class PlayerMovement
             velocity *= 0.85f;
         }
 
-        var testParameters = new PhysicsTestMotionParameters3D();
+        PhysicsTestMotionParameters3D testParameters = new();
         testParameters.From = from;
         testParameters.Motion = velocity * (float)FRAME_DELTA;
 
-        var collResult = new PhysicsTestMotionResult3D();
+        PhysicsTestMotionResult3D collResult = new();
 
         bool hasCollided = PhysicsServer3D.BodyTestMotion(rid, testParameters, collResult);
 

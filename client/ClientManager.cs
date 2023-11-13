@@ -68,7 +68,7 @@ public partial class ClientManager : Node
         _multiplayer.ConnectedToServer += OnConnectedToServer;
         _multiplayer.PeerPacket += OnPacketReceived;
 
-        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
+        ENetMultiplayerPeer peer = new();
         peer.CreateClient(_address, _port);
         _multiplayer.MultiplayerPeer = peer;
         GetTree().SetMultiplayer(_multiplayer);

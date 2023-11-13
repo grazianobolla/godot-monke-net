@@ -8,7 +8,8 @@ public partial class ClientPlayer : CharacterBody3D
 {
     public int RedundantInputs { get; private set; } = 0;
 
-    private List<NetMessage.UserInput> _userInputs = new();
+    readonly private List<NetMessage.UserInput> _userInputs = new();
+
     private int _seqStamp = 0;
 
     public override void _PhysicsProcess(double delta)
