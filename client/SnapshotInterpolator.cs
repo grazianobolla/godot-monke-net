@@ -8,22 +8,20 @@ using System;
 */
 public partial class SnapshotInterpolator : Node
 {
-    // Buffer size in milliseconds
-    public int BufferTime { get; set; } = 0;
+    public int BufferTime { get; set; } // Buffer size in milliseconds
 
     private readonly List<NetMessage.GameSnapshot> _snapshotBuffer = new();
     private const int RecentPast = 0, NextFuture = 1;
-    private const int InitialBufferTime = 100;
     private float _interpolationFactor = 0;
+
+    public override void _Ready()
+    {
+        BufferTime = 100; //TODO: magic number
+    }
 
     public override void _Process(double delta)
     {
         DisplayDebugInformation();
-    }
-
-    public SnapshotInterpolator()
-    {
-        BufferTime = InitialBufferTime;
     }
 
     public void InterpolateStates(Node playersArray, int currentClock)
@@ -33,7 +31,8 @@ public partial class SnapshotInterpolator : Node
 
         if (_snapshotBuffer.Count > 1)
         {
-            // Clear any unwanted (past) statesDisplayDebugInformationenderTime > _snapshotBuffer[1].Time)
+            // Clear any unwanted (past) states
+            while (_snapshotBuffer.Count > 2 && renderTime > _snapshotBuffer[1].Time)
             {
                 _snapshotBuffer.RemoveAt(0);
             }
