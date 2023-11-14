@@ -15,6 +15,10 @@ run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.1", "C#", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+ImGuiLayer="*res://addons/imgui-godot/ImGuiLayer.tscn"
+
 [display]
 
 window/size/viewport_width=500
@@ -24,6 +28,10 @@ window/vsync/vsync_mode=0
 [dotnet]
 
 project/assembly_name="multiplayer-base"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/imgui-godot/plugin.cfg")
 
 [input]
 

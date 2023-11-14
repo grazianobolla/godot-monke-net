@@ -1,6 +1,7 @@
 using Godot;
 using System.Collections.Generic;
 using MessagePack;
+using ImGuiNET;
 
 // Keeps tracks of delays in the network and adjusts a clock to always be in sync with the server
 // also calculates latency
@@ -37,6 +38,10 @@ public partial class NetworkClock : Node
 
     public override void _Process(double delta)
     {
+        ImGui.Begin("ImGui on Godot 4");
+        ImGui.Text("hello world");
+        ImGui.End();
+
         AdjustClock(delta, _lastOffset);
         _lastOffset = 0;
     }
