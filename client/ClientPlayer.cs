@@ -68,7 +68,7 @@ public partial class ClientPlayer : CharacterBody3D
             byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(userCmd);
 
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
-                MultiplayerPeer.TransferModeEnum.UnreliableOrdered, 0);
+                MultiplayerPeer.TransferModeEnum.Unreliable, 0);
         }
     }
 

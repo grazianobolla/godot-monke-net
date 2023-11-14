@@ -68,7 +68,7 @@ public partial class ServerManager : Node
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);
 
         _multiplayer.SendBytes(data, 0,
-            MultiplayerPeer.TransferModeEnum.UnreliableOrdered, 0);
+            MultiplayerPeer.TransferModeEnum.Unreliable, 0);
     }
 
     private void OnPacketReceived(long id, byte[] data)
