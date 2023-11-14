@@ -3,30 +3,32 @@ using System.Collections.Generic;
 using MessagePack;
 using ImGuiNET;
 
-// Keeps tracks of delays in the network and adjusts a clock to always be in sync with the server
-// also calculates latency
+/*
+    Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
+    This Node should be self contained.
+*/
 public partial class NetworkClock : Node
 {
     [Signal]
-    public delegate void LatencyCalculatedEventHandler(int latencyAverage, int offsetAverage, int jitter);
+    public delegate void LatencyCalculatedEventHandler(int latencyAverage); // Called every time the latency is calculated
 
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 500;
 
-    ///Current synced server time
+    // Current synced server time
     public static int Clock { get; private set; } = 0;
 
-    public int InmediateLatency { get; private set; } = 0;
-    public int Latency { get; private set; } = 0;
-    public int Offset { get; private set; } = 0;
-    public int Jitter { get; private set; } = 0;
+    private int _immediateLatency = 0;
+    private int _averageLatency = 0;
+    private int _offset = 0;
+    private int _jitter = 0;
+    private int _lastOffset = 0;
+    private double _decimalCollector = 0;
 
     private readonly List<int> _offsetValues = new();
     private readonly List<int> _latencyValues = new();
 
     private SceneMultiplayer _multiplayer;
-    private int _lastOffset = 0;
-    private double _decimalCollector = 0;
 
     public void Initialize(SceneMultiplayer multiplayer)
     {
@@ -38,29 +40,20 @@ public partial class NetworkClock : Node
 
     public override void _Process(double delta)
     {
-        ImGui.Begin("ImGui on Godot 4");
-        ImGui.Text("hello world");
-        ImGui.End();
-
-        AdjustClock(delta, _lastOffset);
-        _lastOffset = 0;
+        AdjustClock(delta);
+        DisplayDebugInformation();
     }
 
     private void SyncReceived(NetMessage.Sync sync)
     {
-        CalculateValues(sync);
-    }
-
-    private void CalculateValues(NetMessage.Sync sync)
-    {
         // Latency as the difference between when the packet was sent and when it came back divided by 2
-        InmediateLatency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
+        _immediateLatency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Time difference between our clock and the server clock accounting for latency
-        Offset = (sync.ServerTime - Clock) + InmediateLatency;
+        _offset = (sync.ServerTime - Clock) + _immediateLatency;
 
-        _offsetValues.Add(Offset);
-        _latencyValues.Add(InmediateLatency);
+        _offsetValues.Add(_offset);
+        _latencyValues.Add(_immediateLatency);
 
         if (_offsetValues.Count >= _sampleSize)
         {
@@ -68,10 +61,10 @@ public partial class NetworkClock : Node
             _latencyValues.Sort();
 
             int offsetAverage = ReturnSmoothAverage(_offsetValues, 20);
-            Jitter = _latencyValues[_latencyValues.Count - 1] - _latencyValues[0];
-            Latency = ReturnSmoothAverage(_latencyValues, 20);
+            _jitter = _latencyValues[_latencyValues.Count - 1] - _latencyValues[0];
+            _averageLatency = ReturnSmoothAverage(_latencyValues, 20);
 
-            EmitSignal(SignalName.LatencyCalculated, Latency, offsetAverage, Jitter);
+            EmitSignal(SignalName.LatencyCalculated, _averageLatency);
 
             _lastOffset = offsetAverage; // For adjusting the clock
 
@@ -80,11 +73,11 @@ public partial class NetworkClock : Node
         }
     }
 
-    private void AdjustClock(double delta, int offset)
+    private void AdjustClock(double delta)
     {
         int msDelta = (int)(delta * 1000.0);
 
-        Clock += msDelta + offset;
+        Clock += msDelta + _lastOffset;
 
         // Prevent clock drift
         _decimalCollector += (delta * 1000.0) - msDelta;
@@ -93,6 +86,8 @@ public partial class NetworkClock : Node
             Clock += 1;
             _decimalCollector -= 1.0;
         }
+
+        _lastOffset = 0;
     }
 
     private static int ReturnSmoothAverage(List<int> samples, int minValue)
@@ -117,6 +112,17 @@ public partial class NetworkClock : Node
         }
 
         return sampleCount / samples.Count;
+    }
+
+    private void DisplayDebugInformation()
+    {
+        ImGui.Begin("Network Clock Information");
+        ImGui.Text($"Current Clock {Clock}");
+        ImGui.Text($"Immediate Latency {_immediateLatency}");
+        ImGui.Text($"Average Latency {_averageLatency}");
+        ImGui.Text($"Clock Offset {_lastOffset}");
+        ImGui.Text($"Jitter {_jitter}");
+        ImGui.End();
     }
 
     private void OnTimerOut()

@@ -1,29 +1,39 @@
 using Godot;
 using System.Collections.Generic;
+using ImGuiNET;
+using System;
 
-public class SnapshotInterpolator
+/*
+    Receives and presents the Player the snapshots emmited by the server.
+*/
+public partial class SnapshotInterpolator : Node
 {
-    public int BufferTime { get; set; } // Buffer size in milliseconds
-    public float InterpolationFactor { get; private set; }
+    // Buffer size in milliseconds
+    public int BufferTime { get; set; } = 0;
 
     private readonly List<NetMessage.GameSnapshot> _snapshotBuffer = new();
     private const int RecentPast = 0, NextFuture = 1;
     private const int InitialBufferTime = 100;
+    private float _interpolationFactor = 0;
+
+    public override void _Process(double delta)
+    {
+        DisplayDebugInformation();
+    }
 
     public SnapshotInterpolator()
     {
         BufferTime = InitialBufferTime;
     }
 
-    public void InterpolateStates(Node playersArray, int clock)
+    public void InterpolateStates(Node playersArray, int currentClock)
     {
         // Point in time to render (in the past)
-        double renderTime = clock - BufferTime;
+        double renderTime = currentClock - BufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {
-            // Clear any unwanted (past) states
-            while (_snapshotBuffer.Count > 2 && renderTime > _snapshotBuffer[1].Time)
+            // Clear any unwanted (past) statesDisplayDebugInformationenderTime > _snapshotBuffer[1].Time)
             {
                 _snapshotBuffer.RemoveAt(0);
             }
@@ -31,7 +41,7 @@ public class SnapshotInterpolator
             double timeDiffBetweenStates = _snapshotBuffer[NextFuture].Time - _snapshotBuffer[RecentPast].Time;
             double renderDiff = renderTime - _snapshotBuffer[RecentPast].Time;
 
-            InterpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
+            _interpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
 
             var futureStates = _snapshotBuffer[NextFuture].States;
 
@@ -45,7 +55,7 @@ public class SnapshotInterpolator
 
                 if (dummy.IsMultiplayerAuthority() == false)
                 {
-                    dummy.Position = pastState.Position.Lerp(futureState.Position, InterpolationFactor);
+                    dummy.Position = pastState.Position.Lerp(futureState.Position, _interpolationFactor);
                 }
             }
         }
@@ -59,8 +69,13 @@ public class SnapshotInterpolator
         }
     }
 
-    public int BufferCount
+    private void DisplayDebugInformation()
     {
-        get => _snapshotBuffer.Count;
+        ImGui.Begin("Snapshot Interpolator Information");
+        ImGui.Text($"Interp. Factor {_interpolationFactor}");
+        ImGui.Text($"Buffer Size {_snapshotBuffer.Count}");
+        ImGui.Text($"Buffer Time {BufferTime}");
+        ImGui.End();
     }
+
 }

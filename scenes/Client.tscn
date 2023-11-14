@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://eykxehuqerja"]
+[gd_scene load_steps=4 format=3 uid="uid://eykxehuqerja"]
 
 [ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
 [ext_resource type="Script" path="res://client/NetworkClock.cs" id="2_c2fu1"]
+[ext_resource type="Script" path="res://client/SnapshotInterpolator.cs" id="3_t4fj0"]
 
 [node name="Client" type="Node"]
 script = ExtResource("1_y3i7q")
@@ -46,6 +47,9 @@ autostart = true
 [node name="Timer" type="Timer" parent="."]
 process_callback = 0
 autostart = true
+
+[node name="SnapshotInterpolator" type="Node" parent="."]
+script = ExtResource("3_t4fj0")
 
 [connection signal="timeout" from="NetworkClock/Timer" to="NetworkClock" method="OnTimerOut"]
 [connection signal="timeout" from="Timer" to="." method="OnDebugTimerOut"]
