@@ -8,7 +8,7 @@ public partial class ClientPlayer : CharacterBody3D
 {
     public int RedundantInputs { get; private set; } = 0;
 
-    readonly private List<NetMessage.UserInput> _userInputs = new();
+    private readonly List<NetMessage.UserInput> _userInputs = new();
 
     private int _seqStamp = 0;
 

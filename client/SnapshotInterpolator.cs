@@ -3,10 +3,10 @@ using System.Collections.Generic;
 
 public class SnapshotInterpolator
 {
-    public int BufferTime; // Buffer size in milliseconds
+    public int BufferTime { get; set; } // Buffer size in milliseconds
     public float InterpolationFactor { get; private set; }
 
-    private List<NetMessage.GameSnapshot> _snapshotBuffer = new();
+    private readonly List<NetMessage.GameSnapshot> _snapshotBuffer = new();
     private const int RecentPast = 0, NextFuture = 1;
     private const int InitialBufferTime = 100;
 

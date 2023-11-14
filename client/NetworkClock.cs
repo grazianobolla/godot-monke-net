@@ -20,8 +20,8 @@ public partial class NetworkClock : Node
     public int Offset { get; private set; } = 0;
     public int Jitter { get; private set; } = 0;
 
-    private List<int> _offsetValues = new();
-    private List<int> _latencyValues = new();
+    private readonly List<int> _offsetValues = new();
+    private readonly List<int> _latencyValues = new();
 
     private SceneMultiplayer _multiplayer;
     private int _lastOffset = 0;
@@ -90,7 +90,7 @@ public partial class NetworkClock : Node
         }
     }
 
-    private int ReturnSmoothAverage(List<int> samples, int minValue)
+    private static int ReturnSmoothAverage(List<int> samples, int minValue)
     {
         int sampleSize = samples.Count;
         int middleValue = samples[samples.Count / 2];
