@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
 [ext_resource type="Script" path="res://client/NetworkClock.cs" id="2_c2fu1"]
-[ext_resource type="Script" path="res://scenes/ClientDebug.cs" id="2_c3n3u"]
+[ext_resource type="Script" path="res://client/ClientDebug.cs" id="2_n3erb"]
 [ext_resource type="Script" path="res://client/SnapshotInterpolator.cs" id="3_t4fj0"]
 
 [node name="Client" type="Node"]
@@ -15,7 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_c3n3u")
+script = ExtResource("2_n3erb")
 
 [node name="Label" type="Label" parent="Debug"]
 layout_mode = 1

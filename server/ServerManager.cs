@@ -10,7 +10,7 @@ public partial class ServerManager : Node
     private SceneMultiplayer _multiplayer = new();
     private Godot.Collections.Array<Godot.Node> entityArray;
 
-    private const int NET_TICKRATE = 30; //hz
+    private const int NET_TICKRATE = 10; //hz
     private double _netTickCounter = 0;
 
     public override void _Ready()

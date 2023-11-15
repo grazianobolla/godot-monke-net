@@ -28,7 +28,7 @@ public partial class ClientDebug : Control
 		ImGui.Text($"Sent Bytes {_sentPerSecond}");
 		ImGui.Text($"Rec. Bytes {_recPerSecond}");
 		ImGui.Text($"Packets Sent {_sentPacketsPerSecond}");
-		ImGui.Text($"Packets Rec. {_sentPacketsPerSecond}");
+		ImGui.Text($"Packets Rec. {_receivedPacketsPerSecond}");
 		ImGui.End();
 	}
 }
