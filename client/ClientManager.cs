@@ -44,14 +44,19 @@ public partial class ClientManager : Node
 
         if (command is NetMessage.GameSnapshot snapshot)
         {
-            _snapshotInterpolator.PushState(snapshot);
+            ProcessSnapshot(snapshot);
+        }
+    }
 
-            foreach (NetMessage.UserState state in snapshot.States)
+    private void ProcessSnapshot(NetMessage.GameSnapshot snapshot)
+    {
+        _snapshotInterpolator.PushState(snapshot);
+
+        foreach (NetMessage.UserState state in snapshot.States)
+        {
+            if (state.Id == Multiplayer.GetUniqueId())
             {
-                if (state.Id == Multiplayer.GetUniqueId())
-                {
-                    CustomSpawner.LocalPlayer.ReceiveState(state);
-                }
+                CustomSpawner.LocalPlayer.ReceiveState(state);
             }
         }
     }

@@ -1,8 +1,9 @@
 using Godot;
 using System;
 using MessagePack;
+using System.Linq;
 
-// Code executed on the server side only, handles network events
+//
 public partial class ServerManager : Node
 {
     [Export] private int _port = 9999;
@@ -10,7 +11,7 @@ public partial class ServerManager : Node
     private SceneMultiplayer _multiplayer = new();
     private Godot.Collections.Array<Godot.Node> entityArray;
 
-    private const int NET_TICKRATE = 10; //hz
+    private const int NET_TICKRATE = 30; //hz
     private double _netTickCounter = 0;
 
     public override void _Ready()
@@ -44,7 +45,7 @@ public partial class ServerManager : Node
     // Process corresponding packets for this tick
     private void ProcessPendingPackets()
     {
-        foreach (ServerPlayer player in entityArray)
+        foreach (ServerPlayer player in entityArray.Cast<ServerPlayer>())
         {
             player.ProcessPendingCommands();
         }
@@ -93,22 +94,23 @@ public partial class ServerManager : Node
     private void OnPeerConnected(long id)
     {
         Node playerInstance = GetNode<MultiplayerSpawner>("/root/Main/MultiplayerSpawner").Spawn(id);
-        GD.Print("Peer ", id, " connected");
+        GD.Print($"Peer {id} connected");
     }
 
     private void OnPeerDisconnected(long id)
     {
         GetNode($"/root/Main/EntityArray/{id}").QueueFree();
-        GD.Print("Peer ", id, " disconnected");
+        GD.Print($"Peer {id} disconnected");
     }
 
+    // Starts the server
     private void Create()
     {
         _multiplayer.PeerConnected += OnPeerConnected;
         _multiplayer.PeerDisconnected += OnPeerDisconnected;
         _multiplayer.PeerPacket += OnPacketReceived;
 
-        ENetMultiplayerPeer peer = new ENetMultiplayerPeer();
+        ENetMultiplayerPeer peer = new();
         peer.CreateServer(_port);
 
         _multiplayer.MultiplayerPeer = peer;
