@@ -1,16 +1,18 @@
 # Godot 4 Multiplayer Template
 
-> As of 14/11/23 I am actively working on this, I suggest you try the "develop" branch, it has better comments, clearer and improved logic and better debug information. Once I feel its ready I will merge into the main branch and start working on documentation.
+> As of 14/11/23 I am actively working on this, I **strongly** suggest you try the "develop" branch, it has better comments, clearer and improved logic and better debug information. Once I feel its ready I will merge into the main branch and start working on documentation.
 
 This multiplayer template includes the implementation of:
 
+- Authoritative Server Model
 - Client Side Prediction and Reconciliation
 - Entity Interpolation
 - Clock Synchronization
 - A few other multiplayer systems
 
 Most of the code is inside the client/ and server/ folders.
-You can use it to speed up your developing process, it is based on the client/auth-server model.
+
+You can use this project to speed up your developing process, it is based on the client/auth-server model.
 
 ## Usage
 You will need Godot 4.X and C# with at least Net6
