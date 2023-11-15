@@ -9,6 +9,7 @@ This multiplayer template includes the implementation of:
 - Clock Synchronization
 - A few other multiplayer systems
 
+Most of the code is inside the client/ and server/ folders.
 You can use it to speed up your developing process, it is based on the client/auth-server model.
 
 ## Usage
