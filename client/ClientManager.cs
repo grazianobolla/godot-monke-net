@@ -2,7 +2,9 @@ using Godot;
 using System;
 using MessagePack;
 
-// Code executed on the client side only, handles network events
+/*
+    Network manager for the client, handles server connection and routes packages.
+*/
 public partial class ClientManager : Node
 {
     [Export] private string _address = "localhost";
@@ -15,27 +17,25 @@ public partial class ClientManager : Node
     private NetworkClock _netClock;
     private Node _entityArray;
 
-    // Debug only
-    private double _sentPerSecond = 0, _recPerSecond = 0, _packetsPerSecond = 0, _sentPacketsPerSecond = 0;
-
     public override void _Ready()
     {
+        // Connects to the server
         Connect();
 
         _entityArray = GetNode("/root/Main/EntityArray");
 
+        // Stores NetworkClock node instance
         _netClock = GetNode<NetworkClock>("NetworkClock");
         _netClock.Initialize(_multiplayer);
         _netClock.LatencyCalculated += OnLatencyCalculated;
 
+        // Stores SnapshotInterpolator node instance
         _snapshotInterpolator = GetNode<SnapshotInterpolator>("SnapshotInterpolator");
-
     }
 
     public override void _Process(double delta)
     {
         _snapshotInterpolator.InterpolateStates(_entityArray, NetworkClock.Clock);
-        DebugInfo(delta);
     }
 
     private void OnPacketReceived(long id, byte[] data)
@@ -61,14 +61,8 @@ public partial class ClientManager : Node
         _snapshotInterpolator.BufferTime = Mathf.Clamp(latencyAverage + _lerpBufferWindow, 0, _maxLerp);
     }
 
-    private void OnConnectedToServer()
-    {
-        GetNode<Label>("Debug/Label").Text += $"\n{Multiplayer.GetUniqueId()}";
-    }
-
     private void Connect()
     {
-        _multiplayer.ConnectedToServer += OnConnectedToServer;
         _multiplayer.PeerPacket += OnPacketReceived;
 
         ENetMultiplayerPeer peer = new();
@@ -76,31 +70,5 @@ public partial class ClientManager : Node
         _multiplayer.MultiplayerPeer = peer;
         GetTree().SetMultiplayer(_multiplayer);
         GD.Print("Client connected to ", _address, ":", _port);
-    }
-
-    private void DebugInfo(double delta)
-    {
-        // var label = GetNode<Label>("Debug/Label2");
-        // label.Modulate = Colors.White;
-
-        // label.Text += $" len {_snapshotInterpolator.BufferTime}ms \nclk {NetworkClock.Clock}";
-        // label.Text += $"\nr_pps {_packetsPerSecond} t_pps {_sentPacketsPerSecond}";
-
-        // if (CustomSpawner.LocalPlayer != null)
-        // {
-        //     label.Text += $"\nrdt {CustomSpawner.LocalPlayer.RedundantInputs} tx {_sentPerSecond} rx {_recPerSecond}";
-        // }
-
-        // if (_snapshotInterpolator.InterpolationFactor > 1)
-        //     label.Modulate = Colors.Red;
-    }
-
-    private void OnDebugTimerOut()
-    {
-        var enetHost = (Multiplayer.MultiplayerPeer as ENetMultiplayerPeer).Host;
-        _sentPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.SentData);
-        _recPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.ReceivedData);
-        _packetsPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.ReceivedPackets);
-        _sentPacketsPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.SentPackets);
     }
 }

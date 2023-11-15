@@ -2,15 +2,22 @@ using Godot;
 using System.Collections.Generic;
 using MessagePack;
 using NetMessage;
+using ImGuiNET;
 
-// Wrapper scene spawned by the MultiplayerSpawner
+/*
+    Main player script, send movement packets to the server, does CSP, and reconciliation. 
+*/
 public partial class ClientPlayer : CharacterBody3D
 {
-    public int RedundantInputs { get; private set; } = 0;
-
     private readonly List<NetMessage.UserInput> _userInputs = new();
 
     private int _seqStamp = 0;
+    private int _networkId = -1;
+
+    public override void _Ready()
+    {
+        _networkId = this.Multiplayer.GetUniqueId();
+    }
 
     public override void _PhysicsProcess(double delta)
     {
@@ -19,6 +26,11 @@ public partial class ClientPlayer : CharacterBody3D
         SendInputs();
         MoveLocally(userInput);
         _seqStamp++;
+    }
+
+    public override void _Process(double delta)
+    {
+        DisplayDebugInformation();
     }
 
     public void ReceiveState(NetMessage.UserState state)
@@ -61,8 +73,6 @@ public partial class ClientPlayer : CharacterBody3D
             Commands = _userInputs.ToArray()
         };
 
-        RedundantInputs = userCmd.Commands.Length;
-
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
             byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(userCmd);
@@ -101,5 +111,14 @@ public partial class ClientPlayer : CharacterBody3D
         };
 
         return userInput;
+    }
+
+    private void DisplayDebugInformation()
+    {
+        ImGui.Begin("Player Network Information");
+        ImGui.Text($"Network Id {_networkId}");
+        ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
+        ImGui.Text($"Redundant Inputs {_userInputs.Count}");
+        ImGui.End();
     }
 }

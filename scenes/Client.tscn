@@ -1,7 +1,8 @@
-[gd_scene load_steps=4 format=3 uid="uid://eykxehuqerja"]
+[gd_scene load_steps=5 format=3 uid="uid://eykxehuqerja"]
 
 [ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
 [ext_resource type="Script" path="res://client/NetworkClock.cs" id="2_c2fu1"]
+[ext_resource type="Script" path="res://scenes/ClientDebug.cs" id="2_c3n3u"]
 [ext_resource type="Script" path="res://client/SnapshotInterpolator.cs" id="3_t4fj0"]
 
 [node name="Client" type="Node"]
@@ -14,29 +15,21 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("2_c3n3u")
 
 [node name="Label" type="Label" parent="Debug"]
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -107.0
+offset_left = -82.0
 offset_bottom = 26.0
 grow_horizontal = 0
 text = "Client Side"
 horizontal_alignment = 2
 
-[node name="Label2" type="Label" parent="Debug"]
-layout_mode = 1
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -52.0
-grow_horizontal = 2
-grow_vertical = 0
-text = "buf 0 int 0
-clk 0 png 0"
+[node name="Timer" type="Timer" parent="Debug"]
+autostart = true
 
 [node name="NetworkClock" type="Node" parent="."]
 script = ExtResource("2_c2fu1")
@@ -44,12 +37,8 @@ script = ExtResource("2_c2fu1")
 [node name="Timer" type="Timer" parent="NetworkClock"]
 autostart = true
 
-[node name="Timer" type="Timer" parent="."]
-process_callback = 0
-autostart = true
-
 [node name="SnapshotInterpolator" type="Node" parent="."]
 script = ExtResource("3_t4fj0")
 
+[connection signal="timeout" from="Debug/Timer" to="Debug" method="OnTimerOut"]
 [connection signal="timeout" from="NetworkClock/Timer" to="NetworkClock" method="OnTimerOut"]
-[connection signal="timeout" from="Timer" to="." method="OnDebugTimerOut"]

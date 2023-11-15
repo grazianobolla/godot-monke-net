@@ -34,7 +34,6 @@ public partial class NetworkClock : Node
     {
         _multiplayer = multiplayer;
         _multiplayer.PeerPacket += OnPacketReceived;
-
         GetNode<Timer>("Timer").WaitTime = _sampleRateMs / 1000.0f;
     }
 
