@@ -16,7 +16,7 @@ public partial class ClientPlayer : CharacterBody3D
 
     public override void _Ready()
     {
-        _networkId = this.Multiplayer.GetUniqueId();
+        _networkId = Multiplayer.GetUniqueId();
     }
 
     public override void _PhysicsProcess(double delta)
@@ -55,7 +55,7 @@ public partial class ClientPlayer : CharacterBody3D
 
         var deviation = expectedTransform.Origin - Position;
 
-        if (deviation.Length() > 0.05f)
+        if (deviation.Length() > 0.01f)
         {
             // Reconciliation with authoritative state
             this.GlobalTransform = expectedTransform;
