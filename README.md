@@ -1,8 +1,8 @@
 # Godot 4 Multiplayer Template
 
-> This was made using the beta version of Godot 4, as of 09/11/23 It was tested with Godot_v4.1.3-stable_mono_linux_x86_64, works OK
+> As of 14/11/23 I am actively working on this, I suggest you try the "develop" branch, it has better comments, clearer and improved logic and better debug information. Once I feel its ready I will merge into the main branch and start working on documentation.
 
-This multiplayer template includes the impmenentation of:
+This multiplayer template includes the implementation of:
 
 - Client Side Prediction and Reconciliation
 - Entity Interpolation
@@ -10,11 +10,6 @@ This multiplayer template includes the impmenentation of:
 - A few other multiplayer systems
 
 You can use it to speed up your developing process, it is based on the client/auth-server model.
-
-There are some improvements still left to do, mainly:
-- Separate CSP and Reconciliation into different classes, keep code clean.
-- Player to Player collisions are not implemented, can be easily added but they depend heavily on the type of game.
-- Comment a bunch of the code, make it easier to understand for learning purposes.
 
 ## Usage
 You will need Godot 4.X and C# with at least Net6
