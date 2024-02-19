@@ -33,16 +33,31 @@ public partial class ClientPlayer : CharacterBody3D
         DisplayDebugInformation();
     }
 
+    // Applies inputs ahead of the server (Prediction)
+    private void MoveLocally(NetMessage.UserInput userInput)
+    {
+        this.Velocity = PlayerMovement.ComputeMotion(
+            this.GetRid(),
+            this.GlobalTransform,
+            this.Velocity,
+            PlayerMovement.InputToDirection(userInput.Keys));
+
+        Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
+    }
+
+    // Called when a UserState is received from the server
+    // Here we validate that our prediction was correct
     public void ReceiveState(NetMessage.UserState state)
     {
-        _userInputs.RemoveAll(input => input.Stamp <= state.Stamp);
+        _userInputs.RemoveAll(input => input.Stamp <= state.Stamp); // Delete all stored inputs up to that point, we don't need them anymore
 
+        // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
         Transform3D expectedTransform = this.GlobalTransform;
         expectedTransform.Origin = state.Position;
 
         Vector3 expectedVelocity = state.Velocity;
 
-        foreach (var userInput in _userInputs)
+        foreach (var userInput in _userInputs) // Re-apply all inputs
         {
             expectedVelocity = PlayerMovement.ComputeMotion(
                 this.GetRid(),
@@ -53,11 +68,11 @@ public partial class ClientPlayer : CharacterBody3D
             expectedTransform.Origin += expectedVelocity * (float)PlayerMovement.FRAME_DELTA;
         }
 
-        var deviation = expectedTransform.Origin - Position;
+        var deviation = expectedTransform.Origin - Position; // expectedTransform is where we should be, Position is our current position
 
+        // Reconciliation with authoritative state if the deviation is too high
         if (deviation.Length() > 0.01f)
         {
-            // Reconciliation with authoritative state
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
 
@@ -65,6 +80,7 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
+    // Sends all non-processed inputs to the server
     private void SendInputs()
     {
         var userCmd = new NetMessage.UserCommand
@@ -80,17 +96,6 @@ public partial class ClientPlayer : CharacterBody3D
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
                 MultiplayerPeer.TransferModeEnum.Unreliable, 0);
         }
-    }
-
-    private void MoveLocally(NetMessage.UserInput userInput)
-    {
-        this.Velocity = PlayerMovement.ComputeMotion(
-            this.GetRid(),
-            this.GlobalTransform,
-            this.Velocity,
-            PlayerMovement.InputToDirection(userInput.Keys));
-
-        Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
     }
 
     private NetMessage.UserInput GenerateUserInput()
