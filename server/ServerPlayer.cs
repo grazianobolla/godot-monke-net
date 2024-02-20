@@ -78,7 +78,7 @@ public partial class ServerPlayer : CharacterBody3D
 		ImGui.Begin($"Server Player {MultiplayerID}");
 		ImGui.Text($"Instant Latency {InstantLatency}");
 		ImGui.Text($"Input Queue Count {_pendingInputs.Count}");
-		ImGui.Text($"Input Queue Lag {_pendingInputs.Count * (1.0f / ServerManager.NET_TICKRATE) * 1000}ms");
+		ImGui.Text($"Input Queue Lag {_pendingInputs.Count * (1.0f / Engine.PhysicsTicksPerSecond) * 1000}ms");
 		ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
 		ImGui.Text($"Skipped Inputs {_skippedInputs}");
 		ImGui.End();
