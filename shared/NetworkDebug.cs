@@ -4,9 +4,22 @@ using ImGuiNET;
 /*
 	This node calculates and displays some general Debug data.
 */
-public partial class ClientDebug : Control
+public partial class NetworkDebug : Control
 {
 	private double _sentPerSecond = 0, _recPerSecond = 0, _receivedPacketsPerSecond = 0, _sentPacketsPerSecond = 0;
+
+	public override void _Ready()
+	{
+		Timer timer = new();
+		AddChild(timer);
+
+		timer.WaitTime = 1;
+		timer.OneShot = false;
+		timer.Autostart = true;
+
+		timer.Timeout += OnTimerOut;
+		timer.Start();
+	}
 
 	public override void _Process(double delta)
 	{

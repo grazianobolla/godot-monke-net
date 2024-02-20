@@ -2,6 +2,7 @@ using Godot;
 using System;
 using MessagePack;
 using System.Linq;
+using ImGuiNET;
 
 //
 public partial class ServerManager : Node
@@ -11,7 +12,7 @@ public partial class ServerManager : Node
 	private SceneMultiplayer _multiplayer = new();
 	private Godot.Collections.Array<Godot.Node> entityArray;
 
-	private const int NET_TICKRATE = 30; //hz
+	public const int NET_TICKRATE = 30; //hz
 	private double _netTickCounter = 0;
 
 	public override void _Ready()
@@ -21,7 +22,7 @@ public partial class ServerManager : Node
 
 	public override void _Process(double delta)
 	{
-		DebugInfo();
+		DisplayDebugInformation();
 
 		_netTickCounter += delta;
 		if (_netTickCounter >= (1.0 / NET_TICKRATE))
@@ -119,9 +120,11 @@ public partial class ServerManager : Node
 		GD.Print("Server listening on ", _port);
 	}
 
-	private void DebugInfo()
+	private void DisplayDebugInformation()
 	{
-		var label = GetNode<Label>("Debug/Label2");
-		label.Text = $"clk {Time.GetTicksMsec()}";
+		ImGui.Begin($"Server Information");
+		ImGui.Text($"Current Tickrate {NET_TICKRATE}hz");
+		ImGui.Text($"Clock {Time.GetTicksMsec()} ticks");
+		ImGui.End();
 	}
 }

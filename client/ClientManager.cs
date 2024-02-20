@@ -10,7 +10,7 @@ public partial class ClientManager : Node
 	[Export] private string _address = "localhost";
 	[Export] private int _port = 9999;
 	[Export] private int _lerpBufferWindow = 50;
-	[Export] private int _maxLerp = 150;
+	[Export] private int _maxLerp = 250;
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
