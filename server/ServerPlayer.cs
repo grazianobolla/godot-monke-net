@@ -6,8 +6,9 @@ public partial class ServerPlayer : CharacterBody3D
 {
 	public int MultiplayerID { get; set; } = 0;
 	public int Stamp { get; private set; } = 0;
+	public int InstantLatency { get; set; } = 0;
 
-	private Queue<NetMessage.UserInput> _pendingInputs = new();
+	private readonly Queue<NetMessage.UserInput> _pendingInputs = new();
 	private int _lastStampReceived = 0;
 	private int _lastConsumed = 0;
 	private int _packetWindow = 8; //TODO: this should be dynamic, currently the queue will fill at 8 ticks
@@ -25,7 +26,7 @@ public partial class ServerPlayer : CharacterBody3D
 
 		while (_pendingInputs.Count > _packetWindow)
 		{
-			var input = _pendingInputs.Dequeue(); //TODO: Hmmm... is this efficient?
+			_pendingInputs.Dequeue(); //TODO: Hmmm... is this efficient?
 			_skippedInputs++;
 		}
 
@@ -75,7 +76,9 @@ public partial class ServerPlayer : CharacterBody3D
 	private void DisplayDebugInformation()
 	{
 		ImGui.Begin($"Server Player {MultiplayerID}");
+		ImGui.Text($"Instant Latency {InstantLatency}");
 		ImGui.Text($"Input Queue Count {_pendingInputs.Count}");
+		ImGui.Text($"Input Queue Lag {_pendingInputs.Count * (1.0f / Engine.PhysicsTicksPerSecond) * 1000}ms");
 		ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
 		ImGui.Text($"Skipped Inputs {_skippedInputs}");
 		ImGui.End();

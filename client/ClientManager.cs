@@ -10,23 +10,22 @@ public partial class ClientManager : Node
 	[Export] private string _address = "localhost";
 	[Export] private int _port = 9999;
 	[Export] private int _lerpBufferWindow = 50;
-	[Export] private int _maxLerp = 150;
+	[Export] private int _maxLerp = 250;
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
 	private NetworkClock _netClock;
 	private Node _entityArray;
 
-	public override void _Ready()
+	public override void _EnterTree()
 	{
 		// Connects to the server
-		Connect();
+		ConnectClient();
 
 		_entityArray = GetNode("/root/Main/EntityArray");
 
 		// Stores NetworkClock node instance
 		_netClock = GetNode<NetworkClock>("NetworkClock");
-		_netClock.Initialize(_multiplayer);
 		_netClock.LatencyCalculated += OnLatencyCalculated;
 
 		// Stores SnapshotInterpolator node instance
@@ -66,7 +65,7 @@ public partial class ClientManager : Node
 		_snapshotInterpolator.BufferTime = Mathf.Clamp(latencyAverage + _lerpBufferWindow, 0, _maxLerp);
 	}
 
-	private void Connect()
+	private void ConnectClient()
 	{
 		_multiplayer.PeerPacket += OnPacketReceived;
 

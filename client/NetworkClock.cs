@@ -30,9 +30,9 @@ public partial class NetworkClock : Node
 
     private SceneMultiplayer _multiplayer;
 
-    public void Initialize(SceneMultiplayer multiplayer)
+    public override void _Ready()
     {
-        _multiplayer = multiplayer;
+        _multiplayer = GetTree().GetMultiplayer() as SceneMultiplayer;
         _multiplayer.PeerPacket += OnPacketReceived;
         GetNode<Timer>("Timer").WaitTime = _sampleRateMs / 1000.0f;
     }
@@ -132,8 +132,7 @@ public partial class NetworkClock : Node
             ServerTime = 0
         };
 
-        byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
-        _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+        sendSyncPacket(sync);
     }
 
     private void OnPacketReceived(long id, byte[] data)
@@ -144,5 +143,12 @@ public partial class NetworkClock : Node
         {
             SyncReceived(sync);
         }
+    }
+
+    private void sendSyncPacket(NetMessage.Sync sync)
+    {
+
+        byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
+        _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
     }
 }

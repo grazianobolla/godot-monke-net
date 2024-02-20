@@ -2,6 +2,7 @@ using Godot;
 using System;
 using MessagePack;
 using System.Linq;
+using ImGuiNET;
 
 //
 public partial class ServerManager : Node
@@ -10,25 +11,18 @@ public partial class ServerManager : Node
 
 	private SceneMultiplayer _multiplayer = new();
 	private Godot.Collections.Array<Godot.Node> entityArray;
+	private ServerClock _serverClock;
 
-	private const int NET_TICKRATE = 30; //hz
-	private double _netTickCounter = 0;
-
-	public override void _Ready()
+	public override void _EnterTree()
 	{
-		Create();
+		StartListening();
+		_serverClock = GetNode<ServerClock>("ServerClock");
+		_serverClock.NetworkProcessTick += NetworkProcess;
 	}
 
 	public override void _Process(double delta)
 	{
-		DebugInfo();
-
-		_netTickCounter += delta;
-		if (_netTickCounter >= (1.0 / NET_TICKRATE))
-		{
-			NetworkProcess();
-			_netTickCounter = 0;
-		}
+		DisplayDebugInformation();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -37,7 +31,7 @@ public partial class ServerManager : Node
 		ProcessPendingPackets();
 	}
 
-	private void NetworkProcess() // Called every NET_TICKRATE hz
+	private void NetworkProcess(double delta)
 	{
 		BroadcastSnapshot();
 	}
@@ -56,7 +50,7 @@ public partial class ServerManager : Node
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = (int)Time.GetTicksMsec(),
+			Time = _serverClock.GetCurrentTick(),
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 
@@ -72,23 +66,16 @@ public partial class ServerManager : Node
 			MultiplayerPeer.TransferModeEnum.Unreliable, 0);
 	}
 
+	// Route received Input package to the correspondant Network ID
 	private void OnPacketReceived(long id, byte[] data)
 	{
 		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
-
-		switch (command)
+		if (command is NetMessage.UserCommand userCommand)
 		{
-			case NetMessage.UserCommand userCmd:
-				ServerPlayer player = GetNode($"/root/Main/EntityArray/{userCmd.Id}") as ServerPlayer;
-				player.PushCommand(userCmd);
-				break;
-
-			case NetMessage.Sync sync:
-				sync.ServerTime = (int)Time.GetTicksMsec();
-				_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id,
-				MultiplayerPeer.TransferModeEnum.Unreliable, 1);
-				break;
+			ServerPlayer player = GetNode($"/root/Main/EntityArray/{userCommand.Id}") as ServerPlayer; //FIXME: do not use GetNode here
+			player.PushCommand(userCommand);
 		}
+
 	}
 
 	private void OnPeerConnected(long id)
@@ -104,7 +91,7 @@ public partial class ServerManager : Node
 	}
 
 	// Starts the server
-	private void Create()
+	private void StartListening()
 	{
 		_multiplayer.PeerConnected += OnPeerConnected;
 		_multiplayer.PeerDisconnected += OnPeerDisconnected;
@@ -119,9 +106,11 @@ public partial class ServerManager : Node
 		GD.Print("Server listening on ", _port);
 	}
 
-	private void DebugInfo()
+	private void DisplayDebugInformation()
 	{
-		var label = GetNode<Label>("Debug/Label2");
-		label.Text = $"clk {Time.GetTicksMsec()}";
+		ImGui.Begin($"Server Information");
+		ImGui.Text($"Current Tickrate {_serverClock.GetTickRate()}hz");
+		ImGui.Text($"Clock {_serverClock.GetCurrentTick()} ticks");
+		ImGui.End();
 	}
 }

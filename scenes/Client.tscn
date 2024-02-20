@@ -1,13 +1,12 @@
 [gd_scene load_steps=5 format=3 uid="uid://eykxehuqerja"]
 
 [ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
+[ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_7x6yl"]
 [ext_resource type="Script" path="res://client/NetworkClock.cs" id="2_c2fu1"]
-[ext_resource type="Script" path="res://client/ClientDebug.cs" id="2_tej3p"]
 [ext_resource type="Script" path="res://client/SnapshotInterpolator.cs" id="3_2ogc1"]
 
 [node name="Client" type="Node"]
 script = ExtResource("1_y3i7q")
-_maxLerp = 250
 
 [node name="Debug" type="Control" parent="."]
 layout_mode = 3
@@ -16,7 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_tej3p")
+script = ExtResource("2_7x6yl")
 metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="Debug"]
@@ -30,9 +29,6 @@ grow_horizontal = 0
 text = "Client Side"
 horizontal_alignment = 2
 
-[node name="Timer" type="Timer" parent="Debug"]
-autostart = true
-
 [node name="NetworkClock" type="Node" parent="."]
 script = ExtResource("2_c2fu1")
 
@@ -42,5 +38,4 @@ autostart = true
 [node name="SnapshotInterpolator" type="Node" parent="."]
 script = ExtResource("3_2ogc1")
 
-[connection signal="timeout" from="Debug/Timer" to="Debug" method="OnTimerOut"]
 [connection signal="timeout" from="NetworkClock/Timer" to="NetworkClock" method="OnTimerOut"]
