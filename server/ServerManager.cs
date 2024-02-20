@@ -11,6 +11,7 @@ public partial class ServerManager : Node
 
 	private SceneMultiplayer _multiplayer = new();
 	private Godot.Collections.Array<Godot.Node> entityArray;
+	private ServerClock _serverClock;
 
 	public const int NET_TICKRATE = 30; //hz
 	private double _netTickCounter = 0;
@@ -18,6 +19,7 @@ public partial class ServerManager : Node
 	public override void _EnterTree()
 	{
 		StartListening();
+		_serverClock = GetNode<ServerClock>("ServerClock");
 	}
 
 	public override void _Process(double delta)
@@ -58,7 +60,7 @@ public partial class ServerManager : Node
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = (int)Time.GetTicksMsec(),
+			Time = _serverClock.GetCurrentTick(),
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 
@@ -114,11 +116,11 @@ public partial class ServerManager : Node
 		GD.Print("Server listening on ", _port);
 	}
 
-	private static void DisplayDebugInformation()
+	private void DisplayDebugInformation()
 	{
 		ImGui.Begin($"Server Information");
 		ImGui.Text($"Current Tickrate {NET_TICKRATE}hz");
-		ImGui.Text($"Clock {Time.GetTicksMsec()} ticks");
+		ImGui.Text($"Clock {_serverClock.GetCurrentTick()} ticks");
 		ImGui.End();
 	}
 }

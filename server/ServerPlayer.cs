@@ -26,7 +26,7 @@ public partial class ServerPlayer : CharacterBody3D
 
 		while (_pendingInputs.Count > _packetWindow)
 		{
-			var input = _pendingInputs.Dequeue(); //TODO: Hmmm... is this efficient?
+			_pendingInputs.Dequeue(); //TODO: Hmmm... is this efficient?
 			_skippedInputs++;
 		}
 

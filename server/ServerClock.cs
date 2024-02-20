@@ -18,8 +18,13 @@ public partial class ServerClock : Node
 
 		if (command is NetMessage.Sync sync)
 		{
-			sync.ServerTime = (int)Time.GetTicksMsec();
+			sync.ServerTime = GetCurrentTick();
 			_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
+	}
+
+	public int GetCurrentTick()
+	{
+		return (int)Time.GetTicksMsec();
 	}
 }
