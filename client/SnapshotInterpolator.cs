@@ -50,7 +50,7 @@ public partial class SnapshotInterpolator : Node
                 NetMessage.UserState futureState = _snapshotBuffer[NextFuture].States[i];
                 NetMessage.UserState pastState = _snapshotBuffer[RecentPast].States[i];
 
-                var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString());
+                var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
 
                 if (dummy.IsMultiplayerAuthority() == false)
                 {
