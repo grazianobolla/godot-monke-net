@@ -13,25 +13,16 @@ public partial class ServerManager : Node
 	private Godot.Collections.Array<Godot.Node> entityArray;
 	private ServerClock _serverClock;
 
-	public const int NET_TICKRATE = 30; //hz
-	private double _netTickCounter = 0;
-
 	public override void _EnterTree()
 	{
 		StartListening();
 		_serverClock = GetNode<ServerClock>("ServerClock");
+		_serverClock.NetworkProcessTick += NetworkProcess;
 	}
 
 	public override void _Process(double delta)
 	{
 		DisplayDebugInformation();
-
-		_netTickCounter += delta;
-		if (_netTickCounter >= (1.0 / NET_TICKRATE))
-		{
-			NetworkProcess();
-			_netTickCounter = 0;
-		}
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -40,8 +31,7 @@ public partial class ServerManager : Node
 		ProcessPendingPackets();
 	}
 
-	// Called every NET_TICKRATE hz
-	private void NetworkProcess()
+	private void NetworkProcess(double delta)
 	{
 		BroadcastSnapshot();
 	}
@@ -119,7 +109,7 @@ public partial class ServerManager : Node
 	private void DisplayDebugInformation()
 	{
 		ImGui.Begin($"Server Information");
-		ImGui.Text($"Current Tickrate {NET_TICKRATE}hz");
+		ImGui.Text($"Current Tickrate {_serverClock.GetTickRate()}hz");
 		ImGui.Text($"Clock {_serverClock.GetCurrentTick()} ticks");
 		ImGui.End();
 	}
