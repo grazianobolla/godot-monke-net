@@ -50,7 +50,8 @@ public partial class ClientPlayer : CharacterBody3D
     // Here we validate that our prediction was correct
     public void ReceiveState(NetMessage.UserState state)
     {
-        if (state.Stamp > _lastStampReceived) // Ignore any past states, we don't really need those
+        // Ignore any stamp that should have been received in the past
+        if (state.Stamp > _lastStampReceived)
             _lastStampReceived = state.Stamp;
         else return;
 

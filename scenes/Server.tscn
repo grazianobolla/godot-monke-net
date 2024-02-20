@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://bog1us6frffkj"]
+[gd_scene load_steps=4 format=3 uid="uid://bog1us6frffkj"]
 
 [ext_resource type="Script" path="res://server/ServerManager.cs" id="1_4nn7d"]
 [ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_130h3"]
+[ext_resource type="Script" path="res://server/ServerClock.cs" id="3_pf0yg"]
 
 [node name="Server" type="Node"]
 script = ExtResource("1_4nn7d")
@@ -25,3 +26,6 @@ offset_bottom = 26.0
 grow_horizontal = 0
 text = "Server Side"
 horizontal_alignment = 2
+
+[node name="ServerClock" type="Node" parent="."]
+script = ExtResource("3_pf0yg")
