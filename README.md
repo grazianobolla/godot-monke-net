@@ -19,7 +19,7 @@ You will need Godot 4.X and C# with at least Net6
 This example demonstrates how to implement a client-server architecture in Godot using the Godot networking API, this can work as a base for a proper game or just to learn how this techniques can be implemented. I did not use RPC calls, I sent packed bytes manually over the network.
 
 This diagram tries to explain how the project is structured:
-![Project Diagram](https://raw.githubusercontent.com/grazianobolla/godot4-multiplayer-template/develop/readme/diagram.svg)
+![Diagram](https://github.com/grazianobolla/godot4-multiplayer-template/assets/35064738/fe528305-a02b-4204-b0d9-7380397190b9)
 
 ## Video Example
 This video shows the project in action, I'm simulating a network with 150ms (+ 80ms jitter) of latency (client to server and server to client) + 10% packet loss, and even in these horrible conditions the players have an _acceptable_ experience.
