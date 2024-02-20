@@ -72,8 +72,8 @@ public partial class SnapshotInterpolator : Node
     {
         ImGui.Begin("Snapshot Interpolator Information");
         ImGui.Text($"Interp. Factor {_interpolationFactor}");
-        ImGui.Text($"Buffer Size {_snapshotBuffer.Count}");
-        ImGui.Text($"Buffer Time {BufferTime}");
+        ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
+        ImGui.Text($"Buffer Time {BufferTime}ms");
         ImGui.End();
     }
 

@@ -1,5 +1,6 @@
 using Godot;
 using System.Collections.Generic;
+using ImGuiNET;
 
 public partial class ServerPlayer : CharacterBody3D
 {
@@ -8,9 +9,14 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private Queue<NetMessage.UserInput> _pendingInputs = new();
 	private int _lastStampReceived = 0;
+	private int _lastConsumed = 0;
+	private int _packetWindow = 8; //TODO: this should be dynamic, currently the queue will fill at 8 ticks
+	private int _skippedInputs = 0;
 
-	//TODO: this should be dynamic, currently the queue will fill at 4 ticks
-	private int _packetWindow = 4;
+	public override void _Process(double delta)
+	{
+		DisplayDebugInformation();
+	}
 
 	public void ProcessPendingCommands()
 	{
@@ -20,6 +26,7 @@ public partial class ServerPlayer : CharacterBody3D
 		while (_pendingInputs.Count > _packetWindow)
 		{
 			var input = _pendingInputs.Dequeue(); //TODO: Hmmm... is this efficient?
+			_skippedInputs++;
 		}
 
 		var userInput = _pendingInputs.Dequeue();
@@ -40,6 +47,8 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private void Move(NetMessage.UserInput userInput)
 	{
+		//GD.Print("Consumed input ", userInput.Stamp, " err? ", userInput.Stamp != _lastConsumed + 1);
+		_lastConsumed = userInput.Stamp;
 		Stamp = userInput.Stamp;
 
 		this.Velocity = PlayerMovement.ComputeMotion(
@@ -61,5 +70,14 @@ public partial class ServerPlayer : CharacterBody3D
 			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z },
 			Stamp = this.Stamp
 		};
+	}
+
+	private void DisplayDebugInformation()
+	{
+		ImGui.Begin($"Server Player {MultiplayerID}");
+		ImGui.Text($"Input Queue Count {_pendingInputs.Count}");
+		ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
+		ImGui.Text($"Skipped Inputs {_skippedInputs}");
+		ImGui.End();
 	}
 }

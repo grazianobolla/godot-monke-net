@@ -7,6 +7,7 @@
 
 [node name="Client" type="Node"]
 script = ExtResource("1_y3i7q")
+_maxLerp = 250
 
 [node name="Debug" type="Control" parent="."]
 layout_mode = 3

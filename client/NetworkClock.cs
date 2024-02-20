@@ -116,11 +116,11 @@ public partial class NetworkClock : Node
     private void DisplayDebugInformation()
     {
         ImGui.Begin("Network Clock Information");
-        ImGui.Text($"Current Clock {Clock}");
-        ImGui.Text($"Immediate Latency {_immediateLatency}");
-        ImGui.Text($"Average Latency {_averageLatency}");
-        ImGui.Text($"Clock Offset {_lastOffset}");
-        ImGui.Text($"Jitter {_jitter}");
+        ImGui.Text($"Current Clock {Clock} ticks");
+        ImGui.Text($"Immediate Latency {_immediateLatency}ms");
+        ImGui.Text($"Average Latency {_averageLatency}ms");
+        ImGui.Text($"Clock Offset {_lastOffset}ms");
+        ImGui.Text($"Jitter {_jitter}ms");
         ImGui.End();
     }
 

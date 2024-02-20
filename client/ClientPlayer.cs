@@ -13,6 +13,7 @@ public partial class ClientPlayer : CharacterBody3D
 
     private int _seqStamp = 0;
     private int _networkId = -1;
+    private int _lastStampReceived = 0;
 
     public override void _Ready()
     {
@@ -49,6 +50,11 @@ public partial class ClientPlayer : CharacterBody3D
     // Here we validate that our prediction was correct
     public void ReceiveState(NetMessage.UserState state)
     {
+        if (state.Stamp > _lastStampReceived) // Ignore any past states, we don't really need those
+            _lastStampReceived = state.Stamp;
+        else return;
+
+        // GD.Print("Client consumed ", state.Stamp);
         _userInputs.RemoveAll(input => input.Stamp <= state.Stamp); // Delete all stored inputs up to that point, we don't need them anymore
 
         // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
@@ -71,12 +77,12 @@ public partial class ClientPlayer : CharacterBody3D
         var deviation = expectedTransform.Origin - Position; // expectedTransform is where we should be, Position is our current position
 
         // Reconciliation with authoritative state if the deviation is too high
-        if (deviation.Length() > 0.01f)
+        if (deviation.Length() > 0)
         {
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
 
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch!");
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch (Stamp {state.Stamp})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
         }
     }
 
