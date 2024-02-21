@@ -10,7 +10,6 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private readonly Queue<NetMessage.UserInput> _pendingInputs = new();
 	private int _lastStampReceived = 0;
-	private int _lastConsumed = 0;
 	private int _packetWindow = 8; //TODO: this should be dynamic, currently the queue will fill at 8 ticks
 	private int _skippedInputs = 0;
 
@@ -53,8 +52,6 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private void Move(NetMessage.UserInput userInput)
 	{
-		//GD.Print("Consumed input ", userInput.Stamp, " err? ", userInput.Stamp != _lastConsumed + 1);
-		_lastConsumed = userInput.Stamp;
 		Stamp = userInput.Stamp;
 
 		this.Velocity = PlayerMovement.ComputeMotion(
