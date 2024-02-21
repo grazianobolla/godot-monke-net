@@ -131,6 +131,7 @@ public partial class ClientPlayer : CharacterBody3D
         ImGui.Text($"Network Id {_networkId}");
         ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
         ImGui.Text($"Redundant Inputs {_userInputs.Count}");
+        ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
         ImGui.End();
     }
 }
