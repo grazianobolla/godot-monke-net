@@ -83,7 +83,7 @@ public partial class ClientPlayer : CharacterBody3D
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
 
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch (Stamp {state.Stamp})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviation.Length()}) (Stamp {state.Stamp})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
         }
     }
 
