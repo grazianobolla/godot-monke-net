@@ -27,22 +27,12 @@ public partial class ServerManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
-		ProcessPendingPackets();
+		entityArray = GetNode("/root/Main/EntityArray").GetChildren(); // Remove this
 	}
 
 	private void NetworkProcess(double delta)
 	{
 		BroadcastSnapshot();
-	}
-
-	// Process corresponding packets for this tick
-	private void ProcessPendingPackets()
-	{
-		foreach (ServerPlayer player in entityArray.Cast<ServerPlayer>())
-		{
-			player.ProcessPendingCommands();
-		}
 	}
 
 	// Pack and send GameSnapshot with all entities and their information

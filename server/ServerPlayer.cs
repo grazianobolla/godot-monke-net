@@ -19,7 +19,12 @@ public partial class ServerPlayer : CharacterBody3D
 		DisplayDebugInformation();
 	}
 
-	public void ProcessPendingCommands()
+	public override void _PhysicsProcess(double delta)
+	{
+		ProcessPendingCommands();
+	}
+
+	private void ProcessPendingCommands()
 	{
 		if (_pendingInputs.Count <= 0)
 			return;
