@@ -1,5 +1,4 @@
 using Godot;
-using System;
 using MessagePack;
 
 /*
@@ -14,7 +13,7 @@ public partial class ClientManager : Node
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
-	private NetworkClock _netClock;
+	private ClientClock _clock;
 	private Node _entityArray;
 
 	public override void _EnterTree()
@@ -25,8 +24,8 @@ public partial class ClientManager : Node
 		_entityArray = GetNode("/root/Main/EntityArray");
 
 		// Stores NetworkClock node instance
-		_netClock = GetNode<NetworkClock>("NetworkClock");
-		_netClock.LatencyCalculated += OnLatencyCalculated;
+		_clock = GetNode<ClientClock>("ClientClock");
+		_clock.LatencyCalculated += OnLatencyCalculated;
 
 		// Stores SnapshotInterpolator node instance
 		_snapshotInterpolator = GetNode<SnapshotInterpolator>("SnapshotInterpolator");
@@ -34,7 +33,7 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		_snapshotInterpolator.InterpolateStates(_entityArray, _netClock.GetCurrentTick());
+		_snapshotInterpolator.InterpolateStates(_entityArray, _clock.GetCurrentTick());
 	}
 
 	private void OnPacketReceived(long id, byte[] data)

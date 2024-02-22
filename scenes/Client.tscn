@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
 [ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_7x6yl"]
-[ext_resource type="Script" path="res://client/NetworkClock.cs" id="2_c2fu1"]
 [ext_resource type="Script" path="res://client/SnapshotInterpolator.cs" id="3_2ogc1"]
+[ext_resource type="Script" path="res://client/ClientClock.cs" id="3_skvws"]
 
 [node name="Client" type="Node"]
 script = ExtResource("1_y3i7q")
@@ -29,13 +29,13 @@ grow_horizontal = 0
 text = "Client Side"
 horizontal_alignment = 2
 
-[node name="NetworkClock" type="Node" parent="."]
-script = ExtResource("2_c2fu1")
+[node name="ClientClock" type="Node" parent="."]
+script = ExtResource("3_skvws")
 
-[node name="Timer" type="Timer" parent="NetworkClock"]
+[node name="Timer" type="Timer" parent="ClientClock"]
 autostart = true
 
 [node name="SnapshotInterpolator" type="Node" parent="."]
 script = ExtResource("3_2ogc1")
 
-[connection signal="timeout" from="NetworkClock/Timer" to="NetworkClock" method="OnTimerOut"]
+[connection signal="timeout" from="ClientClock/Timer" to="ClientClock" method="OnTimerOut"]

@@ -7,7 +7,7 @@ using ImGuiNET;
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
     This Node should be self contained.
 */
-public partial class NetworkClock : Node
+public partial class ClientClock : Node
 {
     [Signal]
     public delegate void LatencyCalculatedEventHandler(int latencyAverage); // Called every time the latency is calculated
