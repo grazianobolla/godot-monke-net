@@ -17,7 +17,7 @@ public partial class ClientClock : Node
     [Export] private int _minLatency = 20;
 
     // Current synced server time
-    private int _clock = 0;
+    private int _currentTick = 0;
 
     private int _immediateLatency = 0;
     private int _averageLatency = 0;
@@ -44,13 +44,28 @@ public partial class ClientClock : Node
         DisplayDebugInformation();
     }
 
+    private void OnPacketReceived(long id, byte[] data)
+    {
+        var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+
+        if (command is NetMessage.Sync sync)
+        {
+            SyncReceived(sync);
+        }
+    }
+
+    public int GetCurrentTick()
+    {
+        return _currentTick;
+    }
+
     private void SyncReceived(NetMessage.Sync sync)
     {
         // Latency as the difference between when the packet was sent and when it came back divided by 2
-        _immediateLatency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
+        _immediateLatency = (GetCurrentTimeMsec() - sync.ClientTime) / 2;
 
         // Time difference between our clock and the server clock accounting for latency
-        _offset = (sync.ServerTime - _clock) + _immediateLatency;
+        _offset = (sync.ServerTime - _currentTick) + _immediateLatency;
 
         _offsetValues.Add(_offset);
         _latencyValues.Add(_immediateLatency);
@@ -77,13 +92,13 @@ public partial class ClientClock : Node
     {
         int msDelta = (int)(delta * 1000.0);
 
-        _clock += msDelta + _lastOffset;
+        _currentTick += msDelta + _lastOffset;
 
         // Prevent clock drift
         _decimalCollector += (delta * 1000.0) - msDelta;
         if (_decimalCollector >= 1.00)
         {
-            _clock += 1;
+            _currentTick += 1;
             _decimalCollector -= 1.0;
         }
 
@@ -114,25 +129,16 @@ public partial class ClientClock : Node
         return sampleCount / samples.Count;
     }
 
+    //Called every _sampleRateMs
     private void OnTimerOut()
     {
         var sync = new NetMessage.Sync
         {
-            ClientTime = (int)Time.GetTicksMsec(),
+            ClientTime = GetCurrentTimeMsec(),
             ServerTime = 0
         };
 
         SendSyncPacket(sync);
-    }
-
-    private void OnPacketReceived(long id, byte[] data)
-    {
-        var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
-
-        if (command is NetMessage.Sync sync)
-        {
-            SyncReceived(sync);
-        }
     }
 
     private void SendSyncPacket(NetMessage.Sync sync)
@@ -142,15 +148,15 @@ public partial class ClientClock : Node
         _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
     }
 
-    public int GetCurrentTick()
+    private static int GetCurrentTimeMsec()
     {
-        return _clock;
+        return (int)Time.GetTicksMsec();
     }
 
     private void DisplayDebugInformation()
     {
         ImGui.Begin("Network Clock Information");
-        ImGui.Text($"Current Clock {_clock} ticks");
+        ImGui.Text($"Current Clock {_currentTick} ticks");
         ImGui.Text($"Immediate Latency {_immediateLatency}ms");
         ImGui.Text($"Average Latency {_averageLatency}ms");
         ImGui.Text($"Clock Offset {_lastOffset}ms");

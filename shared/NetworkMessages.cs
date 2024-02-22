@@ -49,13 +49,13 @@ namespace NetMessage
         [Key(3)] public int Stamp; // Last processed stamp
 
         [IgnoreMember]
-        public Vector3 Position
+        public readonly Vector3 Position
         {
             get { return new Vector3(PosArray[0], PosArray[1], PosArray[2]); }
         }
 
         [IgnoreMember]
-        public Vector3 Velocity
+        public readonly Vector3 Velocity
         {
             get { return new Vector3(VelArray[0], VelArray[1], VelArray[2]); }
         }

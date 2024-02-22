@@ -45,7 +45,7 @@ public partial class ServerClock : Node
 		return (int)Time.GetTicksMsec();
 	}
 
-	public int GetTickRate()
+	public int GetNetworkTickRate()
 	{
 		return _netTickrate;
 	}

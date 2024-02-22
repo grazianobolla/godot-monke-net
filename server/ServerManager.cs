@@ -99,7 +99,7 @@ public partial class ServerManager : Node
 	private void DisplayDebugInformation()
 	{
 		ImGui.Begin($"Server Information");
-		ImGui.Text($"Current Tickrate {_serverClock.GetTickRate()}hz");
+		ImGui.Text($"Network Tickrate {_serverClock.GetNetworkTickRate()}hz");
 		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
 		ImGui.Text($"Clock {_serverClock.GetCurrentTick()} ticks");
 		ImGui.End();
