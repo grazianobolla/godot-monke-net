@@ -34,7 +34,7 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		_snapshotInterpolator.InterpolateStates(_entityArray, NetworkClock.Clock);
+		_snapshotInterpolator.InterpolateStates(_entityArray, _netClock.GetCurrentTick());
 	}
 
 	private void OnPacketReceived(long id, byte[] data)

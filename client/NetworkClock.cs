@@ -14,9 +14,10 @@ public partial class NetworkClock : Node
 
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 500;
+    [Export] private int _minLatency = 20;
 
     // Current synced server time
-    public static int Clock { get; private set; } = 0;
+    private int _clock = 0;
 
     private int _immediateLatency = 0;
     private int _averageLatency = 0;
@@ -49,7 +50,7 @@ public partial class NetworkClock : Node
         _immediateLatency = ((int)Time.GetTicksMsec() - sync.ClientTime) / 2;
 
         // Time difference between our clock and the server clock accounting for latency
-        _offset = (sync.ServerTime - Clock) + _immediateLatency;
+        _offset = (sync.ServerTime - _clock) + _immediateLatency;
 
         _offsetValues.Add(_offset);
         _latencyValues.Add(_immediateLatency);
@@ -59,9 +60,9 @@ public partial class NetworkClock : Node
             _offsetValues.Sort();
             _latencyValues.Sort();
 
-            int offsetAverage = ReturnSmoothAverage(_offsetValues, 20);
+            int offsetAverage = ReturnSmoothAverage(_offsetValues, _minLatency);
             _jitter = _latencyValues[_latencyValues.Count - 1] - _latencyValues[0];
-            _averageLatency = ReturnSmoothAverage(_latencyValues, 20);
+            _averageLatency = ReturnSmoothAverage(_latencyValues, _minLatency);
 
             EmitSignal(SignalName.LatencyCalculated, _averageLatency);
 
@@ -76,13 +77,13 @@ public partial class NetworkClock : Node
     {
         int msDelta = (int)(delta * 1000.0);
 
-        Clock += msDelta + _lastOffset;
+        _clock += msDelta + _lastOffset;
 
         // Prevent clock drift
         _decimalCollector += (delta * 1000.0) - msDelta;
         if (_decimalCollector >= 1.00)
         {
-            Clock += 1;
+            _clock += 1;
             _decimalCollector -= 1.0;
         }
 
@@ -113,17 +114,6 @@ public partial class NetworkClock : Node
         return sampleCount / samples.Count;
     }
 
-    private void DisplayDebugInformation()
-    {
-        ImGui.Begin("Network Clock Information");
-        ImGui.Text($"Current Clock {Clock} ticks");
-        ImGui.Text($"Immediate Latency {_immediateLatency}ms");
-        ImGui.Text($"Average Latency {_averageLatency}ms");
-        ImGui.Text($"Clock Offset {_lastOffset}ms");
-        ImGui.Text($"Jitter {_jitter}ms");
-        ImGui.End();
-    }
-
     private void OnTimerOut()
     {
         var sync = new NetMessage.Sync
@@ -132,7 +122,7 @@ public partial class NetworkClock : Node
             ServerTime = 0
         };
 
-        sendSyncPacket(sync);
+        SendSyncPacket(sync);
     }
 
     private void OnPacketReceived(long id, byte[] data)
@@ -145,10 +135,26 @@ public partial class NetworkClock : Node
         }
     }
 
-    private void sendSyncPacket(NetMessage.Sync sync)
+    private void SendSyncPacket(NetMessage.Sync sync)
     {
 
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
         _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+    }
+
+    public int GetCurrentTick()
+    {
+        return _clock;
+    }
+
+    private void DisplayDebugInformation()
+    {
+        ImGui.Begin("Network Clock Information");
+        ImGui.Text($"Current Clock {_clock} ticks");
+        ImGui.Text($"Immediate Latency {_immediateLatency}ms");
+        ImGui.Text($"Average Latency {_averageLatency}ms");
+        ImGui.Text($"Clock Offset {_lastOffset}ms");
+        ImGui.Text($"Jitter {_jitter}ms");
+        ImGui.End();
     }
 }
