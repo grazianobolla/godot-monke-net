@@ -1,6 +1,6 @@
-using System.Dynamic;
 using Godot;
 using MessagePack;
+using ImGuiNET;
 
 public partial class ServerClock : Node
 {
@@ -20,6 +20,9 @@ public partial class ServerClock : Node
 
 	public override void _Process(double delta)
 	{
+
+		DisplayDebugInformation();
+
 		_netTickCounter += delta;
 		if (_netTickCounter >= (1.0 / _netTickrate))
 		{
@@ -35,18 +38,33 @@ public partial class ServerClock : Node
 
 		if (command is NetMessage.Sync sync)
 		{
-			sync.ServerTime = GetCurrentTick();
+			sync.ServerTime = GetCurrentTime();
 			_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
 	}
 
-	public int GetCurrentTick()
+	public static int GetCurrentTime()
 	{
 		return (int)Time.GetTicksMsec();
+	}
+
+	public static int GetCurrentTick()
+	{
+		return (int)Time.GetTicksMsec() / Engine.PhysicsTicksPerSecond;
 	}
 
 	public int GetNetworkTickRate()
 	{
 		return _netTickrate;
+	}
+
+	private void DisplayDebugInformation()
+	{
+		ImGui.Begin($"Clock Information");
+		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
+		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
+		ImGui.Text($"Current Time {GetCurrentTime()}ms");
+		ImGui.Text($"Current Tick {GetCurrentTick()}");
+		ImGui.End();
 	}
 }

@@ -1,7 +1,5 @@
 using Godot;
-using System;
 using MessagePack;
-using System.Linq;
 using ImGuiNET;
 
 //
@@ -40,7 +38,7 @@ public partial class ServerManager : Node
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = _serverClock.GetCurrentTick(),
+			Time = ServerClock.GetCurrentTime(),
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 
@@ -98,10 +96,5 @@ public partial class ServerManager : Node
 
 	private void DisplayDebugInformation()
 	{
-		ImGui.Begin($"Server Information");
-		ImGui.Text($"Network Tickrate {_serverClock.GetNetworkTickRate()}hz");
-		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
-		ImGui.Text($"Clock {_serverClock.GetCurrentTick()} ticks");
-		ImGui.End();
 	}
 }
