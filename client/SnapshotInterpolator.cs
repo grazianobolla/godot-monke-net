@@ -27,7 +27,7 @@ public partial class SnapshotInterpolator : Node
     public void InterpolateStates(Node playersArray, int currentClock)
     {
         // Point in time to render (in the past)
-        double renderTime = currentClock - BufferTime;
+        int renderTime = currentClock - BufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {
@@ -37,10 +37,10 @@ public partial class SnapshotInterpolator : Node
                 _snapshotBuffer.RemoveAt(0);
             }
 
-            double timeDiffBetweenStates = _snapshotBuffer[NextFuture].Time - _snapshotBuffer[RecentPast].Time;
-            double renderDiff = renderTime - _snapshotBuffer[RecentPast].Time;
+            int timeDiffBetweenStates = _snapshotBuffer[NextFuture].Time - _snapshotBuffer[RecentPast].Time;
+            int renderDiff = renderTime - _snapshotBuffer[RecentPast].Time;
 
-            _interpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
+            _interpolationFactor = renderDiff / (float)timeDiffBetweenStates;
 
             var futureStates = _snapshotBuffer[NextFuture].States;
 
@@ -62,7 +62,7 @@ public partial class SnapshotInterpolator : Node
 
     public void PushState(NetMessage.GameSnapshot snapshot)
     {
-        if (_snapshotBuffer.Count <= 0 || snapshot.Time > _snapshotBuffer[_snapshotBuffer.Count - 1].Time)
+        if (_snapshotBuffer.Count <= 0 || snapshot.Time > _snapshotBuffer[^1].Time)
         {
             _snapshotBuffer.Add(snapshot);
         }
