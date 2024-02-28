@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using MessagePack;
 using ImGuiNET;
+using System.Net;
 
 /*
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
@@ -17,7 +18,7 @@ public partial class ClientClock : Node
     [Export] private int _minLatency = 20;
 
     // Current synced server time
-    private int _currentTime = 0;
+    private static int _currentTime = 0;
     private int _immediateLatency = 0;
     private int _averageLatency = 0;
     private int _offset = 0;
@@ -53,12 +54,12 @@ public partial class ClientClock : Node
         }
     }
 
-    public int GetCurrentTime()
+    public static int GetCurrentTime()
     {
         return _currentTime;
     }
 
-    public int GetCurrentTick()
+    public static int GetCurrentTick()
     {
         return _currentTime / Engine.PhysicsTicksPerSecond;
     }
