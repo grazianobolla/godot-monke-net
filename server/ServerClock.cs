@@ -1,6 +1,7 @@
 using Godot;
 using MessagePack;
 using ImGuiNET;
+using System;
 
 public partial class ServerClock : Node
 {
@@ -39,7 +40,7 @@ public partial class ServerClock : Node
 	public static int GetCurrentTick()
 	{
 		float r = (1.0f / Engine.PhysicsTicksPerSecond) * 1000;
-		return (int)(Time.GetTicksMsec() / r);
+		return Mathf.RoundToInt(Time.GetTicksMsec() / r);
 	}
 
 	public int GetNetworkTickRate()
