@@ -54,12 +54,12 @@ public partial class ClientClock : Node
         }
     }
 
-    public static int GetCurrentTime()
+    public int GetCurrentTime()
     {
         return _currentTime;
     }
 
-    public static int GetCurrentTick()
+    public int GetCurrentTick()
     {
         return Mathf.RoundToInt(_currentTime / NetworkUtils.FrameTimeInMsec);
     }

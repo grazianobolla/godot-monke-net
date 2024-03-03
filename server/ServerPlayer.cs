@@ -10,7 +10,7 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private readonly Queue<NetMessage.UserInput> _pendingInputs = new();
 	private int _lastStampReceived = 0;
-	private int _packetWindow = 8; //TODO: this should be dynamic, currently the queue will fill at 8 ticks
+	private int _packetWindow = 12; //TODO: this should be dynamic, currently the queue will fill at 8 ticks
 	private int _skippedInputs = 0;
 
 	public override void _Process(double delta)
@@ -18,12 +18,7 @@ public partial class ServerPlayer : CharacterBody3D
 		DisplayDebugInformation();
 	}
 
-	public override void _PhysicsProcess(double delta)
-	{
-		ProcessPendingCommands();
-	}
-
-	private void ProcessPendingCommands()
+	public void ProcessPendingCommands()
 	{
 		if (_pendingInputs.Count <= 0)
 			return;

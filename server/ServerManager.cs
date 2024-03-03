@@ -1,6 +1,7 @@
 using Godot;
 using MessagePack;
 using ImGuiNET;
+using System.Linq;
 
 //
 public partial class ServerManager : Node
@@ -25,7 +26,14 @@ public partial class ServerManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		entityArray = GetNode("/root/Main/EntityArray").GetChildren(); // Remove this
+		int currentTick = _serverClock.GetCurrentTick();
+
+		entityArray = GetNode("/root/Main/EntityArray").GetChildren(); //FIXME: Remove this
+
+		foreach (var player in entityArray.OfType<ServerPlayer>())
+		{
+			player.ProcessPendingCommands();
+		}
 	}
 
 	private void NetworkProcess(double delta)
@@ -38,7 +46,7 @@ public partial class ServerManager : Node
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = ServerClock.GetCurrentTime(),
+			Time = _serverClock.GetCurrentTime(),
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 

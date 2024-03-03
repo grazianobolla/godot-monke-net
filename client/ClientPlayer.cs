@@ -20,18 +20,18 @@ public partial class ClientPlayer : CharacterBody3D
         _networkId = Multiplayer.GetUniqueId();
     }
 
-    public override void _PhysicsProcess(double delta)
+    public override void _Process(double delta)
+    {
+        DisplayDebugInformation();
+    }
+
+    public void ProcessTick()
     {
         var userInput = GenerateUserInput();
         _userInputs.Add(userInput);
         SendInputs();
         MoveLocally(userInput);
         _seqStamp++;
-    }
-
-    public override void _Process(double delta)
-    {
-        DisplayDebugInformation();
     }
 
     // Applies inputs ahead of the server (Prediction)

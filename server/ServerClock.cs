@@ -25,12 +25,12 @@ public partial class ServerClock : Node
 		SolveSendNetworkTickEvent(delta);
 	}
 
-	public static int GetCurrentTime()
+	public int GetCurrentTime()
 	{
 		return (int)Time.GetTicksMsec();
 	}
 
-	public static int GetCurrentTick()
+	public int GetCurrentTick()
 	{
 		return Mathf.RoundToInt(Time.GetTicksMsec() / NetworkUtils.FrameTimeInMsec);
 	}
