@@ -31,6 +31,17 @@ public partial class ServerClock : Node
 		}
 	}
 
+	public static int GetCurrentTime()
+	{
+		return (int)Time.GetTicksMsec();
+	}
+
+	public int GetNetworkTickRate()
+	{
+		return _netTickrate;
+	}
+
+
 	// When we receive a sync packet from a Client, we return it with the current Clock data
 	private void OnPacketReceived(long id, byte[] data)
 	{
@@ -43,28 +54,12 @@ public partial class ServerClock : Node
 		}
 	}
 
-	public static int GetCurrentTime()
-	{
-		return (int)Time.GetTicksMsec();
-	}
-
-	public static int GetCurrentTick()
-	{
-		return (int)Time.GetTicksMsec() / Engine.PhysicsTicksPerSecond;
-	}
-
-	public int GetNetworkTickRate()
-	{
-		return _netTickrate;
-	}
-
 	private void DisplayDebugInformation()
 	{
 		ImGui.Begin($"Clock Information");
 		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
 		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
 		ImGui.Text($"Current Time {GetCurrentTime()}ms");
-		ImGui.Text($"Current Tick {GetCurrentTick()}");
 		ImGui.End();
 	}
 }

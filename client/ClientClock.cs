@@ -59,11 +59,6 @@ public partial class ClientClock : Node
         return _currentTime;
     }
 
-    public static int GetCurrentTick()
-    {
-        return _currentTime / Engine.PhysicsTicksPerSecond;
-    }
-
     private static int GetLocalTimeMs()
     {
         return (int)Time.GetTicksMsec();
@@ -162,7 +157,6 @@ public partial class ClientClock : Node
     {
         ImGui.Begin("Network Clock Information");
         ImGui.Text($"Current Time {GetCurrentTime()}ms");
-        ImGui.Text($"Current Tick {GetCurrentTick()}");
         ImGui.Text($"Immediate Latency {_immediateLatency}ms");
         ImGui.Text($"Average Latency {_averageLatency}ms");
         ImGui.Text($"Latency Jitter {_jitter}ms");
