@@ -36,6 +36,12 @@ public partial class ServerClock : Node
 		return (int)Time.GetTicksMsec();
 	}
 
+	public static int GetCurrentTick()
+	{
+		float r = (1.0f / Engine.PhysicsTicksPerSecond) * 1000;
+		return (int)(Time.GetTicksMsec() / r);
+	}
+
 	public int GetNetworkTickRate()
 	{
 		return _netTickrate;
@@ -60,6 +66,7 @@ public partial class ServerClock : Node
 		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
 		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
 		ImGui.Text($"Current Time {GetCurrentTime()}ms");
+		ImGui.Text($"Current Time {GetCurrentTick()}");
 		ImGui.End();
 	}
 }
