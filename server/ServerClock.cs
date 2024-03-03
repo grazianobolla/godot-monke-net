@@ -32,8 +32,7 @@ public partial class ServerClock : Node
 
 	public static int GetCurrentTick()
 	{
-		float r = (1.0f / Engine.PhysicsTicksPerSecond) * 1000;
-		return Mathf.RoundToInt(Time.GetTicksMsec() / r);
+		return Mathf.RoundToInt(Time.GetTicksMsec() / NetworkUtils.FrameTimeInMsec);
 	}
 
 	public int GetNetworkTickRate()

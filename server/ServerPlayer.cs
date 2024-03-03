@@ -60,7 +60,7 @@ public partial class ServerPlayer : CharacterBody3D
 			this.Velocity,
 			PlayerMovement.InputToDirection(userInput.Keys));
 
-		Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
+		Position += this.Velocity * PlayerMovement.FrameDelta;
 	}
 
 

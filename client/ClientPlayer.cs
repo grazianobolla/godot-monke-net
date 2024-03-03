@@ -43,7 +43,7 @@ public partial class ClientPlayer : CharacterBody3D
             this.Velocity,
             PlayerMovement.InputToDirection(userInput.Keys));
 
-        Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
+        Position += this.Velocity * PlayerMovement.FrameDelta;
     }
 
     // Called when a UserState is received from the server
@@ -71,7 +71,7 @@ public partial class ClientPlayer : CharacterBody3D
                 expectedVelocity,
                 PlayerMovement.InputToDirection(userInput.Keys));
 
-            expectedTransform.Origin += expectedVelocity * (float)PlayerMovement.FRAME_DELTA;
+            expectedTransform.Origin += expectedVelocity * PlayerMovement.FrameDelta;
         }
 
         var deviation = expectedTransform.Origin - Position; // expectedTransform is where we should be, Position is our current position

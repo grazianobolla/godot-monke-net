@@ -61,8 +61,7 @@ public partial class ClientClock : Node
 
     public static int GetCurrentTick()
     {
-        float r = (1.0f / Engine.PhysicsTicksPerSecond) * 1000;
-        return Mathf.RoundToInt(_currentTime / r);
+        return Mathf.RoundToInt(_currentTime / NetworkUtils.FrameTimeInMsec);
     }
 
     private static int GetLocalTimeMs()
