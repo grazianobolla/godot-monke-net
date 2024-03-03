@@ -21,15 +21,8 @@ public partial class ServerClock : Node
 
 	public override void _Process(double delta)
 	{
-
 		DisplayDebugInformation();
-
-		_netTickCounter += delta;
-		if (_netTickCounter >= (1.0 / _netTickrate))
-		{
-			EmitSignal(SignalName.NetworkProcessTick, _netTickCounter);
-			_netTickCounter = 0;
-		}
+		SolveSendNetworkTickEvent(delta);
 	}
 
 	public static int GetCurrentTime()
@@ -48,6 +41,15 @@ public partial class ServerClock : Node
 		return _netTickrate;
 	}
 
+	private void SolveSendNetworkTickEvent(double delta)
+	{
+		_netTickCounter += delta;
+		if (_netTickCounter >= (1.0 / _netTickrate))
+		{
+			EmitSignal(SignalName.NetworkProcessTick, _netTickCounter);
+			_netTickCounter = 0;
+		}
+	}
 
 	// When we receive a sync packet from a Client, we return it with the current Clock data
 	private void OnPacketReceived(long id, byte[] data)
