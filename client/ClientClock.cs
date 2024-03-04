@@ -100,19 +100,20 @@ public partial class ClientClock : Node
 
     private void AdjustClock(double delta)
     {
-        int msDelta = (int)(delta * 1000.0);
+        double deltaMsec = delta * 1000.0;
 
-        _currentTime += msDelta + _lastOffset;
+        _currentTime += (int)deltaMsec + _lastOffset;
+        _lastOffset = 0;
 
         // Prevent clock drift
-        _decimalCollector += (delta * 1000.0) - msDelta;
+        _decimalCollector += deltaMsec - (int)deltaMsec;
+
         if (_decimalCollector >= 1.00)
         {
             _currentTime += 1;
             _decimalCollector -= 1.0;
         }
 
-        _lastOffset = 0;
     }
 
     private static int ReturnSmoothAverage(List<int> samples, int minValue)
