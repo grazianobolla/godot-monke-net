@@ -52,7 +52,7 @@ public partial class SnapshotInterpolator : Node
 
                 var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
 
-                if (dummy.IsMultiplayerAuthority() == false)
+                if (dummy != null && dummy.IsMultiplayerAuthority() == false)
                 {
                     dummy.Position = pastState.Position.Lerp(futureState.Position, _interpolationFactor);
                 }
