@@ -28,7 +28,6 @@ public partial class ServerManager : Node
 	{
 		int currentTick = _serverClock.GetCurrentTick();
 
-		entityArray = GetNode("/root/Main/EntityArray").GetChildren(); //FIXME: Remove this
 
 		foreach (var player in entityArray.OfType<ServerPlayer>())
 		{
@@ -77,12 +76,15 @@ public partial class ServerManager : Node
 	private void OnPeerConnected(long id)
 	{
 		Node playerInstance = GetNode<MultiplayerSpawner>("/root/Main/MultiplayerSpawner").Spawn(id);
+		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 		GD.Print($"Peer {id} connected");
 	}
 
 	private void OnPeerDisconnected(long id)
 	{
-		GetNode($"/root/Main/EntityArray/{id}").QueueFree();
+		var player = GetNode($"/root/Main/EntityArray/{id}");
+		entityArray.Remove(player);
+		player.QueueFree();
 		GD.Print($"Peer {id} disconnected");
 	}
 
