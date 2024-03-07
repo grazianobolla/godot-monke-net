@@ -12,7 +12,7 @@ public partial class ServerClock : Node
 
 	[Export] private int _netTickrate = 30;
 	private double _netTickCounter = 0;
-
+	private int _currentTick = 0;
 	public override void _Ready()
 	{
 		_multiplayer = GetTree().GetMultiplayer() as SceneMultiplayer;
@@ -25,14 +25,14 @@ public partial class ServerClock : Node
 		SolveSendNetworkTickEvent(delta);
 	}
 
-	public int GetCurrentTime()
+	public override void _PhysicsProcess(double delta)
 	{
-		return (int)Time.GetTicksMsec();
+		_currentTick += 1;
 	}
 
 	public int GetCurrentTick()
 	{
-		return Mathf.RoundToInt(Time.GetTicksMsec() / NetworkUtils.FrameTimeInMsec);
+		return _currentTick;
 	}
 
 	public int GetNetworkTickRate()
@@ -57,7 +57,7 @@ public partial class ServerClock : Node
 
 		if (command is NetMessage.Sync sync)
 		{
-			sync.ServerTime = GetCurrentTime();
+			sync.ServerTime = GetCurrentTick();
 			_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
 	}
@@ -67,7 +67,6 @@ public partial class ServerClock : Node
 		ImGui.Begin($"Clock Information");
 		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
 		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
-		ImGui.Text($"Current Time {GetCurrentTime()}ms");
 		ImGui.Text($"Current Tick {GetCurrentTick()}");
 		ImGui.End();
 	}

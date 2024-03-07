@@ -33,14 +33,14 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		int currentTime = _clock.GetCurrentTime();
-		_snapshotInterpolator.InterpolateStates(_entityArray, currentTime);
+		int currentTick = _clock.GetCurrentTick();
+		_snapshotInterpolator.InterpolateStates(_entityArray, currentTick);
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		int currentTick = _clock.GetCurrentTick(); // Unused for now
-		CustomSpawner.LocalPlayer.ProcessTick();
+		CustomSpawner.LocalPlayer.ProcessTick(currentTick);
 	}
 
 	private void OnPacketReceived(long id, byte[] data)

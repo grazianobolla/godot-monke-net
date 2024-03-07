@@ -31,7 +31,7 @@ public partial class ServerManager : Node
 
 		foreach (var player in entityArray.OfType<ServerPlayer>())
 		{
-			player.ProcessPendingCommands();
+			player.ProcessPendingCommands(currentTick);
 		}
 	}
 
@@ -45,7 +45,7 @@ public partial class ServerManager : Node
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = _serverClock.GetCurrentTime(),
+			Time = _serverClock.GetCurrentTick(),
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 

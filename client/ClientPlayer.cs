@@ -11,7 +11,6 @@ public partial class ClientPlayer : CharacterBody3D
 {
     private readonly List<NetMessage.UserInput> _userInputs = new();
 
-    private int _seqStamp = 0;
     private int _networkId = -1;
     private int _lastStampReceived = 0;
 
@@ -25,13 +24,12 @@ public partial class ClientPlayer : CharacterBody3D
         DisplayDebugInformation();
     }
 
-    public void ProcessTick()
+    public void ProcessTick(int tick)
     {
-        var userInput = GenerateUserInput();
+        var userInput = GenerateUserInput(tick);
         _userInputs.Add(userInput);
         SendInputs();
         MoveLocally(userInput);
-        _seqStamp++;
     }
 
     // Applies inputs ahead of the server (Prediction)
@@ -54,6 +52,8 @@ public partial class ClientPlayer : CharacterBody3D
         if (state.Stamp > _lastStampReceived)
             _lastStampReceived = state.Stamp;
         else return;
+
+        // GD.Print(state.Stamp);
 
         _userInputs.RemoveAll(input => input.Stamp <= state.Stamp); // Delete all stored inputs up to that point, we don't need them anymore
 
@@ -104,7 +104,7 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
-    private NetMessage.UserInput GenerateUserInput()
+    private NetMessage.UserInput GenerateUserInput(int tick)
     {
         byte keys = 0;
 
@@ -117,7 +117,7 @@ public partial class ClientPlayer : CharacterBody3D
 
         var userInput = new NetMessage.UserInput
         {
-            Stamp = _seqStamp,
+            Stamp = tick,
             Keys = keys
         };
 
