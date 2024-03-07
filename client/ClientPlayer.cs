@@ -53,8 +53,6 @@ public partial class ClientPlayer : CharacterBody3D
             _lastStampReceived = state.Stamp;
         else return;
 
-        // GD.Print(state.Stamp);
-
         _userInputs.RemoveAll(input => input.Stamp <= state.Stamp); // Delete all stored inputs up to that point, we don't need them anymore
 
         // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)

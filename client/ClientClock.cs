@@ -4,6 +4,7 @@ using MessagePack;
 using ImGuiNET;
 using System.Net;
 using System;
+using System.Linq;
 
 /*
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
@@ -19,14 +20,13 @@ public partial class ClientClock : Node
     [Export] private int _minLatency = 50;
     [Export] private int _fixedTickMargin = 2;
 
-    // Current synced server time
-    private int _currentTick = 0;
+    private int _currentTick = 0;           // Client/Server Synced Tick
     private int _immediateLatencyMsec = 0;
     private int _averageLatencyInTicks = 0;
-    private int _offsetInTicks = 0;
+    private int _averageOffsetInTicks = 0;
     private int _jitterInTicks = 0;
     private int _lastOffset = 0;
-
+    private int _minLatencyInTicks = 0;
     private readonly List<int> _offsetValues = new();
     private readonly List<int> _latencyValues = new();
 
@@ -37,6 +37,8 @@ public partial class ClientClock : Node
         _multiplayer = GetTree().GetMultiplayer() as SceneMultiplayer;
         _multiplayer.PeerPacket += OnPacketReceived;
         GetNode<Timer>("Timer").WaitTime = _sampleRateMs / 1000.0f;
+
+        _minLatencyInTicks = Mathf.RoundToInt(_minLatency / NetworkUtils.FrameTimeInMsec);
     }
 
     public override void _Process(double delta)
@@ -76,25 +78,24 @@ public partial class ClientClock : Node
         int immediateLatencyInTicks = Mathf.RoundToInt(_immediateLatencyMsec / NetworkUtils.FrameTimeInMsec);
 
         // Time difference between our clock and the server clock accounting for latency
-        _offsetInTicks = (sync.ServerTime - _currentTick) + immediateLatencyInTicks;
+        int _immediateOffsetInTicks = (sync.ServerTime - _currentTick) + immediateLatencyInTicks;
 
-        _offsetValues.Add(_offsetInTicks);
+        _offsetValues.Add(_immediateOffsetInTicks);
         _latencyValues.Add(immediateLatencyInTicks);
 
         if (_offsetValues.Count >= _sampleSize)
         {
             // Calculate average clock offset for the lasts n samples
             _offsetValues.Sort();
-            int offsetAverage = CalculateAverage(_offsetValues, _minLatency);
+            _averageOffsetInTicks = SimpleAverage(_offsetValues);
+            _lastOffset = _averageOffsetInTicks; // For adjusting the clock
 
             // Calculate average latency for the lasts n samples
             _latencyValues.Sort();
             _jitterInTicks = _latencyValues[^1] - _latencyValues[0];
-            _averageLatencyInTicks = CalculateAverage(_latencyValues, _minLatency);
+            _averageLatencyInTicks = SmoothAverage(_latencyValues, _minLatencyInTicks);
 
             EmitSignal(SignalName.LatencyCalculated, _averageLatencyInTicks);
-            GD.Print(_averageLatencyInTicks);
-            _lastOffset = offsetAverage; // For adjusting the clock
 
             _offsetValues.Clear();
             _latencyValues.Clear();
@@ -104,11 +105,21 @@ public partial class ClientClock : Node
     private void AdjustClock(double delta)
     {
         _currentTick += 1 + _lastOffset;
-        if (_lastOffset != 0) { GD.Print($"Adjusted local clock by: {_lastOffset} ticks"); }
+        if (_lastOffset != 0) { GD.Print($"At Tick: {_currentTick - (_lastOffset + 1)} Adjusted local clock by: {_lastOffset} ticks"); }
         _lastOffset = 0;
     }
 
-    private static int CalculateAverage(List<int> samples, int minValue)
+    //FIXME: Can be done with samples.Average() I believe but im too lazy to check
+    private static int SimpleAverage(List<int> samples)
+    {
+        if (samples.Count <= 0) { return 0; }
+
+        int count = 0;
+        samples.ForEach(s => count += s);
+        return count / samples.Count;
+    }
+
+    private static int SmoothAverage(List<int> samples, int minValue)
     {
         int sampleSize = samples.Count;
         int middleValue = samples[samples.Count / 2];
@@ -155,9 +166,11 @@ public partial class ClientClock : Node
     private void DisplayDebugInformation()
     {
         ImGui.Begin("Network Clock Information");
-        ImGui.Text($"Current Tick {GetCurrentTick()}");
+        ImGui.Text($"Synced Tick {GetCurrentTick()}");
+        ImGui.Text($"Local Tick {_currentTick}");
         ImGui.Text($"Immediate Latency {_immediateLatencyMsec}ms");
         ImGui.Text($"Average Latency {_averageLatencyInTicks} ticks");
+        ImGui.Text($"Average Offset {_averageOffsetInTicks} ticks");
         ImGui.Text($"Latency Jitter {_jitterInTicks} ticks");
         ImGui.End();
     }
