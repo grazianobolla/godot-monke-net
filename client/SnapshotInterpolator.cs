@@ -32,23 +32,28 @@ public partial class SnapshotInterpolator : Node
         if (_snapshotBuffer.Count > 1)
         {
             // Clear any unwanted (past) states
-            while (_snapshotBuffer.Count > 2 && renderTime > _snapshotBuffer[1].Time)
+            while (_snapshotBuffer.Count > 2 && renderTime > PhysicsUtils.TickToMsec(_snapshotBuffer[1].Time))
             {
                 _snapshotBuffer.RemoveAt(0);
             }
 
-            int timeDiffBetweenStates = _snapshotBuffer[NextFuture].Time - _snapshotBuffer[RecentPast].Time;
-            int renderDiff = renderTime - _snapshotBuffer[RecentPast].Time;
+            var nextSnapshot = _snapshotBuffer[NextFuture];
+            var prevSnapshot = _snapshotBuffer[RecentPast];
+            int nextSnapshotTickInMsec = PhysicsUtils.TickToMsec(nextSnapshot.Time);
+            int prevSnapshotTickInMsec = PhysicsUtils.TickToMsec(prevSnapshot.Time);
+
+            int timeDiffBetweenStates = nextSnapshotTickInMsec - prevSnapshotTickInMsec;
+            int renderDiff = renderTime - prevSnapshotTickInMsec;
 
             _interpolationFactor = renderDiff / (float)timeDiffBetweenStates;
 
-            var futureStates = _snapshotBuffer[NextFuture].States;
+            var futureStates = nextSnapshot.States;
 
             for (int i = 0; i < futureStates.Length; i++)
             {
                 //TODO: check if the player is aviable in both states
-                NetMessage.UserState futureState = _snapshotBuffer[NextFuture].States[i];
-                NetMessage.UserState pastState = _snapshotBuffer[RecentPast].States[i];
+                NetMessage.UserState futureState = nextSnapshot.States[i];
+                NetMessage.UserState pastState = prevSnapshot.States[i];
 
                 var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
 

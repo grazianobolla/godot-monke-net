@@ -12,6 +12,7 @@ public partial class ServerManager : Node
 	private Godot.Collections.Array<Godot.Node> entityArray;
 	private ServerClock _serverClock;
 
+	private int _currentTick = 0;
 	public override void _EnterTree()
 	{
 		StartListening();
@@ -26,26 +27,26 @@ public partial class ServerManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		int currentTick = _serverClock.GetCurrentTick();
-
+		_currentTick = _serverClock.ProcessTick();
 
 		foreach (var player in entityArray.OfType<ServerPlayer>())
 		{
-			player.ProcessPendingCommands(currentTick);
+			player.ProcessPendingCommands(_currentTick);
 		}
+
 	}
 
 	private void NetworkProcess(double delta)
 	{
-		BroadcastSnapshot();
+		BroadcastSnapshot(_currentTick);
 	}
 
 	// Pack and send GameSnapshot with all entities and their information
-	private void BroadcastSnapshot()
+	private void BroadcastSnapshot(int currentTick)
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = _serverClock.GetCurrentTick(),
+			Time = currentTick,
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 

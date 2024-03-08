@@ -33,13 +33,14 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		int currentTick = _clock.GetCurrentTick();
-		_snapshotInterpolator.InterpolateStates(_entityArray, currentTick);
+		int currentClock = _clock.GetCurrentClock();
+		_snapshotInterpolator.InterpolateStates(_entityArray, currentClock);
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		int currentTick = _clock.GetCurrentTick(); // Unused for now
+		_clock.ProcessTick();
+		int currentTick = _clock.GetCurrentRemoteTick(); // Unused for now
 		CustomSpawner.LocalPlayer.ProcessTick(currentTick);
 	}
 

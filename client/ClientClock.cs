@@ -20,13 +20,18 @@ public partial class ClientClock : Node
     [Export] private int _minLatency = 50;
     [Export] private int _fixedTickMargin = 2;
 
-    private int _currentTick = 0;           // Client/Server Synced Tick
-    private int _immediateLatencyMsec = 0;
-    private int _averageLatencyInTicks = 0;
-    private int _averageOffsetInTicks = 0;
-    private int _jitterInTicks = 0;
+    private int _currentTick = 0;               // Client/Server Synced Tick
+    private int _immediateLatencyMsec = 0;      // Latest Calculated Latency in Milliseconds
+    private int _averageLatencyInTicks = 0;     // Average Latency in Ticks
+    private int _jitterInTicks = 0;             // Latency Jitter in ticks
+    private int _averageOffsetInTicks = 0;      // Average Client to Server clock offset in Ticks
     private int _lastOffset = 0;
     private int _minLatencyInTicks = 0;
+
+    private int _currentTimeMsec = 0;
+    private double _decimalCollector = 0;
+    private int _lastOffsetInMsec = 0;
+
     private readonly List<int> _offsetValues = new();
     private readonly List<int> _latencyValues = new();
 
@@ -38,18 +43,59 @@ public partial class ClientClock : Node
         _multiplayer.PeerPacket += OnPacketReceived;
         GetNode<Timer>("Timer").WaitTime = _sampleRateMs / 1000.0f;
 
-        _minLatencyInTicks = Mathf.RoundToInt(_minLatency / NetworkUtils.FrameTimeInMsec);
+        _minLatencyInTicks = PhysicsUtils.MsecToTick(_minLatency);
     }
 
     public override void _Process(double delta)
     {
+        AdjustTime(delta);
         DisplayDebugInformation();
     }
 
-    public override void _PhysicsProcess(double delta)
+    // Called every Physics Tick, same as in the server
+    public void ProcessTick()
     {
-        AdjustClock(delta);
+        _currentTick += 1 + _lastOffset;
+
+        if (_lastOffset != 0)
+        {
+            GD.Print($"At Tick: {_currentTick - (_lastOffset + 1)} Adjusted local clock by: {_lastOffset} ticks");
+        }
+
+        _lastOffset = 0;
     }
+
+    public int GetCurrentTick()
+    {
+        return _currentTick;
+    }
+
+    public int GetCurrentRemoteTick()
+    {
+        return _currentTick + _averageLatencyInTicks + _jitterInTicks + _fixedTickMargin;
+    }
+
+    public int GetCurrentClock()
+    {
+        return _currentTimeMsec;
+    }
+
+    private void AdjustTime(double delta)
+    {
+        int deltaInMsec = (int)(delta * 1000.0);
+
+        _currentTimeMsec += deltaInMsec + _lastOffsetInMsec;
+        _lastOffsetInMsec = 0;
+
+        // Prevent clock drift
+        _decimalCollector += (delta * 1000.0) - deltaInMsec;
+        if (_decimalCollector >= 1.00)
+        {
+            _currentTimeMsec += 1;
+            _decimalCollector -= 1.0;
+        }
+    }
+
 
     private void OnPacketReceived(long id, byte[] data)
     {
@@ -61,11 +107,6 @@ public partial class ClientClock : Node
         }
     }
 
-    public int GetCurrentTick()
-    {
-        return _currentTick + _averageLatencyInTicks + _jitterInTicks + _fixedTickMargin;
-    }
-
     private static int GetLocalTimeMs()
     {
         return (int)Time.GetTicksMsec();
@@ -75,7 +116,7 @@ public partial class ClientClock : Node
     {
         // Latency as the difference between when the packet was sent and when it came back divided by 2
         _immediateLatencyMsec = (GetLocalTimeMs() - sync.ClientTime) / 2;
-        int immediateLatencyInTicks = Mathf.RoundToInt(_immediateLatencyMsec / NetworkUtils.FrameTimeInMsec);
+        int immediateLatencyInTicks = PhysicsUtils.MsecToTick(_immediateLatencyMsec);
 
         // Time difference between our clock and the server clock accounting for latency
         int _immediateOffsetInTicks = (sync.ServerTime - _currentTick) + immediateLatencyInTicks;
@@ -89,6 +130,7 @@ public partial class ClientClock : Node
             _offsetValues.Sort();
             _averageOffsetInTicks = SimpleAverage(_offsetValues);
             _lastOffset = _averageOffsetInTicks; // For adjusting the clock
+            _lastOffsetInMsec = PhysicsUtils.TickToMsec(_lastOffset); // For adjusting the msec clock
 
             // Calculate average latency for the lasts n samples
             _latencyValues.Sort();
@@ -102,17 +144,13 @@ public partial class ClientClock : Node
         }
     }
 
-    private void AdjustClock(double delta)
-    {
-        _currentTick += 1 + _lastOffset;
-        if (_lastOffset != 0) { GD.Print($"At Tick: {_currentTick - (_lastOffset + 1)} Adjusted local clock by: {_lastOffset} ticks"); }
-        _lastOffset = 0;
-    }
-
     //FIXME: Can be done with samples.Average() I believe but im too lazy to check
     private static int SimpleAverage(List<int> samples)
     {
-        if (samples.Count <= 0) { return 0; }
+        if (samples.Count <= 0)
+        {
+            return 0;
+        }
 
         int count = 0;
         samples.ForEach(s => count += s);
@@ -166,8 +204,9 @@ public partial class ClientClock : Node
     private void DisplayDebugInformation()
     {
         ImGui.Begin("Network Clock Information");
-        ImGui.Text($"Synced Tick {GetCurrentTick()}");
-        ImGui.Text($"Local Tick {_currentTick}");
+        ImGui.Text($"Synced Tick {GetCurrentRemoteTick()}");
+        ImGui.Text($"Local Tick {GetCurrentTick()}");
+        ImGui.Text($"Clock {GetCurrentClock()}");
         ImGui.Text($"Immediate Latency {_immediateLatencyMsec}ms");
         ImGui.Text($"Average Latency {_averageLatencyInTicks} ticks");
         ImGui.Text($"Average Offset {_averageOffsetInTicks} ticks");

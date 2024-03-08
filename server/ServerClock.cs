@@ -25,13 +25,9 @@ public partial class ServerClock : Node
 		SolveSendNetworkTickEvent(delta);
 	}
 
-	public override void _PhysicsProcess(double delta)
+	public int ProcessTick()
 	{
 		_currentTick += 1;
-	}
-
-	public int GetCurrentTick()
-	{
 		return _currentTick;
 	}
 
@@ -57,7 +53,7 @@ public partial class ServerClock : Node
 
 		if (command is NetMessage.Sync sync)
 		{
-			sync.ServerTime = GetCurrentTick();
+			sync.ServerTime = _currentTick;
 			_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
 	}
@@ -67,7 +63,7 @@ public partial class ServerClock : Node
 		ImGui.Begin($"Clock Information");
 		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
 		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
-		ImGui.Text($"Current Tick {GetCurrentTick()}");
+		ImGui.Text($"Current Tick {_currentTick}");
 		ImGui.End();
 	}
 }
