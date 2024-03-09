@@ -13,17 +13,19 @@ using System.Linq;
 public partial class ClientClock : Node
 {
     [Signal]
-    public delegate void LatencyCalculatedEventHandler(int latencyAverage); // Called every time the latency is calculated
+    public delegate void LatencyCalculatedEventHandler(int latencyAverageMsec, int jitterAverageMsec); // Called every time the latency is calculated
 
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 500;
     [Export] private int _minLatency = 50;
-    [Export] private int _fixedTickMargin = 2;
+    [Export] private int _fixedTickMargin = 1;
 
     private int _currentTick = 0;               // Client/Server Synced Tick
     private int _immediateLatencyMsec = 0;      // Latest Calculated Latency in Milliseconds
     private int _averageLatencyInTicks = 0;     // Average Latency in Ticks
+    private int _averageLatencyInMsec = 0;     // Average Latency in Msec
     private int _jitterInTicks = 0;             // Latency Jitter in ticks
+    private int _jitterInMsec = 0;             // Latency Jitter in msec
     private int _averageOffsetInTicks = 0;      // Average Client to Server clock offset in Ticks
     private int _lastOffset = 0;
     private int _minLatencyInTicks = 0;
@@ -135,9 +137,11 @@ public partial class ClientClock : Node
             // Calculate average latency for the lasts n samples
             _latencyValues.Sort();
             _jitterInTicks = _latencyValues[^1] - _latencyValues[0];
+            _jitterInMsec = PhysicsUtils.TickToMsec(_jitterInTicks);
             _averageLatencyInTicks = SmoothAverage(_latencyValues, _minLatencyInTicks);
+            _averageLatencyInMsec = PhysicsUtils.TickToMsec(_averageLatencyInTicks);
 
-            EmitSignal(SignalName.LatencyCalculated, _averageLatencyInTicks);
+            EmitSignal(SignalName.LatencyCalculated, _averageLatencyInMsec, _jitterInMsec);
 
             _offsetValues.Clear();
             _latencyValues.Clear();
@@ -208,9 +212,9 @@ public partial class ClientClock : Node
         ImGui.Text($"Local Tick {GetCurrentTick()}");
         ImGui.Text($"Clock {GetCurrentClock()}");
         ImGui.Text($"Immediate Latency {_immediateLatencyMsec}ms");
-        ImGui.Text($"Average Latency {_averageLatencyInTicks} ticks");
+        ImGui.Text($"Average Latency {_averageLatencyInMsec}ms ({_averageLatencyInTicks} ticks)");
+        ImGui.Text($"Latency Jitter {_jitterInMsec} ms ({_jitterInTicks} ticks)");
         ImGui.Text($"Average Offset {_averageOffsetInTicks} ticks");
-        ImGui.Text($"Latency Jitter {_jitterInTicks} ticks");
         ImGui.End();
     }
 }

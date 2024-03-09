@@ -8,8 +8,6 @@ public partial class ClientManager : Node
 {
 	[Export] private string _address = "localhost";
 	[Export] private int _port = 9999;
-	[Export] private int _lerpBufferWindow = 50;
-	[Export] private int _maxLerp = 250;
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
@@ -67,9 +65,9 @@ public partial class ClientManager : Node
 		}
 	}
 
-	private void OnLatencyCalculated(int latencyAverage)
+	private void OnLatencyCalculated(int latencyAverageMsec, int jitterAverageMsec)
 	{
-		_snapshotInterpolator.BufferTime = Mathf.Clamp(latencyAverage + _lerpBufferWindow, 0, _maxLerp);
+		_snapshotInterpolator.SetBufferTime(latencyAverageMsec + jitterAverageMsec);
 	}
 
 	private void ConnectClient()

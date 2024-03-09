@@ -8,15 +8,16 @@ using System;
 */
 public partial class SnapshotInterpolator : Node
 {
-    public int BufferTime { get; set; } // Buffer size in milliseconds
+    [Export] private int _minBufferTime = (int)PhysicsUtils.FrameTimeInMsec;
 
     private readonly List<NetMessage.GameSnapshot> _snapshotBuffer = new();
     private const int RecentPast = 0, NextFuture = 1;
     private float _interpolationFactor = 0;
+    private int _bufferTime = 0;
 
     public override void _Ready()
     {
-        BufferTime = 100; //TODO: magic number
+        _bufferTime = 100; //TODO: magic number
     }
 
     public override void _Process(double delta)
@@ -24,10 +25,10 @@ public partial class SnapshotInterpolator : Node
         DisplayDebugInformation();
     }
 
-    public void InterpolateStates(Node playersArray, int currentClock)
+    public void InterpolateStates(Node playersArray, int currentTimeMsec)
     {
         // Point in time to render (in the past)
-        int renderTime = currentClock - BufferTime;
+        int renderTime = currentTimeMsec - _bufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {
@@ -73,12 +74,17 @@ public partial class SnapshotInterpolator : Node
         }
     }
 
+    public void SetBufferTime(int bufferTime)
+    {
+        _bufferTime = bufferTime + _minBufferTime;
+    }
+
     private void DisplayDebugInformation()
     {
         ImGui.Begin("Snapshot Interpolator Information");
         ImGui.Text($"Interp. Factor {_interpolationFactor}");
         ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
-        ImGui.Text($"Buffer Time {BufferTime}ms");
+        ImGui.Text($"Buffer Time {_bufferTime}ms");
         ImGui.End();
     }
 
