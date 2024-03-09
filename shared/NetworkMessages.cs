@@ -27,7 +27,7 @@ namespace NetMessage
     [MessagePackObject]
     public partial struct UserInput
     {
-        [Key(0)] public int Stamp; //TODO: is not necessary to send the stamp in every input
+        [Key(0)] public int Tick; //TODO: is not necessary to send the stamp in every input
         [Key(1)] public byte Keys;
     }
 
@@ -36,7 +36,7 @@ namespace NetMessage
     public partial struct GameSnapshot : ICommand
     {
         [Key(0)] public UserState[] States;
-        [Key(1)] public int Time;
+        [Key(1)] public int Tick;
     }
 
     // Encapsulates current state for a player (gets sent with gameSnapshot)

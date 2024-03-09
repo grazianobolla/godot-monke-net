@@ -54,7 +54,7 @@ public partial class ClientPlayer : CharacterBody3D
             _lastStampReceived = forTick;
         else return;
 
-        _userInputs.RemoveAll(input => input.Stamp <= forTick); // Delete all stored inputs up to that point, we don't need them anymore
+        _userInputs.RemoveAll(input => input.Tick <= forTick); // Delete all stored inputs up to that point, we don't need them anymore
 
         // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
         Transform3D expectedTransform = this.GlobalTransform;
@@ -116,7 +116,7 @@ public partial class ClientPlayer : CharacterBody3D
 
         var userInput = new NetMessage.UserInput
         {
-            Stamp = tick,
+            Tick = tick,
             Keys = keys
         };
 

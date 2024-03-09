@@ -28,7 +28,7 @@ public partial class ServerPlayer : CharacterBody3D
 		{
 			Move(input);
 
-			_pendingInputs = _pendingInputs.Where(pair => pair.Value.Stamp > currentTick)
+			_pendingInputs = _pendingInputs.Where(pair => pair.Value.Tick > currentTick)
 			.ToDictionary(pair => pair.Key, pair => pair.Value);
 			/*
 				Note: Using dictionaries for this is probably the worst and most unefficient
@@ -45,16 +45,16 @@ public partial class ServerPlayer : CharacterBody3D
 	{
 		foreach (NetMessage.UserInput userInput in command.Commands)
 		{
-			if (!_pendingInputs.ContainsKey(userInput.Stamp))
+			if (!_pendingInputs.ContainsKey(userInput.Tick))
 			{
-				_pendingInputs.Add(userInput.Stamp, userInput);
+				_pendingInputs.Add(userInput.Tick, userInput);
 			}
 		}
 	}
 
 	private void Move(NetMessage.UserInput userInput)
 	{
-		Stamp = userInput.Stamp;
+		Stamp = userInput.Tick;
 
 		this.Velocity = PlayerMovement.ComputeMotion(
 			this.GetRid(),
