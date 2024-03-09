@@ -107,5 +107,8 @@ public partial class ServerManager : Node
 
 	private void DisplayDebugInformation()
 	{
+		ImGui.Begin("Server Information");
+		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.End();
 	}
 }

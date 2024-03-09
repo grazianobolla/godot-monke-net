@@ -1,4 +1,5 @@
 using Godot;
+using ImGuiNET;
 using MessagePack;
 
 /*
@@ -33,6 +34,7 @@ public partial class ClientManager : Node
 	{
 		int currentClock = _clock.GetCurrentClock();
 		_snapshotInterpolator.InterpolateStates(_entityArray, currentClock);
+		DisplayDebugInformation();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -79,5 +81,12 @@ public partial class ClientManager : Node
 		_multiplayer.MultiplayerPeer = peer;
 		GetTree().SetMultiplayer(_multiplayer);
 		GD.Print("Client connected to ", _address, ":", _port);
+	}
+
+	private void DisplayDebugInformation()
+	{
+		ImGui.Begin("Client Information");
+		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.End();
 	}
 }

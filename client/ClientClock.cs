@@ -18,7 +18,7 @@ public partial class ClientClock : Node
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 500;
     [Export] private int _minLatency = 50;
-    [Export] private int _fixedTickMargin = 1;
+    [Export] private int _fixedTickMargin = 2;
 
     private int _currentTick = 0;               // Client/Server Synced Tick
     private int _immediateLatencyMsec = 0;      // Latest Calculated Latency in Milliseconds
