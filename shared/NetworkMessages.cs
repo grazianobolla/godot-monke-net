@@ -46,7 +46,6 @@ namespace NetMessage
         [Key(0)] public int Id; // Player ID
         [Key(1)] public float[] PosArray; // Player position
         [Key(2)] public float[] VelArray; // Player velocity
-        [Key(3)] public int Stamp; // Last processed stamp
 
         [IgnoreMember]
         public readonly Vector3 Position

@@ -47,14 +47,14 @@ public partial class ClientPlayer : CharacterBody3D
 
     // Called when a UserState is received from the server
     // Here we validate that our prediction was correct
-    public void ReceiveState(NetMessage.UserState state)
+    public void ReceiveState(NetMessage.UserState state, int forTick)
     {
         // Ignore any stamp that should have been received in the past
-        if (state.Stamp > _lastStampReceived)
-            _lastStampReceived = state.Stamp;
+        if (forTick > _lastStampReceived)
+            _lastStampReceived = forTick;
         else return;
 
-        _userInputs.RemoveAll(input => input.Stamp <= state.Stamp); // Delete all stored inputs up to that point, we don't need them anymore
+        _userInputs.RemoveAll(input => input.Stamp <= forTick); // Delete all stored inputs up to that point, we don't need them anymore
 
         // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
         Transform3D expectedTransform = this.GlobalTransform;
@@ -81,7 +81,7 @@ public partial class ClientPlayer : CharacterBody3D
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
             _misspredictionCounter++;
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviation.Length()}) (Stamp {state.Stamp})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviation.Length()}) (Stamp {forTick})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
         }
     }
 

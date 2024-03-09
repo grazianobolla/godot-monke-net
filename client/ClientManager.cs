@@ -63,7 +63,7 @@ public partial class ClientManager : Node
 		{
 			if (state.Id == Multiplayer.GetUniqueId())
 			{
-				CustomSpawner.LocalPlayer.ReceiveState(state);
+				CustomSpawner.LocalPlayer.ReceiveState(state, snapshot.Time);
 			}
 		}
 	}

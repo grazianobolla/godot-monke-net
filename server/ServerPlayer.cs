@@ -72,8 +72,7 @@ public partial class ServerPlayer : CharacterBody3D
 		{
 			Id = MultiplayerID,
 			PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },
-			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z },
-			Stamp = this.Stamp
+			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z }
 		};
 	}
 
