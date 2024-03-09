@@ -13,6 +13,7 @@ public partial class ClientPlayer : CharacterBody3D
 
     private int _networkId = -1;
     private int _lastStampReceived = 0;
+    private int _misspredictionCounter = 0;
 
     public override void _Ready()
     {
@@ -79,7 +80,7 @@ public partial class ClientPlayer : CharacterBody3D
         {
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
-
+            _misspredictionCounter++;
             GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviation.Length()}) (Stamp {state.Stamp})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
         }
     }
@@ -129,6 +130,7 @@ public partial class ClientPlayer : CharacterBody3D
         ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
         ImGui.Text($"Redundant Inputs {_userInputs.Count}");
         ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
+        ImGui.Text($"Misspredictions {_misspredictionCounter}");
         ImGui.End();
     }
 }

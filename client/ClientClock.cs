@@ -18,7 +18,7 @@ public partial class ClientClock : Node
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 1000;
     [Export] private int _minLatency = 50;
-    [Export] private int _fixedTickMargin = 2;
+    [Export] private int _fixedTickMargin = 3;
 
     private int _currentTick = 0;               // Client/Server Synced Tick
     private int _immediateLatencyMsec = 0;      // Latest Calculated Latency in Milliseconds
@@ -168,7 +168,6 @@ public partial class ClientClock : Node
 
     private void SendSyncPacket(NetMessage.Sync sync)
     {
-
         byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
         _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
     }
