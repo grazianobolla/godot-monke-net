@@ -23,7 +23,6 @@ public partial class SnapshotInterpolator : Node
     public override void _Process(double delta)
     {
         _currentTick += delta / PhysicsUtils.FrameTime;
-        GD.Print(_currentTick);
         DisplayDebugInformation();
     }
 
