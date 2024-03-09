@@ -13,7 +13,7 @@ using System.Linq;
 public partial class ClientClock : Node
 {
     [Signal]
-    public delegate void LatencyCalculatedEventHandler(int latencyAverageMsec, int jitterAverageMsec); // Called every time the latency is calculated
+    public delegate void LatencyCalculatedEventHandler(int latencyAverageTicks, int jitterAverageTicks); // Called every time the latency is calculated
 
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 500;
@@ -23,16 +23,10 @@ public partial class ClientClock : Node
     private int _currentTick = 0;               // Client/Server Synced Tick
     private int _immediateLatencyMsec = 0;      // Latest Calculated Latency in Milliseconds
     private int _averageLatencyInTicks = 0;     // Average Latency in Ticks
-    private int _averageLatencyInMsec = 0;     // Average Latency in Msec
     private int _jitterInTicks = 0;             // Latency Jitter in ticks
-    private int _jitterInMsec = 0;             // Latency Jitter in msec
     private int _averageOffsetInTicks = 0;      // Average Client to Server clock offset in Ticks
     private int _lastOffset = 0;
     private int _minLatencyInTicks = 0;
-
-    private int _currentTimeMsec = 0;
-    private double _decimalCollector = 0;
-    private int _lastOffsetInMsec = 0;
 
     private readonly List<int> _offsetValues = new();
     private readonly List<int> _latencyValues = new();
@@ -50,7 +44,6 @@ public partial class ClientClock : Node
 
     public override void _Process(double delta)
     {
-        AdjustTime(delta);
         DisplayDebugInformation();
     }
 
@@ -76,28 +69,6 @@ public partial class ClientClock : Node
     {
         return _currentTick + _averageLatencyInTicks + _jitterInTicks + _fixedTickMargin;
     }
-
-    public int GetCurrentClock()
-    {
-        return _currentTimeMsec;
-    }
-
-    private void AdjustTime(double delta)
-    {
-        int deltaInMsec = (int)(delta * 1000.0);
-
-        _currentTimeMsec += deltaInMsec + _lastOffsetInMsec;
-        _lastOffsetInMsec = 0;
-
-        // Prevent clock drift
-        _decimalCollector += (delta * 1000.0) - deltaInMsec;
-        if (_decimalCollector >= 1.00)
-        {
-            _currentTimeMsec += 1;
-            _decimalCollector -= 1.0;
-        }
-    }
-
 
     private void OnPacketReceived(long id, byte[] data)
     {
@@ -132,16 +103,13 @@ public partial class ClientClock : Node
             _offsetValues.Sort();
             _averageOffsetInTicks = SimpleAverage(_offsetValues);
             _lastOffset = _averageOffsetInTicks; // For adjusting the clock
-            _lastOffsetInMsec = PhysicsUtils.TickToMsec(_lastOffset); // For adjusting the msec clock
 
             // Calculate average latency for the lasts n samples
             _latencyValues.Sort();
             _jitterInTicks = _latencyValues[^1] - _latencyValues[0];
-            _jitterInMsec = PhysicsUtils.TickToMsec(_jitterInTicks);
             _averageLatencyInTicks = SmoothAverage(_latencyValues, _minLatencyInTicks);
-            _averageLatencyInMsec = PhysicsUtils.TickToMsec(_averageLatencyInTicks);
 
-            EmitSignal(SignalName.LatencyCalculated, _averageLatencyInMsec, _jitterInMsec);
+            EmitSignal(SignalName.LatencyCalculated, _averageLatencyInTicks, _jitterInTicks);
 
             _offsetValues.Clear();
             _latencyValues.Clear();
@@ -210,10 +178,9 @@ public partial class ClientClock : Node
         ImGui.Begin("Network Clock Information");
         ImGui.Text($"Synced Tick {GetCurrentRemoteTick()}");
         ImGui.Text($"Local Tick {GetCurrentTick()}");
-        ImGui.Text($"Clock {GetCurrentClock()}");
         ImGui.Text($"Immediate Latency {_immediateLatencyMsec}ms");
-        ImGui.Text($"Average Latency {_averageLatencyInMsec}ms ({_averageLatencyInTicks} ticks)");
-        ImGui.Text($"Latency Jitter {_jitterInMsec} ms ({_jitterInTicks} ticks)");
+        ImGui.Text($"Average Latency {_averageLatencyInTicks} ticks");
+        ImGui.Text($"Latency Jitter {_jitterInTicks} ticks");
         ImGui.Text($"Average Offset {_averageOffsetInTicks} ticks");
         ImGui.End();
     }

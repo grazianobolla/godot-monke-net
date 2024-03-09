@@ -13,6 +13,7 @@ config_version=5
 config/name="multiplayer-base"
 run/main_scene="res://scenes/Main.tscn"
 config/features=PackedStringArray("4.2", "C#", "Forward Plus")
+run/max_fps=75
 config/icon="res://icon.svg"
 
 [autoload]

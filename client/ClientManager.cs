@@ -32,16 +32,17 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		int currentClock = _clock.GetCurrentClock();
-		_snapshotInterpolator.InterpolateStates(_entityArray, currentClock);
+		_snapshotInterpolator.InterpolateStates(_entityArray);
 		DisplayDebugInformation();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
 		_clock.ProcessTick();
-		int currentTick = _clock.GetCurrentRemoteTick(); // Unused for now
-		CustomSpawner.LocalPlayer.ProcessTick(currentTick);
+		int currentTick = _clock.GetCurrentTick();
+		int currentRemoteTick = _clock.GetCurrentRemoteTick();
+		CustomSpawner.LocalPlayer.ProcessTick(currentRemoteTick);
+		_snapshotInterpolator.ProcessTick(currentTick);
 	}
 
 	private void OnPacketReceived(long id, byte[] data)
@@ -67,9 +68,9 @@ public partial class ClientManager : Node
 		}
 	}
 
-	private void OnLatencyCalculated(int latencyAverageMsec, int jitterAverageMsec)
+	private void OnLatencyCalculated(int latencyAverageTicks, int jitterAverageTicks)
 	{
-		_snapshotInterpolator.SetBufferTime(latencyAverageMsec + jitterAverageMsec);
+		_snapshotInterpolator.SetBufferTime(latencyAverageTicks + jitterAverageTicks);
 	}
 
 	private void ConnectClient()
