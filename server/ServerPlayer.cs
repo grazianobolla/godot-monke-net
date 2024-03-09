@@ -4,6 +4,7 @@ using ImGuiNET;
 using System;
 using NetMessage;
 using System.Linq;
+using ImGuiGodot.Internal;
 
 public partial class ServerPlayer : CharacterBody3D
 {
@@ -21,8 +22,6 @@ public partial class ServerPlayer : CharacterBody3D
 
 	public void ProcessPendingCommands(int currentTick)
 	{
-		_inputQueueSize = _pendingInputs.Count;
-
 		if (_pendingInputs.TryGetValue(currentTick, out UserInput input))
 		{
 			Move(input);
@@ -33,6 +32,8 @@ public partial class ServerPlayer : CharacterBody3D
 				Note: Using dictionaries for this is probably the worst and most unefficient
 				way of queueing non-duplicated inputs, this must be changed in the future.
 			*/
+
+			_inputQueueSize = _pendingInputs.Count;
 		}
 		else
 		{
