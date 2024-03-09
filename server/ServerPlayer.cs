@@ -8,7 +8,6 @@ using System.Linq;
 public partial class ServerPlayer : CharacterBody3D
 {
 	public int MultiplayerID { get; set; } = 0;
-	public int Stamp { get; private set; } = 0;
 	public int InstantLatency { get; set; } = 0;
 
 	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
@@ -54,8 +53,6 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private void Move(NetMessage.UserInput userInput)
 	{
-		Stamp = userInput.Tick;
-
 		this.Velocity = PlayerMovement.ComputeMotion(
 			this.GetRid(),
 			this.GlobalTransform,
