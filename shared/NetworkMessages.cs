@@ -20,8 +20,7 @@ namespace NetMessage
     [MessagePackObject]
     public partial struct UserCommand : ICommand
     {
-        [Key(0)] public int Id; //TODO: is not necessary to send the ID
-        [Key(1)] public UserInput[] Commands;
+        [Key(0)] public UserInput[] Commands;
     }
 
     [MessagePackObject]

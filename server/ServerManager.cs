@@ -68,7 +68,7 @@ public partial class ServerManager : Node
 		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
 		if (command is NetMessage.UserCommand userCommand)
 		{
-			ServerPlayer player = GetNode($"/root/Main/EntityArray/{userCommand.Id}") as ServerPlayer; //FIXME: do not use GetNode here
+			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here
 			player.PushCommand(userCommand);
 		}
 

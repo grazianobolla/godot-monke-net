@@ -90,7 +90,6 @@ public partial class ClientPlayer : CharacterBody3D
     {
         var userCmd = new NetMessage.UserCommand
         {
-            Id = Multiplayer.GetUniqueId(),
             Commands = _userInputs.ToArray()
         };
 
