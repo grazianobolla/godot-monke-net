@@ -1,10 +1,8 @@
 using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
-using System;
 using NetMessage;
 using System.Linq;
-using ImGuiGodot.Internal;
 
 public partial class ServerPlayer : CharacterBody3D
 {
@@ -28,10 +26,8 @@ public partial class ServerPlayer : CharacterBody3D
 
 			_pendingInputs = _pendingInputs.Where(pair => pair.Value.Tick > currentTick)
 			.ToDictionary(pair => pair.Key, pair => pair.Value);
-			/*
-				Note: Using dictionaries for this is probably the worst and most unefficient
-				way of queueing non-duplicated inputs, this must be changed in the future.
-			*/
+			/* TODO: Using dictionaries for this is probably the worst and most unefficient
+				way of queueing non-duplicated inputs, this must be changed in the future. */
 
 			_inputQueueSize = _pendingInputs.Count;
 		}

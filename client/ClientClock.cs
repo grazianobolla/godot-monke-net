@@ -2,9 +2,6 @@ using Godot;
 using System.Collections.Generic;
 using MessagePack;
 using ImGuiNET;
-using System.Net;
-using System;
-using System.Linq;
 
 /*
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.

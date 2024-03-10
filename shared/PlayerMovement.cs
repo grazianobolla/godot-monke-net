@@ -16,7 +16,7 @@ public static class PlayerMovement
         }
         else
         {
-            velocity *= 0.85f;
+            velocity *= 0.99f;
         }
 
         PhysicsTestMotionParameters3D testParameters = new();

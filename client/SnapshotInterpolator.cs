@@ -22,6 +22,9 @@ public partial class SnapshotInterpolator : Node
 
     public override void _Process(double delta)
     {
+        /*TODO: While _currentTick isn't updated, increase the _currentTick by delta in ticks in order to
+        smooth out the interpolation, I still believe that it is not as smooth as it was when using
+        Time.GetTicksMsec() so this is still pending, but is good enough for now.*/
         _currentTick += delta / PhysicsUtils.FrameTime;
         DisplayDebugInformation();
     }
