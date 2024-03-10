@@ -12,6 +12,7 @@ public partial class ServerManager : Node
 	private Godot.Collections.Array<Godot.Node> entityArray;
 	private ServerClock _serverClock;
 
+	private int _currentTick = 0;
 	public override void _EnterTree()
 	{
 		StartListening();
@@ -26,26 +27,26 @@ public partial class ServerManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		int currentTick = _serverClock.GetCurrentTick();
-
+		_currentTick = _serverClock.ProcessTick();
 
 		foreach (var player in entityArray.OfType<ServerPlayer>())
 		{
-			player.ProcessPendingCommands();
+			player.ProcessPendingCommands(_currentTick);
 		}
+
 	}
 
 	private void NetworkProcess(double delta)
 	{
-		BroadcastSnapshot();
+		BroadcastSnapshot(_currentTick);
 	}
 
 	// Pack and send GameSnapshot with all entities and their information
-	private void BroadcastSnapshot()
+	private void BroadcastSnapshot(int currentTick)
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = _serverClock.GetCurrentTime(),
+			Tick = currentTick,
 			States = new NetMessage.UserState[entityArray.Count]
 		};
 
@@ -67,7 +68,7 @@ public partial class ServerManager : Node
 		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
 		if (command is NetMessage.UserCommand userCommand)
 		{
-			ServerPlayer player = GetNode($"/root/Main/EntityArray/{userCommand.Id}") as ServerPlayer; //FIXME: do not use GetNode here
+			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here
 			player.PushCommand(userCommand);
 		}
 
@@ -106,5 +107,8 @@ public partial class ServerManager : Node
 
 	private void DisplayDebugInformation()
 	{
+		ImGui.Begin("Server Information");
+		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.End();
 	}
 }

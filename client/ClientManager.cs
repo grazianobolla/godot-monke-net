@@ -1,4 +1,5 @@
 using Godot;
+using ImGuiNET;
 using MessagePack;
 
 /*
@@ -8,8 +9,6 @@ public partial class ClientManager : Node
 {
 	[Export] private string _address = "localhost";
 	[Export] private int _port = 9999;
-	[Export] private int _lerpBufferWindow = 50;
-	[Export] private int _maxLerp = 250;
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
@@ -33,14 +32,17 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		int currentTime = _clock.GetCurrentTime();
-		_snapshotInterpolator.InterpolateStates(_entityArray, currentTime);
+		_snapshotInterpolator.InterpolateStates(_entityArray);
+		DisplayDebugInformation();
 	}
 
 	public override void _PhysicsProcess(double delta)
 	{
-		int currentTick = _clock.GetCurrentTick(); // Unused for now
-		CustomSpawner.LocalPlayer.ProcessTick();
+		_clock.ProcessTick();
+		int currentTick = _clock.GetCurrentTick();
+		int currentRemoteTick = _clock.GetCurrentRemoteTick();
+		CustomSpawner.LocalPlayer.ProcessTick(currentRemoteTick);
+		_snapshotInterpolator.ProcessTick(currentTick);
 	}
 
 	private void OnPacketReceived(long id, byte[] data)
@@ -61,14 +63,14 @@ public partial class ClientManager : Node
 		{
 			if (state.Id == Multiplayer.GetUniqueId())
 			{
-				CustomSpawner.LocalPlayer.ReceiveState(state);
+				CustomSpawner.LocalPlayer.ReceiveState(state, snapshot.Tick);
 			}
 		}
 	}
 
-	private void OnLatencyCalculated(int latencyAverage)
+	private void OnLatencyCalculated(int latencyAverageTicks, int jitterAverageTicks)
 	{
-		_snapshotInterpolator.BufferTime = Mathf.Clamp(latencyAverage + _lerpBufferWindow, 0, _maxLerp);
+		_snapshotInterpolator.SetBufferTime(latencyAverageTicks + jitterAverageTicks);
 	}
 
 	private void ConnectClient()
@@ -80,5 +82,12 @@ public partial class ClientManager : Node
 		_multiplayer.MultiplayerPeer = peer;
 		GetTree().SetMultiplayer(_multiplayer);
 		GD.Print("Client connected to ", _address, ":", _port);
+	}
+
+	private void DisplayDebugInformation()
+	{
+		ImGui.Begin("Client Information");
+		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.End();
 	}
 }

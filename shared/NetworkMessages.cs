@@ -20,14 +20,13 @@ namespace NetMessage
     [MessagePackObject]
     public partial struct UserCommand : ICommand
     {
-        [Key(0)] public int Id; //TODO: is not necessary to send the ID
-        [Key(1)] public UserInput[] Commands;
+        [Key(0)] public UserInput[] Commands;
     }
 
     [MessagePackObject]
     public partial struct UserInput
     {
-        [Key(0)] public int Stamp; //TODO: is not necessary to send the stamp in every input
+        [Key(0)] public int Tick; //TODO: is not necessary to send the stamp in every input
         [Key(1)] public byte Keys;
     }
 
@@ -36,7 +35,7 @@ namespace NetMessage
     public partial struct GameSnapshot : ICommand
     {
         [Key(0)] public UserState[] States;
-        [Key(1)] public int Time;
+        [Key(1)] public int Tick;
     }
 
     // Encapsulates current state for a player (gets sent with gameSnapshot)
@@ -46,7 +45,6 @@ namespace NetMessage
         [Key(0)] public int Id; // Player ID
         [Key(1)] public float[] PosArray; // Player position
         [Key(2)] public float[] VelArray; // Player velocity
-        [Key(3)] public int Stamp; // Last processed stamp
 
         [IgnoreMember]
         public readonly Vector3 Position

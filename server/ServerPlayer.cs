@@ -1,54 +1,55 @@
 using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
+using NetMessage;
+using System.Linq;
 
 public partial class ServerPlayer : CharacterBody3D
 {
 	public int MultiplayerID { get; set; } = 0;
-	public int Stamp { get; private set; } = 0;
 	public int InstantLatency { get; set; } = 0;
 
-	private readonly Queue<NetMessage.UserInput> _pendingInputs = new();
-	private int _lastStampReceived = 0;
-	private int _packetWindow = 12; //TODO: this should be dynamic, currently the queue will fill at 8 ticks
-	private int _skippedInputs = 0;
+	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
+	private int _skippedTicks = 0;
+	private int _inputQueueSize = 0;
 
 	public override void _Process(double delta)
 	{
 		DisplayDebugInformation();
 	}
 
-	public void ProcessPendingCommands()
+	public void ProcessPendingCommands(int currentTick)
 	{
-		if (_pendingInputs.Count <= 0)
-			return;
-
-		while (_pendingInputs.Count > _packetWindow)
+		if (_pendingInputs.TryGetValue(currentTick, out UserInput input))
 		{
-			_pendingInputs.Dequeue(); //TODO: Hmmm... is this efficient?
-			_skippedInputs++;
-		}
+			Move(input);
 
-		var userInput = _pendingInputs.Dequeue();
-		Move(userInput);
+			_pendingInputs = _pendingInputs.Where(pair => pair.Value.Tick > currentTick)
+			.ToDictionary(pair => pair.Key, pair => pair.Value);
+			/* TODO: Using dictionaries for this is probably the worst and most unefficient
+				way of queueing non-duplicated inputs, this must be changed in the future. */
+
+			_inputQueueSize = _pendingInputs.Count;
+		}
+		else
+		{
+			_skippedTicks++;
+		}
 	}
 
 	public void PushCommand(NetMessage.UserCommand command)
 	{
 		foreach (NetMessage.UserInput userInput in command.Commands)
 		{
-			if (userInput.Stamp == _lastStampReceived + 1)
+			if (!_pendingInputs.ContainsKey(userInput.Tick))
 			{
-				_pendingInputs.Enqueue(userInput);
-				_lastStampReceived = userInput.Stamp;
+				_pendingInputs.Add(userInput.Tick, userInput);
 			}
 		}
 	}
 
 	private void Move(NetMessage.UserInput userInput)
 	{
-		Stamp = userInput.Stamp;
-
 		this.Velocity = PlayerMovement.ComputeMotion(
 			this.GetRid(),
 			this.GlobalTransform,
@@ -65,8 +66,7 @@ public partial class ServerPlayer : CharacterBody3D
 		{
 			Id = MultiplayerID,
 			PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },
-			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z },
-			Stamp = this.Stamp
+			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z }
 		};
 	}
 
@@ -74,10 +74,8 @@ public partial class ServerPlayer : CharacterBody3D
 	{
 		ImGui.Begin($"Server Player {MultiplayerID}");
 		ImGui.Text($"Instant Latency {InstantLatency}");
-		ImGui.Text($"Input Queue Count {_pendingInputs.Count}");
-		ImGui.Text($"Input Queue Lag {_pendingInputs.Count * (1.0f / Engine.PhysicsTicksPerSecond) * 1000}ms");
-		ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
-		ImGui.Text($"Skipped Inputs {_skippedInputs}");
+		ImGui.Text($"Input Queue Count {_inputQueueSize}");
+		ImGui.Text($"Missed Frames {_skippedTicks}");
 		ImGui.End();
 	}
 }
