@@ -1,7 +1,6 @@
 using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
-using NetMessage;
 using System.Linq;
 
 public partial class ServerPlayer : CharacterBody3D
@@ -12,6 +11,7 @@ public partial class ServerPlayer : CharacterBody3D
 	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
 	private int _skippedTicks = 0;
 	private int _inputQueueSize = 0;
+	private NetMessage.UserInput _lastInputProcessed;
 
 	public override void _Process(double delta)
 	{
@@ -20,9 +20,10 @@ public partial class ServerPlayer : CharacterBody3D
 
 	public void ProcessPendingCommands(int currentTick)
 	{
-		if (_pendingInputs.TryGetValue(currentTick, out UserInput input))
+		if (_pendingInputs.TryGetValue(currentTick, out NetMessage.UserInput input))
 		{
-			Move(input);
+			AdvancePhysics(input);
+			_lastInputProcessed = input;
 
 			_pendingInputs = _pendingInputs.Where(pair => pair.Value.Tick > currentTick)
 			.ToDictionary(pair => pair.Key, pair => pair.Value);
@@ -33,6 +34,7 @@ public partial class ServerPlayer : CharacterBody3D
 		}
 		else
 		{
+			AdvancePhysics(_lastInputProcessed);
 			_skippedTicks++;
 		}
 	}
@@ -48,7 +50,7 @@ public partial class ServerPlayer : CharacterBody3D
 		}
 	}
 
-	private void Move(NetMessage.UserInput userInput)
+	private void AdvancePhysics(NetMessage.UserInput userInput)
 	{
 		this.Velocity = PlayerMovement.ComputeMotion(
 			this.GetRid(),
