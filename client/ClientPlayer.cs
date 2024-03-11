@@ -30,11 +30,11 @@ public partial class ClientPlayer : CharacterBody3D
         var userInput = GenerateUserInput(tick);
         _userInputs.Add(userInput);
         SendInputs();
-        MoveLocally(userInput);
+        AdvancePhysics(userInput);
     }
 
     // Applies inputs ahead of the server (Prediction)
-    private void MoveLocally(NetMessage.UserInput userInput)
+    private void AdvancePhysics(NetMessage.UserInput userInput)
     {
         this.Velocity = PlayerMovement.ComputeMotion(
             this.GetRid(),
