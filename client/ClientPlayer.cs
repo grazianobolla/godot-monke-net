@@ -47,7 +47,7 @@ public partial class ClientPlayer : CharacterBody3D
 
     // Called when a UserState is received from the server
     // Here we validate that our prediction was correct
-    public void ReceiveState(NetMessage.UserState state, int forTick)
+    public void ReceiveState(NetMessage.EntityState state, int forTick)
     {
         // Ignore any stamp that should have been received in the past
         if (forTick > _lastStampReceived)

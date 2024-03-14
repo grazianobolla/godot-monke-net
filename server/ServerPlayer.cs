@@ -62,9 +62,9 @@ public partial class ServerPlayer : CharacterBody3D
 	}
 
 
-	public NetMessage.UserState GetCurrentState()
+	public NetMessage.EntityState GetCurrentState()
 	{
-		return new NetMessage.UserState
+		return new NetMessage.EntityState
 		{
 			Id = MultiplayerID,
 			PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },

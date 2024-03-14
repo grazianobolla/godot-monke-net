@@ -35,17 +35,17 @@ namespace NetMessage
     [MemoryPackable]
     public partial class GameSnapshot : ICommand
     {
-        public UserState[] States;
+        public EntityState[] States;
         public int Tick;
     }
 
     // Encapsulates current state for a player (gets sent with gameSnapshot)
     [MemoryPackable]
-    public partial class UserState
+    public partial class EntityState
     {
-        public int Id; // Player ID
-        public float[] PosArray; // Player position
-        public float[] VelArray; // Player velocity
+        public int Id; // Entity Id
+        public float[] PosArray; // Entity Position
+        public float[] VelArray; // Entity velocity
 
         [MemoryPackIgnore]
         public Vector3 Position
