@@ -1,6 +1,6 @@
 using Godot;
 using ImGuiNET;
-using MessagePack;
+using MemoryPack;
 
 /*
 	Network manager for the client, handles server connection and routes packages.
@@ -47,7 +47,7 @@ public partial class ClientManager : Node
 
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 
 		if (command is NetMessage.GameSnapshot snapshot)
 		{

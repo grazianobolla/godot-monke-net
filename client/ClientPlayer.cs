@@ -1,8 +1,8 @@
 using Godot;
 using System.Collections.Generic;
-using MessagePack;
 using NetMessage;
 using ImGuiNET;
+using MemoryPack;
 
 /*
     Main player script, send movement packets to the server, does CSP, and reconciliation. 
@@ -95,7 +95,7 @@ public partial class ClientPlayer : CharacterBody3D
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
-            byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(userCmd);
+            byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
 
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
                 MultiplayerPeer.TransferModeEnum.Unreliable, 0);
