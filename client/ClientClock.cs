@@ -48,12 +48,6 @@ public partial class ClientClock : Node
     public void ProcessTick()
     {
         _currentTick += 1 + _lastOffset;
-
-        if (_lastOffset != 0)
-        {
-            GD.Print($"At Tick: {_currentTick - (_lastOffset + 1)} Adjusted local clock by: {_lastOffset} ticks");
-        }
-
         _lastOffset = 0;
     }
 
@@ -107,6 +101,8 @@ public partial class ClientClock : Node
             _averageLatencyInTicks = SmoothAverage(_latencyValues, _minLatencyInTicks);
 
             EmitSignal(SignalName.LatencyCalculated, _averageLatencyInTicks, _jitterInTicks);
+
+            GD.Print($"At tick {_currentTick}, latency calculations done. Avg. Latency {_averageLatencyInTicks} ticks, Jitter {_jitterInTicks} ticks, Clock Offset {_lastOffset} ticks");
 
             _offsetValues.Clear();
             _latencyValues.Clear();
