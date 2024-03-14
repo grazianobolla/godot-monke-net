@@ -47,7 +47,7 @@ public partial class ServerManager : Node
 		var snapshot = new NetMessage.GameSnapshot
 		{
 			Tick = currentTick,
-			States = new NetMessage.UserState[entityArray.Count]
+			States = new NetMessage.EntityState[entityArray.Count]
 		};
 
 		for (int i = 0; i < entityArray.Count; i++)
