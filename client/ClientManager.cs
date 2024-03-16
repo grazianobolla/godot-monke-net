@@ -88,6 +88,7 @@ public partial class ClientManager : Node
 	{
 		ImGui.Begin("Client Information");
 		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
 		ImGui.End();
 	}
 }

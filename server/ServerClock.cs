@@ -62,7 +62,6 @@ public partial class ServerClock : Node
 	{
 		ImGui.Begin($"Clock Information");
 		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
-		ImGui.Text($"Physics Tickrate {Engine.PhysicsTicksPerSecond}hz");
 		ImGui.Text($"Current Tick {_currentTick}");
 		ImGui.End();
 	}
