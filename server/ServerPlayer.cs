@@ -11,7 +11,7 @@ public partial class ServerPlayer : CharacterBody3D
 	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
 	private int _skippedTicks = 0;
 	private int _inputQueueSize = 0;
-	private NetMessage.UserInput _lastInputProcessed;
+	private NetMessage.UserInput? _lastInputProcessed = null;
 
 	public override void _Process(double delta)
 	{
@@ -32,7 +32,7 @@ public partial class ServerPlayer : CharacterBody3D
 
 			_inputQueueSize = _pendingInputs.Count;
 		}
-		else
+		else if (_lastInputProcessed != null)
 		{
 			AdvancePhysics(_lastInputProcessed);
 			_skippedTicks++;
