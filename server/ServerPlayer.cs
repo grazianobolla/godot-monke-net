@@ -11,7 +11,10 @@ public partial class ServerPlayer : CharacterBody3D
 	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
 	private int _skippedTicks = 0;
 	private int _inputQueueSize = 0;
+
+#nullable enable
 	private NetMessage.UserInput? _lastInputProcessed = null;
+#nullable disable
 
 	public override void _Process(double delta)
 	{
