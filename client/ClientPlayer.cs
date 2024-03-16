@@ -25,9 +25,9 @@ public partial class ClientPlayer : CharacterBody3D
         DisplayDebugInformation();
     }
 
-    public void ProcessTick(int tick)
+    public void ProcessTick(int currentTick)
     {
-        var userInput = GenerateUserInput(tick);
+        var userInput = GenerateUserInput(currentTick);
         _userInputs.Add(userInput);
         SendInputs();
         AdvancePhysics(userInput);
