@@ -1,8 +1,8 @@
 using Godot;
 using System.Collections.Generic;
-using MessagePack;
 using NetMessage;
 using ImGuiNET;
+using MemoryPack;
 
 /*
     Main player script, send movement packets to the server, does CSP, and reconciliation. 
@@ -47,7 +47,7 @@ public partial class ClientPlayer : CharacterBody3D
 
     // Called when a UserState is received from the server
     // Here we validate that our prediction was correct
-    public void ReceiveState(NetMessage.UserState state, int forTick)
+    public void ReceiveState(NetMessage.EntityState state, int forTick)
     {
         // Ignore any stamp that should have been received in the past
         if (forTick > _lastStampReceived)
@@ -95,7 +95,7 @@ public partial class ClientPlayer : CharacterBody3D
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
-            byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(userCmd);
+            byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
 
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
                 MultiplayerPeer.TransferModeEnum.Unreliable, 0);

@@ -59,9 +59,9 @@ public partial class SnapshotInterpolator : Node
 
             for (int i = 0; i < futureStates.Length; i++)
             {
-                //TODO: check if the player is aviable in both states
-                NetMessage.UserState futureState = nextSnapshot.States[i];
-                NetMessage.UserState pastState = prevSnapshot.States[i];
+                //TODO: check if the Entity is available in both states
+                NetMessage.EntityState futureState = nextSnapshot.States[i];
+                NetMessage.EntityState pastState = prevSnapshot.States[i];
 
                 var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
 

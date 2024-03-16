@@ -1,6 +1,6 @@
 using Godot;
-using MessagePack;
 using ImGuiNET;
+using MemoryPack;
 using System;
 
 public partial class ServerClock : Node
@@ -49,12 +49,12 @@ public partial class ServerClock : Node
 	// When we receive a sync packet from a Client, we return it with the current Clock data
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 
 		if (command is NetMessage.Sync sync)
 		{
 			sync.ServerTime = _currentTick;
-			_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
 	}
 

@@ -1,7 +1,7 @@
 using Godot;
 using System.Collections.Generic;
-using MessagePack;
 using ImGuiNET;
+using MemoryPack;
 
 /*
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
@@ -48,12 +48,6 @@ public partial class ClientClock : Node
     public void ProcessTick()
     {
         _currentTick += 1 + _lastOffset;
-
-        if (_lastOffset != 0)
-        {
-            GD.Print($"At Tick: {_currentTick - (_lastOffset + 1)} Adjusted local clock by: {_lastOffset} ticks");
-        }
-
         _lastOffset = 0;
     }
 
@@ -69,7 +63,7 @@ public partial class ClientClock : Node
 
     private void OnPacketReceived(long id, byte[] data)
     {
-        var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+        var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 
         if (command is NetMessage.Sync sync)
         {
@@ -107,6 +101,8 @@ public partial class ClientClock : Node
             _averageLatencyInTicks = SmoothAverage(_latencyValues, _minLatencyInTicks);
 
             EmitSignal(SignalName.LatencyCalculated, _averageLatencyInTicks, _jitterInTicks);
+
+            GD.Print($"At tick {_currentTick}, latency calculations done. Avg. Latency {_averageLatencyInTicks} ticks, Jitter {_jitterInTicks} ticks, Clock Offset {_lastOffset} ticks");
 
             _offsetValues.Clear();
             _latencyValues.Clear();
@@ -165,7 +161,7 @@ public partial class ClientClock : Node
 
     private void SendSyncPacket(NetMessage.Sync sync)
     {
-        byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(sync);
+        byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync);
         _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
     }
 

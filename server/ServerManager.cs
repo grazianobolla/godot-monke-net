@@ -1,6 +1,6 @@
 using Godot;
-using MessagePack;
 using ImGuiNET;
+using MemoryPack;
 using System.Linq;
 
 //
@@ -47,7 +47,7 @@ public partial class ServerManager : Node
 		var snapshot = new NetMessage.GameSnapshot
 		{
 			Tick = currentTick,
-			States = new NetMessage.UserState[entityArray.Count]
+			States = new NetMessage.EntityState[entityArray.Count]
 		};
 
 		for (int i = 0; i < entityArray.Count; i++)
@@ -56,7 +56,7 @@ public partial class ServerManager : Node
 			snapshot.States[i] = player.GetCurrentState();
 		}
 
-		byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);
+		byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(snapshot);
 
 		_multiplayer.SendBytes(data, 0,
 			MultiplayerPeer.TransferModeEnum.Unreliable, 0);
@@ -65,7 +65,7 @@ public partial class ServerManager : Node
 	// Route received Input package to the correspondant Network ID
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 		if (command is NetMessage.UserCommand userCommand)
 		{
 			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here
