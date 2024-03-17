@@ -15,6 +15,9 @@ public partial class ClientPlayer : CharacterBody3D
     private int _lastStampReceived = 0;
     private int _misspredictionCounter = 0;
 
+    private byte _automoveInput = 0b0000_1000;
+    private bool _autoMoveEnabled = false;
+
     public override void _Ready()
     {
         _networkId = Multiplayer.GetUniqueId();
@@ -28,6 +31,11 @@ public partial class ClientPlayer : CharacterBody3D
     public void ProcessTick(int currentTick)
     {
         var userInput = GenerateUserInput(currentTick);
+        if (_autoMoveEnabled)
+        {
+            SolveAutoMove();
+            userInput.Keys = _automoveInput;
+        }
         _userInputs.Add(userInput);
         SendInputs();
         AdvancePhysics(userInput);
@@ -85,6 +93,19 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
+    // For Debug Only
+    private void SolveAutoMove()
+    {
+        if (this.Position.X > 5 && _automoveInput == 0b0000_1000)
+        {
+            _automoveInput = 0b0000_0100;
+        }
+        else if (this.Position.X < -5 && _automoveInput == 0b0000_0100)
+        {
+            _automoveInput = 0b0000_1000;
+        }
+    }
+
     // Sends all non-processed inputs to the server
     private void SendInputs()
     {
@@ -130,6 +151,7 @@ public partial class ClientPlayer : CharacterBody3D
         ImGui.Text($"Redundant Inputs {_userInputs.Count}");
         ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
         ImGui.Text($"Misspredictions {_misspredictionCounter}");
+        ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
         ImGui.End();
     }
 }
