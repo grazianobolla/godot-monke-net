@@ -15,6 +15,8 @@ public partial class ServerManager : Node
 	private int _currentTick = 0;
 	public override void _EnterTree()
 	{
+		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
+
 		StartListening();
 		_serverClock = GetNode<ServerClock>("ServerClock");
 		_serverClock.NetworkProcessTick += NetworkProcess;

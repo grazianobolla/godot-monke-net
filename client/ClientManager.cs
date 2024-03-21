@@ -28,11 +28,11 @@ public partial class ClientManager : Node
 
 		// Stores SnapshotInterpolator node instance
 		_snapshotInterpolator = GetNode<SnapshotInterpolator>("SnapshotInterpolator");
+		_snapshotInterpolator.SetEntityArray(_entityArray);
 	}
 
 	public override void _Process(double delta)
 	{
-		_snapshotInterpolator.InterpolateStates(_entityArray);
 		DisplayDebugInformation();
 	}
 
@@ -41,7 +41,7 @@ public partial class ClientManager : Node
 		_clock.ProcessTick();
 		int currentTick = _clock.GetCurrentTick();
 		int currentRemoteTick = _clock.GetCurrentRemoteTick();
-		CustomSpawner.LocalPlayer.ProcessTick(currentRemoteTick);
+		CustomSpawner.LocalPlayer?.ProcessTick(currentRemoteTick);
 		_snapshotInterpolator.ProcessTick(currentTick);
 	}
 
@@ -63,7 +63,7 @@ public partial class ClientManager : Node
 		{
 			if (state.Id == Multiplayer.GetUniqueId())
 			{
-				CustomSpawner.LocalPlayer.ReceiveState(state, snapshot.Tick);
+				CustomSpawner.LocalPlayer?.ReceiveState(state, snapshot.Tick);
 			}
 		}
 	}

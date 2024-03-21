@@ -14,6 +14,7 @@ public partial class SnapshotInterpolator : Node
     private double _interpolationFactor = 0;
     private int _bufferTime = 0;
     private double _currentTick = 0;
+    private Node _entityArray;
 
     public override void _Ready()
     {
@@ -22,10 +23,8 @@ public partial class SnapshotInterpolator : Node
 
     public override void _Process(double delta)
     {
-        /*TODO: While _currentTick isn't updated, increase the _currentTick by delta in ticks in order to
-        smooth out the interpolation, I still believe that it is not as smooth as it was when using
-        Time.GetTicksMsec() so this is still pending, but is good enough for now.*/
         _currentTick += delta / PhysicsUtils.FrameTime;
+        InterpolateStates(_currentTick);
         DisplayDebugInformation();
     }
 
@@ -34,10 +33,15 @@ public partial class SnapshotInterpolator : Node
         _currentTick = currentTick;
     }
 
-    public void InterpolateStates(Node playersArray)
+    public void SetEntityArray(Node entities)
+    {
+        this._entityArray = entities;
+    }
+
+    private void InterpolateStates(double tickToProcess)
     {
         // Point in time to render (in the past)
-        double renderTick = _currentTick - _bufferTime;
+        double renderTick = tickToProcess - _bufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {
@@ -59,15 +63,17 @@ public partial class SnapshotInterpolator : Node
 
             for (int i = 0; i < futureStates.Length; i++)
             {
-                //TODO: check if the Entity is available in both states
-                NetMessage.EntityState futureState = nextSnapshot.States[i];
-                NetMessage.EntityState pastState = prevSnapshot.States[i];
-
-                var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
-
-                if (dummy != null && dummy.IsMultiplayerAuthority() == false)
+                if (nextSnapshot.States.Length > i && prevSnapshot.States.Length > i)
                 {
-                    dummy.Position = pastState.Position.Lerp(futureState.Position, (float)_interpolationFactor);
+                    NetMessage.EntityState futureState = nextSnapshot.States[i];
+                    NetMessage.EntityState pastState = prevSnapshot.States[i];
+
+                    var dummy = _entityArray.GetNodeOrNull<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
+
+                    if (dummy != null && dummy.IsMultiplayerAuthority() == false)
+                    {
+                        dummy.Position = pastState.Position.Lerp(futureState.Position, (float)_interpolationFactor);
+                    }
                 }
             }
         }
