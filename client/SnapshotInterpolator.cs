@@ -1,60 +1,73 @@
 using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
-using System;
 
 /*
     Receives and presents the Player the snapshots emmited by the server.
 */
 public partial class SnapshotInterpolator : Node
 {
-    public int BufferTime { get; set; } // Buffer size in milliseconds
+    [Export] private int _minBufferTime = 3;
 
     private readonly List<NetMessage.GameSnapshot> _snapshotBuffer = new();
     private const int RecentPast = 0, NextFuture = 1;
-    private float _interpolationFactor = 0;
+    private double _interpolationFactor = 0;
+    private int _bufferTime = 0;
+    private double _currentTick = 0;
 
     public override void _Ready()
     {
-        BufferTime = 100; //TODO: magic number
+        _bufferTime = 6; //TODO: magic number
     }
 
     public override void _Process(double delta)
     {
+        /*TODO: While _currentTick isn't updated, increase the _currentTick by delta in ticks in order to
+        smooth out the interpolation, I still believe that it is not as smooth as it was when using
+        Time.GetTicksMsec() so this is still pending, but is good enough for now.*/
+        _currentTick += delta / PhysicsUtils.FrameTime;
         DisplayDebugInformation();
     }
 
-    public void InterpolateStates(Node playersArray, int currentClock)
+    public void ProcessTick(int currentTick)
+    {
+        _currentTick = currentTick;
+    }
+
+    public void InterpolateStates(Node playersArray)
     {
         // Point in time to render (in the past)
-        double renderTime = currentClock - BufferTime;
+        double renderTick = _currentTick - _bufferTime;
 
         if (_snapshotBuffer.Count > 1)
         {
             // Clear any unwanted (past) states
-            while (_snapshotBuffer.Count > 2 && renderTime > _snapshotBuffer[1].Time)
+            while (_snapshotBuffer.Count > 2 && renderTick > _snapshotBuffer[1].Tick)
             {
                 _snapshotBuffer.RemoveAt(0);
             }
 
-            double timeDiffBetweenStates = _snapshotBuffer[NextFuture].Time - _snapshotBuffer[RecentPast].Time;
-            double renderDiff = renderTime - _snapshotBuffer[RecentPast].Time;
+            var nextSnapshot = _snapshotBuffer[NextFuture];
+            var prevSnapshot = _snapshotBuffer[RecentPast];
 
-            _interpolationFactor = (float)(renderDiff / timeDiffBetweenStates);
+            int timeDiffBetweenStates = nextSnapshot.Tick - prevSnapshot.Tick;
+            double renderDiff = renderTick - prevSnapshot.Tick;
 
-            var futureStates = _snapshotBuffer[NextFuture].States;
+            _interpolationFactor = renderDiff / timeDiffBetweenStates;
+
+            var futureStates = nextSnapshot.States;
 
             for (int i = 0; i < futureStates.Length; i++)
             {
-                //TODO: check if the player is aviable in both states
-                NetMessage.UserState futureState = _snapshotBuffer[NextFuture].States[i];
-                NetMessage.UserState pastState = _snapshotBuffer[RecentPast].States[i];
+                //TODO: check if the Entity is available in both states
+                NetMessage.EntityState futureState = nextSnapshot.States[i];
+                NetMessage.EntityState pastState = prevSnapshot.States[i];
 
                 var dummy = playersArray.GetNode<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
 
-                if (dummy.IsMultiplayerAuthority() == false)
+                if (dummy != null && dummy.IsMultiplayerAuthority() == false)
                 {
-                    dummy.Position = pastState.Position.Lerp(futureState.Position, _interpolationFactor);
+                    dummy.Position = pastState.Position.Lerp(futureState.Position, (float)_interpolationFactor);
                 }
             }
         }
@@ -62,18 +75,27 @@ public partial class SnapshotInterpolator : Node
 
     public void PushState(NetMessage.GameSnapshot snapshot)
     {
-        if (_snapshotBuffer.Count <= 0 || snapshot.Time > _snapshotBuffer[_snapshotBuffer.Count - 1].Time)
+        if (_snapshotBuffer.Count <= 0 || snapshot.Tick > _snapshotBuffer[^1].Tick)
         {
             _snapshotBuffer.Add(snapshot);
         }
     }
 
+    public void SetBufferTime(int bufferTime)
+    {
+        _bufferTime = bufferTime + _minBufferTime;
+    }
+
     private void DisplayDebugInformation()
     {
         ImGui.Begin("Snapshot Interpolator Information");
-        ImGui.Text($"Interp. Factor {_interpolationFactor}");
+
+        if (_interpolationFactor > 1) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF0000FF);
+        ImGui.Text($"Interp. Factor {_interpolationFactor:0.00}");
+        ImGui.PopStyleColor();
+
         ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
-        ImGui.Text($"Buffer Time {BufferTime}ms");
+        ImGui.Text($"Buffer Time {_bufferTime} ticks");
         ImGui.End();
     }
 

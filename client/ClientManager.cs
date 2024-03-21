@@ -1,6 +1,6 @@
 using Godot;
-using System;
-using MessagePack;
+using ImGuiNET;
+using MemoryPack;
 
 /*
 	Network manager for the client, handles server connection and routes packages.
@@ -9,12 +9,10 @@ public partial class ClientManager : Node
 {
 	[Export] private string _address = "localhost";
 	[Export] private int _port = 9999;
-	[Export] private int _lerpBufferWindow = 50;
-	[Export] private int _maxLerp = 250;
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
-	private NetworkClock _netClock;
+	private ClientClock _clock;
 	private Node _entityArray;
 
 	public override void _EnterTree()
@@ -25,8 +23,8 @@ public partial class ClientManager : Node
 		_entityArray = GetNode("/root/Main/EntityArray");
 
 		// Stores NetworkClock node instance
-		_netClock = GetNode<NetworkClock>("NetworkClock");
-		_netClock.LatencyCalculated += OnLatencyCalculated;
+		_clock = GetNode<ClientClock>("ClientClock");
+		_clock.LatencyCalculated += OnLatencyCalculated;
 
 		// Stores SnapshotInterpolator node instance
 		_snapshotInterpolator = GetNode<SnapshotInterpolator>("SnapshotInterpolator");
@@ -34,12 +32,22 @@ public partial class ClientManager : Node
 
 	public override void _Process(double delta)
 	{
-		_snapshotInterpolator.InterpolateStates(_entityArray, NetworkClock.Clock);
+		_snapshotInterpolator.InterpolateStates(_entityArray);
+		DisplayDebugInformation();
+	}
+
+	public override void _PhysicsProcess(double delta)
+	{
+		_clock.ProcessTick();
+		int currentTick = _clock.GetCurrentTick();
+		int currentRemoteTick = _clock.GetCurrentRemoteTick();
+		CustomSpawner.LocalPlayer.ProcessTick(currentRemoteTick);
+		_snapshotInterpolator.ProcessTick(currentTick);
 	}
 
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 
 		if (command is NetMessage.GameSnapshot snapshot)
 		{
@@ -51,18 +59,18 @@ public partial class ClientManager : Node
 	{
 		_snapshotInterpolator.PushState(snapshot);
 
-		foreach (NetMessage.UserState state in snapshot.States)
+		foreach (NetMessage.EntityState state in snapshot.States)
 		{
 			if (state.Id == Multiplayer.GetUniqueId())
 			{
-				CustomSpawner.LocalPlayer.ReceiveState(state);
+				CustomSpawner.LocalPlayer.ReceiveState(state, snapshot.Tick);
 			}
 		}
 	}
 
-	private void OnLatencyCalculated(int latencyAverage)
+	private void OnLatencyCalculated(int latencyAverageTicks, int jitterAverageTicks)
 	{
-		_snapshotInterpolator.BufferTime = Mathf.Clamp(latencyAverage + _lerpBufferWindow, 0, _maxLerp);
+		_snapshotInterpolator.SetBufferTime(latencyAverageTicks + jitterAverageTicks);
 	}
 
 	private void ConnectClient()
@@ -74,5 +82,13 @@ public partial class ClientManager : Node
 		_multiplayer.MultiplayerPeer = peer;
 		GetTree().SetMultiplayer(_multiplayer);
 		GD.Print("Client connected to ", _address, ":", _port);
+	}
+
+	private void DisplayDebugInformation()
+	{
+		ImGui.Begin("Client Information");
+		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
+		ImGui.End();
 	}
 }

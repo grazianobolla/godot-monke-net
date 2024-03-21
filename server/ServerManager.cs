@@ -1,8 +1,7 @@
 using Godot;
-using System;
-using MessagePack;
-using System.Linq;
 using ImGuiNET;
+using MemoryPack;
+using System.Linq;
 
 //
 public partial class ServerManager : Node
@@ -13,6 +12,7 @@ public partial class ServerManager : Node
 	private Godot.Collections.Array<Godot.Node> entityArray;
 	private ServerClock _serverClock;
 
+	private int _currentTick = 0;
 	public override void _EnterTree()
 	{
 		StartListening();
@@ -27,31 +27,27 @@ public partial class ServerManager : Node
 
 	public override void _PhysicsProcess(double delta)
 	{
-		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
-		ProcessPendingPackets();
+		_currentTick = _serverClock.ProcessTick();
+
+		foreach (var player in entityArray.OfType<ServerPlayer>())
+		{
+			player.ProcessPendingCommands(_currentTick);
+		}
+
 	}
 
 	private void NetworkProcess(double delta)
 	{
-		BroadcastSnapshot();
-	}
-
-	// Process corresponding packets for this tick
-	private void ProcessPendingPackets()
-	{
-		foreach (ServerPlayer player in entityArray.Cast<ServerPlayer>())
-		{
-			player.ProcessPendingCommands();
-		}
+		BroadcastSnapshot(_currentTick);
 	}
 
 	// Pack and send GameSnapshot with all entities and their information
-	private void BroadcastSnapshot()
+	private void BroadcastSnapshot(int currentTick)
 	{
 		var snapshot = new NetMessage.GameSnapshot
 		{
-			Time = _serverClock.GetCurrentTick(),
-			States = new NetMessage.UserState[entityArray.Count]
+			Tick = currentTick,
+			States = new NetMessage.EntityState[entityArray.Count]
 		};
 
 		for (int i = 0; i < entityArray.Count; i++)
@@ -60,7 +56,7 @@ public partial class ServerManager : Node
 			snapshot.States[i] = player.GetCurrentState();
 		}
 
-		byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(snapshot);
+		byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(snapshot);
 
 		_multiplayer.SendBytes(data, 0,
 			MultiplayerPeer.TransferModeEnum.Unreliable, 0);
@@ -69,10 +65,10 @@ public partial class ServerManager : Node
 	// Route received Input package to the correspondant Network ID
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 		if (command is NetMessage.UserCommand userCommand)
 		{
-			ServerPlayer player = GetNode($"/root/Main/EntityArray/{userCommand.Id}") as ServerPlayer; //FIXME: do not use GetNode here
+			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here
 			player.PushCommand(userCommand);
 		}
 
@@ -81,12 +77,15 @@ public partial class ServerManager : Node
 	private void OnPeerConnected(long id)
 	{
 		Node playerInstance = GetNode<MultiplayerSpawner>("/root/Main/MultiplayerSpawner").Spawn(id);
+		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 		GD.Print($"Peer {id} connected");
 	}
 
 	private void OnPeerDisconnected(long id)
 	{
-		GetNode($"/root/Main/EntityArray/{id}").QueueFree();
+		var player = GetNode($"/root/Main/EntityArray/{id}");
+		entityArray.Remove(player);
+		player.QueueFree();
 		GD.Print($"Peer {id} disconnected");
 	}
 
@@ -108,9 +107,9 @@ public partial class ServerManager : Node
 
 	private void DisplayDebugInformation()
 	{
-		ImGui.Begin($"Server Information");
-		ImGui.Text($"Current Tickrate {_serverClock.GetTickRate()}hz");
-		ImGui.Text($"Clock {_serverClock.GetCurrentTick()} ticks");
+		ImGui.Begin("Server Information");
+		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+		ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
 		ImGui.End();
 	}
 }

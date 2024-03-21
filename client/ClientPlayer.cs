@@ -1,32 +1,28 @@
 using Godot;
 using System.Collections.Generic;
-using MessagePack;
 using NetMessage;
+using System;
 using ImGuiNET;
+using MemoryPack;
+using System.Linq;
 
 /*
     Main player script, send movement packets to the server, does CSP, and reconciliation. 
 */
 public partial class ClientPlayer : CharacterBody3D
 {
-    private readonly List<NetMessage.UserInput> _userInputs = new();
+    private readonly List<LocalInput> _userInputs = new();
 
-    private int _seqStamp = 0;
     private int _networkId = -1;
     private int _lastStampReceived = 0;
+    private int _misspredictionCounter = 0;
+
+    private byte _automoveInput = 0b0000_1000;
+    private bool _autoMoveEnabled = false;
 
     public override void _Ready()
     {
         _networkId = Multiplayer.GetUniqueId();
-    }
-
-    public override void _PhysicsProcess(double delta)
-    {
-        var userInput = GenerateUserInput();
-        _userInputs.Add(userInput);
-        SendInputs();
-        MoveLocally(userInput);
-        _seqStamp++;
     }
 
     public override void _Process(double delta)
@@ -34,29 +30,41 @@ public partial class ClientPlayer : CharacterBody3D
         DisplayDebugInformation();
     }
 
+    public void ProcessTick(int currentTick)
+    {
+        var userInput = GenerateUserInput(currentTick);
+        if (_autoMoveEnabled)
+        {
+            SolveAutoMove();
+            userInput.Input = _automoveInput;
+        }
+        _userInputs.Add(userInput);
+        SendInputs(currentTick);
+        AdvancePhysics(userInput.Input);
+    }
+
     // Applies inputs ahead of the server (Prediction)
-    private void MoveLocally(NetMessage.UserInput userInput)
+    private void AdvancePhysics(byte input)
     {
         this.Velocity = PlayerMovement.ComputeMotion(
             this.GetRid(),
             this.GlobalTransform,
             this.Velocity,
-            PlayerMovement.InputToDirection(userInput.Keys));
+            PlayerMovement.InputToDirection(input));
 
-        Position += this.Velocity * (float)PlayerMovement.FRAME_DELTA;
+        Position += this.Velocity * PlayerMovement.FrameDelta;
     }
 
     // Called when a UserState is received from the server
     // Here we validate that our prediction was correct
-    public void ReceiveState(NetMessage.UserState state)
+    public void ReceiveState(NetMessage.EntityState state, int forTick)
     {
         // Ignore any stamp that should have been received in the past
-        if (state.Stamp > _lastStampReceived)
-            _lastStampReceived = state.Stamp;
+        if (forTick > _lastStampReceived)
+            _lastStampReceived = forTick;
         else return;
 
-        // GD.Print("Client consumed ", state.Stamp);
-        _userInputs.RemoveAll(input => input.Stamp <= state.Stamp); // Delete all stored inputs up to that point, we don't need them anymore
+        _userInputs.RemoveAll(input => input.Tick <= forTick); // Delete all stored inputs up to that point, we don't need them anymore
 
         // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
         Transform3D expectedTransform = this.GlobalTransform;
@@ -70,9 +78,9 @@ public partial class ClientPlayer : CharacterBody3D
                 this.GetRid(),
                 expectedTransform,
                 expectedVelocity,
-                PlayerMovement.InputToDirection(userInput.Keys));
+                PlayerMovement.InputToDirection(userInput.Input));
 
-            expectedTransform.Origin += expectedVelocity * (float)PlayerMovement.FRAME_DELTA;
+            expectedTransform.Origin += expectedVelocity * PlayerMovement.FrameDelta;
         }
 
         var deviation = expectedTransform.Origin - Position; // expectedTransform is where we should be, Position is our current position
@@ -82,30 +90,43 @@ public partial class ClientPlayer : CharacterBody3D
         {
             this.GlobalTransform = expectedTransform;
             this.Velocity = expectedVelocity;
+            _misspredictionCounter++;
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviation.Length()}) (Stamp {forTick})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
+        }
+    }
 
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch (Stamp {state.Stamp})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
+    // For Debug Only
+    private void SolveAutoMove()
+    {
+        if (this.Position.X > 5 && _automoveInput == 0b0000_1000)
+        {
+            _automoveInput = 0b0000_0100;
+        }
+        else if (this.Position.X < -5 && _automoveInput == 0b0000_0100)
+        {
+            _automoveInput = 0b0000_1000;
         }
     }
 
     // Sends all non-processed inputs to the server
-    private void SendInputs()
+    private void SendInputs(int currentTick)
     {
         var userCmd = new NetMessage.UserCommand
         {
-            Id = Multiplayer.GetUniqueId(),
-            Commands = _userInputs.ToArray()
+            Tick = currentTick,
+            Inputs = _userInputs.Select(i => i.Input).ToArray()
         };
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
-            byte[] data = MessagePackSerializer.Serialize<NetMessage.ICommand>(userCmd);
+            byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
 
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
                 MultiplayerPeer.TransferModeEnum.Unreliable, 0);
         }
     }
 
-    private NetMessage.UserInput GenerateUserInput()
+    private static LocalInput GenerateUserInput(int tick)
     {
         byte keys = 0;
 
@@ -116,10 +137,10 @@ public partial class ClientPlayer : CharacterBody3D
         if (Input.IsActionPressed("space")) keys |= (byte)InputFlags.Space;
         if (Input.IsActionPressed("shift")) keys |= (byte)InputFlags.Shift;
 
-        var userInput = new NetMessage.UserInput
+        var userInput = new LocalInput
         {
-            Stamp = _seqStamp,
-            Keys = keys
+            Tick = tick,
+            Input = keys
         };
 
         return userInput;
@@ -131,6 +152,15 @@ public partial class ClientPlayer : CharacterBody3D
         ImGui.Text($"Network Id {_networkId}");
         ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
         ImGui.Text($"Redundant Inputs {_userInputs.Count}");
+        ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
+        ImGui.Text($"Misspredictions {_misspredictionCounter}");
+        ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
         ImGui.End();
+    }
+
+    private struct LocalInput
+    {
+        public int Tick;
+        public byte Input;
     }
 }

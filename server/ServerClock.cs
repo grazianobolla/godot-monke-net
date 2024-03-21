@@ -1,6 +1,7 @@
-using System.Dynamic;
 using Godot;
-using MessagePack;
+using ImGuiNET;
+using MemoryPack;
+using System;
 
 public partial class ServerClock : Node
 {
@@ -11,7 +12,7 @@ public partial class ServerClock : Node
 
 	[Export] private int _netTickrate = 30;
 	private double _netTickCounter = 0;
-
+	private int _currentTick = 0;
 	public override void _Ready()
 	{
 		_multiplayer = GetTree().GetMultiplayer() as SceneMultiplayer;
@@ -19,6 +20,23 @@ public partial class ServerClock : Node
 	}
 
 	public override void _Process(double delta)
+	{
+		DisplayDebugInformation();
+		SolveSendNetworkTickEvent(delta);
+	}
+
+	public int ProcessTick()
+	{
+		_currentTick += 1;
+		return _currentTick;
+	}
+
+	public int GetNetworkTickRate()
+	{
+		return _netTickrate;
+	}
+
+	private void SolveSendNetworkTickEvent(double delta)
 	{
 		_netTickCounter += delta;
 		if (_netTickCounter >= (1.0 / _netTickrate))
@@ -31,22 +49,20 @@ public partial class ServerClock : Node
 	// When we receive a sync packet from a Client, we return it with the current Clock data
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MessagePackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 
 		if (command is NetMessage.Sync sync)
 		{
-			sync.ServerTime = GetCurrentTick();
-			_multiplayer.SendBytes(MessagePackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+			sync.ServerTime = _currentTick;
+			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
 	}
 
-	public int GetCurrentTick()
+	private void DisplayDebugInformation()
 	{
-		return (int)Time.GetTicksMsec();
-	}
-
-	public int GetTickRate()
-	{
-		return _netTickrate;
+		ImGui.Begin($"Clock Information");
+		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
+		ImGui.Text($"Current Tick {_currentTick}");
+		ImGui.End();
 	}
 }

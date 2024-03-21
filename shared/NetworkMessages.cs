@@ -1,60 +1,54 @@
 using Godot;
-using MessagePack;
+using MemoryPack;
 
 namespace NetMessage
 {
-    [MessagePack.Union(0, typeof(UserCommand))]
-    [MessagePack.Union(1, typeof(GameSnapshot))]
-    [MessagePack.Union(2, typeof(Sync))]
-    public interface ICommand { }
+    [MemoryPackable]
+    [MemoryPackUnion(0, typeof(UserCommand))]
+    [MemoryPackUnion(1, typeof(GameSnapshot))]
+    [MemoryPackUnion(2, typeof(Sync))]
+    public partial interface ICommand { }
 
     // Used to calculate latency
-    [MessagePackObject]
-    public partial struct Sync : ICommand
+    [MemoryPackable]
+    public partial class Sync : ICommand
     {
-        [Key(0)] public int ClientTime;
-        [Key(1)] public int ServerTime;
+        public int ClientTime;
+        public int ServerTime;
     }
 
     // Encapsulates user input and other client actions
-    [MessagePackObject]
-    public partial struct UserCommand : ICommand
+    [MemoryPackable]
+    public partial class UserCommand : ICommand
     {
-        [Key(0)] public int Id; //TODO: is not necessary to send the ID
-        [Key(1)] public UserInput[] Commands;
-    }
-
-    [MessagePackObject]
-    public partial struct UserInput
-    {
-        [Key(0)] public int Stamp; //TODO: is not necessary to send the stamp in every input
-        [Key(1)] public byte Keys;
+        public int Tick;    // This is the Tick stamp for the latest generated input (Inputs[Inputs.Length])
+                            // all other Ticks are (Tick - index)
+        public byte[] Inputs;
     }
 
     // Game state for a given point in time
-    [MessagePackObject]
-    public partial struct GameSnapshot : ICommand
+    [MemoryPackable]
+    public partial class GameSnapshot : ICommand
     {
-        [Key(0)] public UserState[] States;
-        [Key(1)] public int Time;
+        public EntityState[] States;
+        public int Tick;
     }
 
     // Encapsulates current state for a player (gets sent with gameSnapshot)
-    [MessagePackObject]
-    public partial struct UserState
+    [MemoryPackable]
+    public partial class EntityState
     {
-        [Key(0)] public int Id; // Player ID
-        [Key(1)] public float[] PosArray; // Player position
-        [Key(2)] public float[] VelArray; // Player velocity
-        [Key(3)] public int Stamp; // Last processed stamp
+        public int Id; // Entity Id
+        public float[] PosArray; // Entity Position
+        public float[] VelArray; // Entity velocity
 
-        [IgnoreMember]
+        [MemoryPackIgnore]
         public Vector3 Position
         {
             get { return new Vector3(PosArray[0], PosArray[1], PosArray[2]); }
         }
 
-        [IgnoreMember]
+        [MemoryPackIgnore]
         public Vector3 Velocity
         {
             get { return new Vector3(VelArray[0], VelArray[1], VelArray[2]); }
