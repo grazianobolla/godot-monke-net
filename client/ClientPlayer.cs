@@ -114,7 +114,7 @@ public partial class ClientPlayer : CharacterBody3D
         var userCmd = new NetMessage.UserCommand
         {
             Tick = currentTick,
-            Commands = _userInputs.Select(i => i.Input).ToArray()
+            Inputs = _userInputs.Select(i => i.Input).ToArray()
         };
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)

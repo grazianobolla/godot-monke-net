@@ -46,9 +46,9 @@ public partial class ServerPlayer : CharacterBody3D
 
 	public void PushCommand(NetMessage.UserCommand command)
 	{
-		int offset = command.Commands.Length - 1; // 5
+		int offset = command.Inputs.Length - 1;
 
-		foreach (var input in command.Commands)
+		foreach (var input in command.Inputs)
 		{
 			int tick = command.Tick - offset;
 

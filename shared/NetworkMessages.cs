@@ -21,8 +21,8 @@ namespace NetMessage
     [MemoryPackable]
     public partial class UserCommand : ICommand
     {
-        public int Tick; //TODO: is not necessary to send the stamp in every input
-        public byte[] Commands;
+        public int Tick; // This is the Tick stamp for Inputs[Inputs.Length]
+        public byte[] Inputs;
     }
 
     // Game state for a given point in time
