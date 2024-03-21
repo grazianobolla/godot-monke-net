@@ -1,15 +1,17 @@
 using Godot;
 using System.Collections.Generic;
 using NetMessage;
+using System;
 using ImGuiNET;
 using MemoryPack;
+using System.Linq;
 
 /*
     Main player script, send movement packets to the server, does CSP, and reconciliation. 
 */
 public partial class ClientPlayer : CharacterBody3D
 {
-    private readonly List<NetMessage.UserInput> _userInputs = new();
+    private readonly List<LocalInput> _userInputs = new();
 
     private int _networkId = -1;
     private int _lastStampReceived = 0;
@@ -34,21 +36,21 @@ public partial class ClientPlayer : CharacterBody3D
         if (_autoMoveEnabled)
         {
             SolveAutoMove();
-            userInput.Keys = _automoveInput;
+            userInput.Input = _automoveInput;
         }
         _userInputs.Add(userInput);
-        SendInputs();
-        AdvancePhysics(userInput);
+        SendInputs(currentTick);
+        AdvancePhysics(userInput.Input);
     }
 
     // Applies inputs ahead of the server (Prediction)
-    private void AdvancePhysics(NetMessage.UserInput userInput)
+    private void AdvancePhysics(byte input)
     {
         this.Velocity = PlayerMovement.ComputeMotion(
             this.GetRid(),
             this.GlobalTransform,
             this.Velocity,
-            PlayerMovement.InputToDirection(userInput.Keys));
+            PlayerMovement.InputToDirection(input));
 
         Position += this.Velocity * PlayerMovement.FrameDelta;
     }
@@ -76,7 +78,7 @@ public partial class ClientPlayer : CharacterBody3D
                 this.GetRid(),
                 expectedTransform,
                 expectedVelocity,
-                PlayerMovement.InputToDirection(userInput.Keys));
+                PlayerMovement.InputToDirection(userInput.Input));
 
             expectedTransform.Origin += expectedVelocity * PlayerMovement.FrameDelta;
         }
@@ -107,11 +109,12 @@ public partial class ClientPlayer : CharacterBody3D
     }
 
     // Sends all non-processed inputs to the server
-    private void SendInputs()
+    private void SendInputs(int currentTick)
     {
         var userCmd = new NetMessage.UserCommand
         {
-            Commands = _userInputs.ToArray()
+            Tick = currentTick,
+            Commands = _userInputs.Select(i => i.Input).ToArray()
         };
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
@@ -123,7 +126,7 @@ public partial class ClientPlayer : CharacterBody3D
         }
     }
 
-    private NetMessage.UserInput GenerateUserInput(int tick)
+    private static LocalInput GenerateUserInput(int tick)
     {
         byte keys = 0;
 
@@ -134,10 +137,10 @@ public partial class ClientPlayer : CharacterBody3D
         if (Input.IsActionPressed("space")) keys |= (byte)InputFlags.Space;
         if (Input.IsActionPressed("shift")) keys |= (byte)InputFlags.Shift;
 
-        var userInput = new NetMessage.UserInput
+        var userInput = new LocalInput
         {
             Tick = tick,
-            Keys = keys
+            Input = keys
         };
 
         return userInput;
@@ -153,5 +156,11 @@ public partial class ClientPlayer : CharacterBody3D
         ImGui.Text($"Misspredictions {_misspredictionCounter}");
         ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
         ImGui.End();
+    }
+
+    private struct LocalInput
+    {
+        public int Tick;
+        public byte Input;
     }
 }

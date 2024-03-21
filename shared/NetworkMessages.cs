@@ -21,14 +21,8 @@ namespace NetMessage
     [MemoryPackable]
     public partial class UserCommand : ICommand
     {
-        public UserInput[] Commands;
-    }
-
-    [MemoryPackable]
-    public partial class UserInput
-    {
         public int Tick; //TODO: is not necessary to send the stamp in every input
-        public byte Keys;
+        public byte[] Commands;
     }
 
     // Game state for a given point in time
