@@ -21,7 +21,8 @@ namespace NetMessage
     [MemoryPackable]
     public partial class UserCommand : ICommand
     {
-        public int Tick; // This is the Tick stamp for Inputs[Inputs.Length]
+        public int Tick;    // This is the Tick stamp for the latest generated input (Inputs[Inputs.Length])
+                            // all other Ticks are (Tick - index)
         public byte[] Inputs;
     }
 
