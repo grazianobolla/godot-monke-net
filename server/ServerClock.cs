@@ -1,7 +1,7 @@
 using Godot;
 using ImGuiNET;
 using MemoryPack;
-using System;
+using NetMessage;
 
 public partial class ServerClock : Node
 {
@@ -21,7 +21,6 @@ public partial class ServerClock : Node
 
 	public override void _Process(double delta)
 	{
-		DisplayDebugInformation();
 		SolveSendNetworkTickEvent(delta);
 	}
 
@@ -49,20 +48,21 @@ public partial class ServerClock : Node
 	// When we receive a sync packet from a Client, we return it with the current Clock data
 	private void OnPacketReceived(long id, byte[] data)
 	{
-		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
+		var command = MemoryPackSerializer.Deserialize<ICommand>(data);
 
-		if (command is NetMessage.Sync sync)
+		if (command is Sync sync)
 		{
 			sync.ServerTime = _currentTick;
-			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
 		}
 	}
 
-	private void DisplayDebugInformation()
+	public void DrawGui()
 	{
-		ImGui.Begin($"Clock Information");
-		ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
-		ImGui.Text($"Current Tick {_currentTick}");
-		ImGui.End();
+		if (ImGui.CollapsingHeader("Clock Information"))
+		{
+			ImGui.Text($"Network Tickrate {GetNetworkTickRate()}hz");
+			ImGui.Text($"Current Tick {_currentTick}");
+		}
 	}
 }

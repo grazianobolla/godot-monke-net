@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Godot;
+using ImGuiNET;
+using Vector2 = System.Numerics.Vector2;
 
 public partial class CustomSpawner : MultiplayerSpawner
 {
@@ -16,6 +18,12 @@ public partial class CustomSpawner : MultiplayerSpawner
         this.SpawnFunction = customSpawnFunctionCallable;
 
         this.SetMultiplayerAuthority(Multiplayer.GetUniqueId());
+    }
+
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        DrawGui();
     }
 
     public static Node3D GetSpawnedNode(int id)
@@ -63,5 +71,33 @@ public partial class CustomSpawner : MultiplayerSpawner
             _spawnedNodes.Add(spawnedPlayerID, player);
             return player;
         }
+    }
+
+    private static void DrawGui()
+    {
+        if (_spawnedNodes.Count == 0)
+            return;
+        
+        var io = ImGui.GetIO();
+        ImGui.SetNextWindowPos(io.DisplaySize with { Y= 0}, ImGuiCond.Always, new Vector2(1, 0));
+        if (ImGui.Begin("Player Information",
+                ImGuiWindowFlags.NoMove
+                | ImGuiWindowFlags.NoResize
+                | ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            foreach (var nodesValue in _spawnedNodes.Values)
+            {
+                switch (nodesValue)
+                {
+                    case ServerPlayer serverPlayer:
+                        serverPlayer.DrawGui();
+                        break;
+                    case ClientPlayer clientPlayer:
+                        clientPlayer.DrawGui();
+                        break;
+                }
+            }
+        }
+        ImGui.End();
     }
 }

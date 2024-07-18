@@ -16,11 +16,6 @@ public partial class ServerPlayer : CharacterBody3D
 	private LocalInput? _lastInputProcessed = null;
 #nullable disable
 
-	public override void _Process(double delta)
-	{
-		DisplayDebugInformation();
-	}
-
 	public void ProcessPendingCommands(int currentTick)
 	{
 		if (TryGetInput(currentTick, out var input))
@@ -101,12 +96,13 @@ public partial class ServerPlayer : CharacterBody3D
 		};
 	}
 
-	private void DisplayDebugInformation()
+	public void DrawGui()
 	{
-		ImGui.Begin($"Server Player {MultiplayerID}");
-		ImGui.Text($"Instant Latency {InstantLatency}");
-		ImGui.Text($"Input Queue Count {_inputQueueSize}");
-		ImGui.Text($"Missed Frames {_skippedTicks}");
-		ImGui.End();
+		if (ImGui.CollapsingHeader($"Server Player: {MultiplayerID}"))
+		{
+			ImGui.Text($"Instant Latency {InstantLatency}");
+			ImGui.Text($"Input Queue Count {_inputQueueSize}");
+			ImGui.Text($"Missed Frames {_skippedTicks}");
+		}
 	}
 }

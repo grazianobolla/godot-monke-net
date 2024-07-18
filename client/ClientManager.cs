@@ -1,6 +1,7 @@
 using Godot;
 using ImGuiNET;
 using MemoryPack;
+using Vector2 = System.Numerics.Vector2;
 
 /*
 	Network manager for the client, handles server connection and routes packages.
@@ -13,12 +14,15 @@ public partial class ClientManager : Node
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
 	private ClientClock _clock;
+	private NetworkDebug _networkDebug;
 	private Node _entityArray;
 
 	public override void _EnterTree()
 	{
 		// Connects to the server
 		ConnectClient();
+
+		_networkDebug = GetNode<NetworkDebug>("Debug");
 
 		_entityArray = GetNode("/root/Main/EntityArray");
 
@@ -33,7 +37,7 @@ public partial class ClientManager : Node
 	public override void _Process(double delta)
 	{
 		_snapshotInterpolator.InterpolateStates(_entityArray);
-		DisplayDebugInformation();
+		DrawGui();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -84,11 +88,20 @@ public partial class ClientManager : Node
 		GD.Print("Client connected to ", _address, ":", _port);
 	}
 
-	private void DisplayDebugInformation()
+	private void DrawGui()
 	{
-		ImGui.Begin("Client Information");
-		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
-		ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
+		ImGui.SetNextWindowPos(Vector2.Zero);
+		if (ImGui.Begin("Client Information", 
+			    ImGuiWindowFlags.NoMove
+			    | ImGuiWindowFlags.NoResize
+			    | ImGuiWindowFlags.AlwaysAutoResize))
+		{
+			ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+			ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
+			_clock.DrawGui();
+			_networkDebug.DrawGui();
+			_snapshotInterpolator.DrawGui();
+		}
 		ImGui.End();
 	}
 }

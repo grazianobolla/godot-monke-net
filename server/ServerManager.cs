@@ -11,18 +11,20 @@ public partial class ServerManager : Node
 	private SceneMultiplayer _multiplayer = new();
 	private Godot.Collections.Array<Godot.Node> entityArray = new();
 	private ServerClock _serverClock;
+	private NetworkDebug _networkDebug;
 
 	private int _currentTick = 0;
 	public override void _EnterTree()
 	{
 		StartListening();
+		_networkDebug = GetNode<NetworkDebug>("Debug");
 		_serverClock = GetNode<ServerClock>("ServerClock");
 		_serverClock.NetworkProcessTick += NetworkProcess;
 	}
 
 	public override void _Process(double delta)
 	{
-		DisplayDebugInformation();
+		DrawGui();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -105,11 +107,19 @@ public partial class ServerManager : Node
 		GD.Print("Server listening on ", _port);
 	}
 
-	private void DisplayDebugInformation()
+	private void DrawGui()
 	{
-		ImGui.Begin("Server Information");
-		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
-		ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
+		ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
+		if(ImGui.Begin("Server Information", 
+			ImGuiWindowFlags.NoMove
+			| ImGuiWindowFlags.NoResize
+			| ImGuiWindowFlags.AlwaysAutoResize))
+		{
+			ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+			ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
+			_serverClock.DrawGui();
+			_networkDebug.DrawGui();
+		}
 		ImGui.End();
 	}
 }

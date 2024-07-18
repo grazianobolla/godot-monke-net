@@ -26,7 +26,6 @@ public partial class SnapshotInterpolator : Node
         smooth out the interpolation, I still believe that it is not as smooth as it was when using
         Time.GetTicksMsec() so this is still pending, but is good enough for now.*/
         _currentTick += delta / PhysicsUtils.FrameTime;
-        DisplayDebugInformation();
     }
 
     public void ProcessTick(int currentTick)
@@ -61,7 +60,7 @@ public partial class SnapshotInterpolator : Node
             {
                 //TODO: check if the Entity is available in both states
                 NetMessage.EntityState futureState = nextSnapshot.States[i];
-                NetMessage.EntityState pastState = prevSnapshot.States[i];
+                NetMessage.EntityState pastState = prevSnapshot.States.Length < i ? prevSnapshot.States[i] : futureState;
 
                 var dummy = CustomSpawner.GetSpawnedNode(futureState.Id);
 
@@ -86,17 +85,16 @@ public partial class SnapshotInterpolator : Node
         _bufferTime = bufferTime + _minBufferTime;
     }
 
-    private void DisplayDebugInformation()
+    public void DrawGui()
     {
-        ImGui.Begin("Snapshot Interpolator Information");
+        if (ImGui.CollapsingHeader("Snapshot Interpolator Information"))
+        {
+            if (_interpolationFactor > 1) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF0000FF);
+            ImGui.Text($"Interp. Factor {_interpolationFactor:0.00}");
+            ImGui.PopStyleColor();
 
-        if (_interpolationFactor > 1) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF0000FF);
-        ImGui.Text($"Interp. Factor {_interpolationFactor:0.00}");
-        ImGui.PopStyleColor();
-
-        ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
-        ImGui.Text($"Buffer Time {_bufferTime} ticks");
-        ImGui.End();
+            ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
+            ImGui.Text($"Buffer Time {_bufferTime} ticks");
+        }
     }
-
 }

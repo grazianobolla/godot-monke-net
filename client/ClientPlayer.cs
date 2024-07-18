@@ -4,6 +4,7 @@ using Godot;
 using ImGuiNET;
 using MemoryPack;
 using NetMessage;
+using Vector2 = System.Numerics.Vector2;
 
 /*
     Main player script, send movement packets to the server, does CSP, and reconciliation.
@@ -22,11 +23,6 @@ public partial class ClientPlayer : CharacterBody3D
     public override void _Ready()
     {
         _networkId = Multiplayer.GetUniqueId();
-    }
-
-    public override void _Process(double delta)
-    {
-        DisplayDebugInformation();
     }
 
     public void ProcessTick(int currentTick)
@@ -148,15 +144,13 @@ public partial class ClientPlayer : CharacterBody3D
         return userInput;
     }
 
-    private void DisplayDebugInformation()
+    public void DrawGui()
     {
-        ImGui.Begin("Player Network Information");
         ImGui.Text($"Network Id {_networkId}");
         ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
         ImGui.Text($"Redundant Inputs {_userInputs.Count}");
         ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
         ImGui.Text($"Misspredictions {_misspredictionCounter}");
         ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
-        ImGui.End();
     }
 }
