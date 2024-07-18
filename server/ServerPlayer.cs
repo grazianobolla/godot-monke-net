@@ -1,21 +1,19 @@
-using Godot;
 using System.Collections.Generic;
+using Godot;
 using ImGuiNET;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Data;
+using NetMessage;
 
 public partial class ServerPlayer : CharacterBody3D
 {
 	public int MultiplayerID { get; set; } = 0;
 	public int InstantLatency { get; set; } = 0;
 
-	private Dictionary<int, byte> _pendingInputs = new();
+	private readonly List<LocalInput> _pendingInputs = new();
 	private int _skippedTicks = 0;
 	private int _inputQueueSize = 0;
 
 #nullable enable
-	private byte? _lastInputProcessed = null;
+	private LocalInput? _lastInputProcessed = null;
 #nullable disable
 
 	public override void _Process(double delta)
@@ -25,57 +23,77 @@ public partial class ServerPlayer : CharacterBody3D
 
 	public void ProcessPendingCommands(int currentTick)
 	{
-		if (_pendingInputs.TryGetValue(currentTick, out byte input))
+		if (TryGetInput(currentTick, out var input))
 		{
 			AdvancePhysics(input);
 			_lastInputProcessed = input;
 
-			_pendingInputs = _pendingInputs.Where(pair => pair.Key > currentTick)
-			.ToDictionary(pair => pair.Key, pair => pair.Value);
-			/* TODO: Using dictionaries for this is probably the worst and most unefficient
-				way of queueing non-duplicated inputs, this must be changed in the future. */
-
+			for (int i = _pendingInputs.Count - 1; i >= 0; i--)
+				if (_pendingInputs[i].Tick <= currentTick)
+					_pendingInputs.RemoveAt(i);
+			
 			_inputQueueSize = _pendingInputs.Count;
 		}
 		else if (_lastInputProcessed.HasValue)
 		{
-			AdvancePhysics((byte)_lastInputProcessed);
+			AdvancePhysics(_lastInputProcessed.Value);
 			_skippedTicks++;
 		}
 	}
 
-	public void PushCommand(NetMessage.UserCommand command)
+	public void PushCommand(UserCommand command)
 	{
-		int offset = command.Inputs.Length - 1;
+		var inputsLength = command.Inputs.Length;
+		var offset = inputsLength - 1;
 
-		foreach (var input in command.Inputs)
+		for (var i = 0; i < inputsLength; i++)
 		{
-			int tick = command.Tick - offset;
+			var tick = command.Tick - offset;
 
-			if (!_pendingInputs.ContainsKey(tick))
+			if (!TryGetInput(tick, out _))
 			{
-				_pendingInputs.Add(tick, input);
+				var newInput = new LocalInput
+				{
+					Tick = tick,
+					Input = command.Inputs[i]
+				};
+				_pendingInputs.Add(newInput);
 			}
 
 			offset--;
 		}
 	}
+	
+	private bool TryGetInput(int tick, out LocalInput input)
+	{
+		foreach (var pendingInput in _pendingInputs)
+		{
+			if (pendingInput.Tick != tick)
+				continue;
 
-	private void AdvancePhysics(byte input)
+			input = pendingInput;
+			return true;
+		}
+
+		input = default;
+		return false;
+	}
+
+	private void AdvancePhysics(LocalInput input)
 	{
 		this.Velocity = PlayerMovement.ComputeMotion(
 			this.GetRid(),
 			this.GlobalTransform,
 			this.Velocity,
-			PlayerMovement.InputToDirection(input));
+			PlayerMovement.InputToDirection(input.Input));
 
 		Position += this.Velocity * PlayerMovement.FrameDelta;
 	}
 
 
-	public NetMessage.EntityState GetCurrentState()
+	public EntityState GetCurrentState()
 	{
-		return new NetMessage.EntityState
+		return new EntityState
 		{
 			Id = MultiplayerID,
 			PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },

@@ -118,7 +118,8 @@ public partial class ClientClock : Node
         }
 
         int count = 0;
-        samples.ForEach(s => count += s);
+        for (int i = 0; i < samples.Count; i++)
+            count += samples[i];
         return count / samples.Count;
     }
 
