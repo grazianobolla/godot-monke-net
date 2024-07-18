@@ -64,7 +64,7 @@ public partial class ClientPlayer : CharacterBody3D
         else return;
 
         // Delete all stored inputs up to that point, we don't need them anymore
-        for (int i = _userInputs.Count-1; i <= 0; i--)
+        for (int i = _userInputs.Count-1; i >= 0; i--)
             if (_userInputs[i].Tick <= forTick)
                 _userInputs.RemoveAt(i);
 
