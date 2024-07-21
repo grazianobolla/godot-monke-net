@@ -30,16 +30,16 @@ public partial class ClientPlayer : CharacterBody3D
         DisplayDebugInformation();
     }
 
-    public void ProcessTick(int currentTick)
+    public void ProcessTick(int currentRemoteTick)
     {
-        var userInput = GenerateUserInput(currentTick);
+        var userInput = GenerateUserInput(currentRemoteTick);
         if (_autoMoveEnabled)
         {
             SolveAutoMove();
             userInput.Input = _automoveInput;
         }
         _userInputs.Add(userInput);
-        SendInputs(currentTick);
+        SendInputs(currentRemoteTick);
         AdvancePhysics(userInput.Input);
     }
 
@@ -98,11 +98,11 @@ public partial class ClientPlayer : CharacterBody3D
     // For Debug Only
     private void SolveAutoMove()
     {
-        if (this.Position.X > 5 && _automoveInput == 0b0000_1000)
+        if (this.Position.X > 0.1f && _automoveInput == 0b0000_1000)
         {
             _automoveInput = 0b0000_0100;
         }
-        else if (this.Position.X < -5 && _automoveInput == 0b0000_0100)
+        else if (this.Position.X < -0.1f && _automoveInput == 0b0000_0100)
         {
             _automoveInput = 0b0000_1000;
         }

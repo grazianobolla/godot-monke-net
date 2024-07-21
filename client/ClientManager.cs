@@ -39,8 +39,9 @@ public partial class ClientManager : Node
 	public override void _PhysicsProcess(double delta)
 	{
 		_clock.ProcessTick();
-		int currentTick = _clock.GetCurrentTick();
-		int currentRemoteTick = _clock.GetCurrentRemoteTick();
+		int currentTick = _clock.GetCurrentTick();                  // Local tick (ex: 100)
+		int currentRemoteTick = _clock.GetCurrentRemoteTick();      // Tick at which a packet will arrive to the server if its sent right now (ex: 108) (there is an 8 tick delay client->server)
+
 		CustomSpawner.LocalPlayer?.ProcessTick(currentRemoteTick);
 		_snapshotInterpolator.ProcessTick(currentTick);
 	}

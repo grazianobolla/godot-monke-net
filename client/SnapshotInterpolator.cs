@@ -12,8 +12,8 @@ public partial class SnapshotInterpolator : Node
     private readonly List<NetMessage.GameSnapshot> _snapshotBuffer = new();
     private const int RecentPast = 0, NextFuture = 1;
     private double _interpolationFactor = 0;
-    private int _bufferTime = 0;
-    private double _currentTick = 0;
+    private int _bufferTime = 0;                // How many ticks in the past we are rendering the world state
+    private double _currentTick = 0;            // Current local tick
     private Node _entityArray;
 
     public override void _Ready()
@@ -24,7 +24,8 @@ public partial class SnapshotInterpolator : Node
     public override void _Process(double delta)
     {
         _currentTick += delta / PhysicsUtils.FrameTime;
-        InterpolateStates(_currentTick);
+        double tickToProcess = _currentTick - _bufferTime; // (Current tick - _bufferTime) the point in time in the past which we want to render
+        InterpolateStates(tickToProcess);
         DisplayDebugInformation();
     }
 
@@ -38,11 +39,8 @@ public partial class SnapshotInterpolator : Node
         this._entityArray = entities;
     }
 
-    private void InterpolateStates(double tickToProcess)
+    private void InterpolateStates(double renderTick)
     {
-        // Point in time to render (in the past)
-        double renderTick = tickToProcess - _bufferTime;
-
         if (_snapshotBuffer.Count > 1)
         {
             // Clear any unwanted (past) states
@@ -102,6 +100,9 @@ public partial class SnapshotInterpolator : Node
 
         ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
         ImGui.Text($"Buffer Time {_bufferTime} ticks");
+
+        int bufferTimeMs = (int)(_bufferTime * PlayerMovement.FrameDelta * 1000);
+        ImGui.Text($"World State is {bufferTimeMs}ms in the past");
         ImGui.End();
     }
 
