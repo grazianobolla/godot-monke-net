@@ -72,6 +72,7 @@ public partial class ClientManager : Node
 	private void OnLatencyCalculated(int latencyAverageTicks, int jitterAverageTicks)
 	{
 		_snapshotInterpolator.SetBufferTime(latencyAverageTicks + jitterAverageTicks);
+		CustomSpawner.LocalPlayer.NetworkReady = true;
 	}
 
 	private void ConnectClient()

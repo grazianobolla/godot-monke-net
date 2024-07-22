@@ -63,15 +63,12 @@ public partial class ServerPlayer : CharacterBody3D
 
 	private void AdvancePhysics(byte input)
 	{
-		this.Velocity = PlayerMovement.ComputeMotion(
-			this.GetRid(),
-			this.GlobalTransform,
+		this.Velocity = PlayerMovement.ComputeVelocity(
 			this.Velocity,
 			PlayerMovement.InputToDirection(input));
 
-		Position += this.Velocity * PlayerMovement.FrameDelta;
+		MoveAndSlide();
 	}
-
 
 	public NetMessage.EntityState GetCurrentState()
 	{

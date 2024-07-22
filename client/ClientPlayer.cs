@@ -13,11 +13,13 @@ public partial class ClientPlayer : CharacterBody3D
 {
     private readonly List<LocalInput> _userInputs = new();
 
+    public bool NetworkReady = false; // True when the client has synced to the server
+
     private int _networkId = -1;
     private int _lastStampReceived = 0;
     private int _misspredictionCounter = 0;
 
-    private byte _automoveInput = 0b0000_1000;
+    private byte _automoveInput = 0b0000_1001;
     private bool _autoMoveEnabled = false;
 
     public override void _Ready()
@@ -41,70 +43,96 @@ public partial class ClientPlayer : CharacterBody3D
         _userInputs.Add(userInput);
         SendInputs(currentRemoteTick);
         AdvancePhysics(userInput.Input);
+        userInput.State = GetCurrentState();
     }
 
     // Applies inputs ahead of the server (Prediction)
     private void AdvancePhysics(byte input)
     {
-        this.Velocity = PlayerMovement.ComputeMotion(
-            this.GetRid(),
-            this.GlobalTransform,
+        this.Velocity = PlayerMovement.ComputeVelocity(
             this.Velocity,
             PlayerMovement.InputToDirection(input));
 
-        Position += this.Velocity * PlayerMovement.FrameDelta;
+        this.MoveAndSlide();
     }
 
     // Called when a UserState is received from the server
     // Here we validate that our prediction was correct
     public void ReceiveState(NetMessage.EntityState incomingState, int incomingStateTick)
     {
+        if (!NetworkReady)
+            return;
+
         // Ignore any stamp that should have been received in the past
         if (incomingStateTick > _lastStampReceived)
             _lastStampReceived = incomingStateTick;
         else return;
 
-        _userInputs.RemoveAll(input => input.Tick <= incomingStateTick); // Delete all stored inputs up to that point, we don't need them anymore
+        _userInputs.RemoveAll(input => input.Tick < incomingStateTick); // Delete all stored inputs up to that point, we don't need them anymore
 
-        // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
-        Transform3D expectedTransform = this.GlobalTransform;
-        expectedTransform.Origin = incomingState.Position;
+        bool ok = PopLocalStateForTick(incomingStateTick, out EntityState stateForTick);
 
-        Vector3 expectedVelocity = incomingState.Velocity;
-
-        foreach (var userInput in _userInputs) // Re-apply all inputs
+        if (!ok || stateForTick == null)
         {
-            expectedVelocity = PlayerMovement.ComputeMotion(
-                this.GetRid(),
-                expectedTransform,
-                expectedVelocity,
-                PlayerMovement.InputToDirection(userInput.Input));
-
-            expectedTransform.Origin += expectedVelocity * PlayerMovement.FrameDelta;
+            GD.PrintErr($"There was no local state saved for tick {incomingStateTick}");
+            return;
         }
 
-        var deviation = expectedTransform.Origin - Position; // expectedTransform is where we should be, Position is our current position
+        var deviation = incomingState.Position - stateForTick.Position;
+        float deviationLength = deviation.LengthSquared();
 
-        // Reconciliation with authoritative state if the deviation is too high
-        if (deviation.Length() > 0)
+        if (deviationLength > 0)
         {
-            this.GlobalTransform = expectedTransform;
-            this.Velocity = expectedVelocity;
+            // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
+            this.Position = incomingState.Position;
+            this.Velocity = incomingState.Velocity;
+
+            foreach (var userInput in _userInputs) // Re-apply all inputs
+            {
+                this.Velocity = PlayerMovement.ComputeVelocity(
+                    this.Velocity,
+                    PlayerMovement.InputToDirection(userInput.Input));
+
+                // Applied workaround https://github.com/grazianobolla/godot4-multiplayer-template/issues/8
+                // To be honest I have no idea how this math works, but it does!
+                this.Velocity *= (float)(this.GetPhysicsProcessDeltaTime() / this.GetProcessDeltaTime());
+                this.MoveAndSlide();
+                this.Velocity /= (float)(this.GetPhysicsProcessDeltaTime() / this.GetProcessDeltaTime());
+
+                userInput.State = GetCurrentState(); // Update the state for this input which was wrong since all states after a missprediction are wrong
+            }
+
+            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviationLength}) (Stamp {incomingStateTick})!\nExpected Pos:{incomingState.Position} Vel:{incomingState.Velocity}\nCalculated Pos:{stateForTick.Position} Vel:{stateForTick.Velocity}\n");
             _misspredictionCounter++;
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviation.Length()}) (Stamp {incomingStateTick})!\nExpected Pos:{expectedTransform.Origin} Vel:{expectedVelocity}\nCalculated Pos:{Position} Vel:{Velocity}\n");
         }
+    }
+
+    private bool PopLocalStateForTick(int tick, out EntityState state)
+    {
+        for (int i = 0; i < _userInputs.Count; i++)
+        {
+            if (_userInputs[i].Tick != tick)
+                continue;
+
+            state = _userInputs[i].State;
+            _userInputs.RemoveAt(i);
+            return true;
+        }
+
+        state = null;
+        return false;
     }
 
     // For Debug Only
     private void SolveAutoMove()
     {
-        if (this.Position.X > 0.1f && _automoveInput == 0b0000_1000)
+        if (this.Position.X > 0.03f && _automoveInput == 0b0000_1001)
         {
-            _automoveInput = 0b0000_0100;
+            _automoveInput = 0b0000_0110;
         }
-        else if (this.Position.X < -0.1f && _automoveInput == 0b0000_0100)
+        else if (this.Position.X < -0.03f && _automoveInput == 0b0000_0110)
         {
-            _automoveInput = 0b0000_1000;
+            _automoveInput = 0b0000_1001;
         }
     }
 
@@ -158,9 +186,20 @@ public partial class ClientPlayer : CharacterBody3D
         ImGui.End();
     }
 
-    private struct LocalInput
+    public NetMessage.EntityState GetCurrentState()
+    {
+        return new NetMessage.EntityState
+        {
+            Id = _networkId,
+            PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },
+            VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z }
+        };
+    }
+
+    private class LocalInput
     {
         public int Tick;
         public byte Input;
+        public EntityState State; // State of the player at Tick
     }
 }
