@@ -95,9 +95,9 @@ public partial class ClientPlayer : CharacterBody3D
 
                 // Applied workaround https://github.com/grazianobolla/godot4-multiplayer-template/issues/8
                 // To be honest I have no idea how this math works, but it does!
-                this.Velocity *= (float)(this.GetPhysicsProcessDeltaTime() / this.GetProcessDeltaTime());
+                this.Velocity *= (float)this.GetPhysicsProcessDeltaTime() / (float)this.GetProcessDeltaTime();
                 this.MoveAndSlide();
-                this.Velocity /= (float)(this.GetPhysicsProcessDeltaTime() / this.GetProcessDeltaTime());
+                this.Velocity /= (float)this.GetPhysicsProcessDeltaTime() / (float)this.GetProcessDeltaTime();
 
                 userInput.State = GetCurrentState(); // Update the state for this input which was wrong since all states after a missprediction are wrong
             }
