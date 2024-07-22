@@ -102,7 +102,7 @@ public partial class ClientPlayer : CharacterBody3D
                 userInput.State = GetCurrentState(); // Update the state for this input which was wrong since all states after a missprediction are wrong
             }
 
-            GD.PrintErr($"Client {this.Multiplayer.GetUniqueId()} prediction mismatch ({deviationLength}) (Stamp {incomingStateTick})!\nExpected Pos:{incomingState.Position} Vel:{incomingState.Velocity}\nCalculated Pos:{stateForTick.Position} Vel:{stateForTick.Velocity}\n");
+            GD.PrintErr($"Client {_networkId} prediction mismatch ({deviationLength}) (Stamp {incomingStateTick})!\nExpected Pos:{incomingState.Position} Vel:{incomingState.Velocity}\nCalculated Pos:{stateForTick.Position} Vel:{stateForTick.Velocity}\n");
             _misspredictionCounter++;
         }
     }
@@ -126,11 +126,11 @@ public partial class ClientPlayer : CharacterBody3D
     // For Debug Only
     private void SolveAutoMove()
     {
-        if (this.Position.X > 0.03f && _automoveInput == 0b0000_1001)
+        if (this.Position.X > 1 && _automoveInput == 0b0000_1001)
         {
             _automoveInput = 0b0000_0110;
         }
-        else if (this.Position.X < -0.03f && _automoveInput == 0b0000_0110)
+        else if (this.Position.X < -1 && _automoveInput == 0b0000_0110)
         {
             _automoveInput = 0b0000_1001;
         }
@@ -145,7 +145,7 @@ public partial class ClientPlayer : CharacterBody3D
             Inputs = _userInputs.Select(i => i.Input).ToArray()
         };
 
-        if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
+        if (this.IsMultiplayerAuthority() && _networkId != 1)
         {
             byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
 
