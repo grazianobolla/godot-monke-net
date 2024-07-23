@@ -14,13 +14,12 @@ public partial class ClientManager : Node
 	private SnapshotInterpolator _snapshotInterpolator;
 	private ClientClock _clock;
 	private Node _entityArray;
+	private NetworkDebug _networkDebug;
 
 	public override void _EnterTree()
 	{
-		// Connects to the server
-		ConnectClient();
-
 		_entityArray = GetNode("/root/Main/EntityArray");
+		_networkDebug = GetNode<NetworkDebug>("Debug");
 
 		// Stores NetworkClock node instance
 		_clock = GetNode<ClientClock>("ClientClock");
@@ -29,6 +28,9 @@ public partial class ClientManager : Node
 		// Stores SnapshotInterpolator node instance
 		_snapshotInterpolator = GetNode<SnapshotInterpolator>("SnapshotInterpolator");
 		_snapshotInterpolator.SetEntityArray(_entityArray);
+
+		// Connects to the server
+		ConnectClient();
 	}
 
 	public override void _Process(double delta)
@@ -88,9 +90,19 @@ public partial class ClientManager : Node
 
 	private void DisplayDebugInformation()
 	{
-		ImGui.Begin("Client Information");
-		ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
-		ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
-		ImGui.End();
+		ImGui.SetNextWindowPos(System.Numerics.Vector2.Zero);
+		if (ImGui.Begin("Client Information",
+				ImGuiWindowFlags.NoMove
+				| ImGuiWindowFlags.NoResize
+				| ImGuiWindowFlags.AlwaysAutoResize))
+		{
+			ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
+			ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
+			_clock.DisplayDebugInformation();
+			_networkDebug.DisplayDebugInformation();
+			_snapshotInterpolator.DisplayDebugInformation();
+			CustomSpawner.LocalPlayer?.DisplayDebugInformation();
+			ImGui.End();
+		}
 	}
 }

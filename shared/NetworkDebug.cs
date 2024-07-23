@@ -21,11 +21,6 @@ public partial class NetworkDebug : Control
 		timer.Start();
 	}
 
-	public override void _Process(double delta)
-	{
-		DisplayDebugInformation();
-	}
-
 	private void OnTimerOut()
 	{
 		var enetHost = (Multiplayer.MultiplayerPeer as ENetMultiplayerPeer).Host;
@@ -35,13 +30,14 @@ public partial class NetworkDebug : Control
 		_sentPacketsPerSecond = enetHost.PopStatistic(ENetConnection.HostStatistic.SentPackets);
 	}
 
-	private void DisplayDebugInformation()
+	public void DisplayDebugInformation()
 	{
-		ImGui.Begin("General Network per Second");
-		ImGui.Text($"Sent Bytes {_sentPerSecond}");
-		ImGui.Text($"Rec. Bytes {_recPerSecond}");
-		ImGui.Text($"Packets Sent {_sentPacketsPerSecond}");
-		ImGui.Text($"Packets Rec. {_receivedPacketsPerSecond}");
-		ImGui.End();
+		if (ImGui.CollapsingHeader("General Network per Second"))
+		{
+			ImGui.Text($"Sent Bytes {_sentPerSecond}");
+			ImGui.Text($"Rec. Bytes {_recPerSecond}");
+			ImGui.Text($"Packets Sent {_sentPacketsPerSecond}");
+			ImGui.Text($"Packets Rec. {_receivedPacketsPerSecond}");
+		}
 	}
 }

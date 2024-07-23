@@ -27,11 +27,6 @@ public partial class ClientPlayer : CharacterBody3D
         _networkId = Multiplayer.GetUniqueId();
     }
 
-    public override void _Process(double delta)
-    {
-        DisplayDebugInformation();
-    }
-
     public void ProcessTick(int currentRemoteTick)
     {
         var userInput = GenerateUserInput(currentRemoteTick);
@@ -174,16 +169,17 @@ public partial class ClientPlayer : CharacterBody3D
         return userInput;
     }
 
-    private void DisplayDebugInformation()
+    public void DisplayDebugInformation()
     {
-        ImGui.Begin("Player Network Information");
-        ImGui.Text($"Network Id {_networkId}");
-        ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
-        ImGui.Text($"Redundant Inputs {_userInputs.Count}");
-        ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
-        ImGui.Text($"Misspredictions {_misspredictionCounter}");
-        ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
-        ImGui.End();
+        if (ImGui.CollapsingHeader("Player Data"))
+        {
+            ImGui.Text($"Network Id {_networkId}");
+            ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
+            ImGui.Text($"Redundant Inputs {_userInputs.Count}");
+            ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
+            ImGui.Text($"Misspredictions {_misspredictionCounter}");
+            ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
+        }
     }
 
     public NetMessage.EntityState GetCurrentState()

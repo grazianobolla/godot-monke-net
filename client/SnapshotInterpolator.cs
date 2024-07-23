@@ -26,7 +26,6 @@ public partial class SnapshotInterpolator : Node
         _currentTick += delta / PhysicsUtils.FrameTime;
         double tickToProcess = _currentTick - _bufferTime; // (Current tick - _bufferTime) the point in time in the past which we want to render
         InterpolateStates(tickToProcess);
-        DisplayDebugInformation();
     }
 
     public void ProcessTick(int currentTick)
@@ -90,20 +89,20 @@ public partial class SnapshotInterpolator : Node
         _bufferTime = bufferTime + _minBufferTime;
     }
 
-    private void DisplayDebugInformation()
+    public void DisplayDebugInformation()
     {
-        ImGui.Begin("Snapshot Interpolator Information");
+        if (ImGui.CollapsingHeader("Snapshot Interpolator Information"))
+        {
+            if (_interpolationFactor > 1) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF0000FF);
+            ImGui.Text($"Interp. Factor {_interpolationFactor:0.00}");
+            ImGui.PopStyleColor();
 
-        if (_interpolationFactor > 1) ImGui.PushStyleColor(ImGuiCol.Text, 0xFF0000FF);
-        ImGui.Text($"Interp. Factor {_interpolationFactor:0.00}");
-        ImGui.PopStyleColor();
+            ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
+            ImGui.Text($"Buffer Time {_bufferTime} ticks");
 
-        ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
-        ImGui.Text($"Buffer Time {_bufferTime} ticks");
-
-        int bufferTimeMs = (int)(_bufferTime * PlayerMovement.FrameDelta * 1000);
-        ImGui.Text($"World State is {bufferTimeMs}ms in the past");
-        ImGui.End();
+            int bufferTimeMs = (int)(_bufferTime * PlayerMovement.FrameDelta * 1000);
+            ImGui.Text($"World State is {bufferTimeMs}ms in the past");
+        }
     }
 
 }
