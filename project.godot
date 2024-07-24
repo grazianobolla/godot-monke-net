@@ -68,4 +68,5 @@ shift={
 
 [physics]
 
+common/physics_jitter_fix=0.0
 3d/physics_engine="JoltPhysics3D"
