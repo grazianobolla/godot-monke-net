@@ -7,10 +7,10 @@ using MemoryPack;
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
     This Node should be self contained.
 */
-public partial class ClientClock : Node
+public partial class ClientClock : NetworkedNode
 {
-    [Signal]
-    public delegate void LatencyCalculatedEventHandler(int latencyAverageTicks, int jitterAverageTicks); // Called every time the latency is calculated
+    // Called every time latency is calculated
+    [Signal] public delegate void LatencyCalculatedEventHandler(int latencyAverageTicks, int jitterAverageTicks);
 
     [Export] private int _sampleSize = 11;
     [Export] private float _sampleRateMs = 1000;
@@ -28,18 +28,21 @@ public partial class ClientClock : Node
     private readonly List<int> _offsetValues = new();
     private readonly List<int> _latencyValues = new();
 
-    private SceneMultiplayer _multiplayer;
-
     public override void _Ready()
     {
-        _multiplayer = GetTree().GetMultiplayer() as SceneMultiplayer;
-        _multiplayer.PeerPacket += OnPacketReceived;
+        base._Ready();
         GetNode<Timer>("Timer").WaitTime = _sampleRateMs / 1000.0f;
-
         _minLatencyInTicks = PhysicsUtils.MsecToTick(_minLatency);
     }
 
-    // Called every Physics Tick, same as in the server
+    protected override void OnServerPacketReceived(NetMessage.ICommand command)
+    {
+        if (command is NetMessage.Sync sync)
+        {
+            SyncReceived(sync);
+        }
+    }
+
     public void ProcessTick()
     {
         _currentTick += 1 + _lastOffset;
@@ -54,16 +57,6 @@ public partial class ClientClock : Node
     public int GetCurrentRemoteTick()
     {
         return _currentTick + _averageLatencyInTicks + _jitterInTicks + _fixedTickMargin;
-    }
-
-    private void OnPacketReceived(long id, byte[] data)
-    {
-        var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
-
-        if (command is NetMessage.Sync sync)
-        {
-            SyncReceived(sync);
-        }
     }
 
     private static int GetLocalTimeMs()
@@ -151,13 +144,8 @@ public partial class ClientClock : Node
             ServerTime = 0
         };
 
-        SendSyncPacket(sync);
-    }
-
-    private void SendSyncPacket(NetMessage.Sync sync)
-    {
         byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync);
-        _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+        SendBytesToServer(data, SendMode.UDP, 1);
     }
 
     public void DisplayDebugInformation()

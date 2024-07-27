@@ -1,6 +1,5 @@
 using Godot;
 using ImGuiNET;
-using MemoryPack;
 
 /*
 	Network manager for the client, handles server connection and routes packages.
@@ -9,6 +8,9 @@ public partial class ClientManager : Node
 {
 	[Export] private string _address = "localhost";
 	[Export] private int _port = 9999;
+
+	[Signal] public delegate void ClientTickEventHandler(int currentTick, int currentRemoteTick);
+	[Signal] public delegate void NetworkReadyEventHandler();
 
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
@@ -43,44 +45,17 @@ public partial class ClientManager : Node
 		_clock.ProcessTick();
 		int currentTick = _clock.GetCurrentTick();                  // Local tick (ex: 100)
 		int currentRemoteTick = _clock.GetCurrentRemoteTick();      // Tick at which a packet will arrive to the server if its sent right now (ex: 108) (there is an 8 tick delay client->server)
-
-		CustomSpawner.LocalPlayer?.ProcessTick(currentRemoteTick);
-		_snapshotInterpolator.ProcessTick(currentTick);
-	}
-
-	private void OnPacketReceived(long id, byte[] data)
-	{
-		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
-
-		if (command is NetMessage.GameSnapshot snapshot)
-		{
-			ProcessSnapshot(snapshot);
-		}
-	}
-
-	private void ProcessSnapshot(NetMessage.GameSnapshot snapshot)
-	{
-		_snapshotInterpolator.PushState(snapshot);
-
-		foreach (NetMessage.EntityState state in snapshot.States)
-		{
-			if (state.Id == Multiplayer.GetUniqueId())
-			{
-				CustomSpawner.LocalPlayer?.ReceiveState(state, snapshot.Tick);
-			}
-		}
+		EmitSignal(SignalName.ClientTick, currentTick, currentRemoteTick);
 	}
 
 	private void OnLatencyCalculated(int latencyAverageTicks, int jitterAverageTicks)
 	{
 		_snapshotInterpolator.SetBufferTime(latencyAverageTicks + jitterAverageTicks);
-		CustomSpawner.LocalPlayer.NetworkReady = true;
+		EmitSignal(SignalName.NetworkReady);
 	}
 
 	private void ConnectClient()
 	{
-		_multiplayer.PeerPacket += OnPacketReceived;
-
 		ENetMultiplayerPeer peer = new();
 		peer.CreateClient(_address, _port);
 		_multiplayer.MultiplayerPeer = peer;
@@ -96,12 +71,12 @@ public partial class ClientManager : Node
 				| ImGuiWindowFlags.NoResize
 				| ImGuiWindowFlags.AlwaysAutoResize))
 		{
+			ImGui.Text($"Network ID {_multiplayer.GetUniqueId()}");
 			ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
 			ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
 			_clock.DisplayDebugInformation();
 			_networkDebug.DisplayDebugInformation();
 			_snapshotInterpolator.DisplayDebugInformation();
-			CustomSpawner.LocalPlayer?.DisplayDebugInformation();
 			ImGui.End();
 		}
 	}

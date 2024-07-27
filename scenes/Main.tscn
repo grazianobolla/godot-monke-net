@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3 uid="uid://i7750q1y5hnq"]
+[gd_scene load_steps=17 format=3 uid="uid://i7750q1y5hnq"]
 
 [ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
 [ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
@@ -7,9 +7,6 @@
 [ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://players/ClientPlayer.tscn" id="4_35anr"]
 [ext_resource type="PackedScene" uid="uid://1fbyoad8h8gr" path="res://players/ServerPlayer.tscn" id="5_lgfx3"]
 [ext_resource type="PackedScene" uid="uid://dgltayb5g40lt" path="res://players/DummyPlayer.tscn" id="6_82wv5"]
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i6375"]
-albedo_color = Color(0.101961, 0.101961, 0.101961, 1)
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_hftyp"]
 sky_top_color = Color(0.262745, 0.521569, 0.878431, 1)
@@ -21,10 +18,27 @@ sky_material = SubResource("ProceduralSkyMaterial_hftyp")
 background_mode = 2
 sky = SubResource("Sky_xbuw4")
 
-[sub_resource type="BoxMesh" id="BoxMesh_5p16j"]
-
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ctf4l"]
 albedo_color = Color(0.0392157, 1, 0.219608, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5p16j"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_i6375"]
+albedo_color = Color(0.101961, 0.101961, 0.101961, 1)
+
+[sub_resource type="Animation" id="Animation_cnhy4"]
+resource_name = "MovePlatform"
+length = 2.0
+loop_mode = 1
+
+[sub_resource type="Animation" id="Animation_0n6sm"]
+length = 0.001
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_36vph"]
+_data = {
+"MovePlatform": SubResource("Animation_cnhy4"),
+"RESET": SubResource("Animation_0n6sm")
+}
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_n3q4e")
@@ -65,12 +79,6 @@ offset_right = 98.0
 offset_bottom = 62.0
 text = "Host Server"
 
-[node name="CSGBox3D" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
-use_collision = true
-size = Vector3(10, 1, 10)
-material = SubResource("StandardMaterial3D_i6375")
-
 [node name="Camera3D" type="Camera3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 4, 0)
 projection = 1
@@ -78,6 +86,8 @@ size = 10.0
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, -0.707107, 0.707107, 0, -0.707107, -0.707107, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_mode = 0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_rybih")
@@ -91,22 +101,47 @@ _playerScene = ExtResource("4_35anr")
 _serverPlayerScene = ExtResource("5_lgfx3")
 _dummyScene = ExtResource("6_82wv5")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 1, 0)
-mesh = SubResource("BoxMesh_5p16j")
-script = ExtResource("3_od4jj")
+[node name="MapProps" type="Node" parent="."]
 
-[node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 3)
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="MapProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, -0.5, 3)
 material_override = SubResource("StandardMaterial3D_ctf4l")
 use_collision = true
 radius = 1.0
 sides = 16
 
-[node name="CSGBox3D2" type="CSGBox3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, -2)
+[node name="CSGBox3D2" type="CSGBox3D" parent="MapProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -2)
 use_collision = true
-size = Vector3(2, 1, 2)
+size = Vector3(4, 1, 2)
+
+[node name="Ramp3D" type="CSGPolygon3D" parent="MapProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, -1)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0, 1, 0, 1, 3, 0)
+
+[node name="Ramp3D2" type="CSGPolygon3D" parent="MapProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, -2)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0, 1, 0, 1, 3, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="MapProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, -1, 2)
+mesh = SubResource("BoxMesh_5p16j")
+skeleton = NodePath("../..")
+script = ExtResource("3_od4jj")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="MapProps"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2, 0)
+use_collision = true
+size = Vector3(10, 1, 10)
+material = SubResource("StandardMaterial3D_i6375")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="MapProps"]
+libraries = {
+"": SubResource("AnimationLibrary_36vph")
+}
+autoplay = "MovePlatform"
 
 [connection signal="pressed" from="Buttons/Button" to="." method="_on_button_pressed" binds= [false]]
 [connection signal="pressed" from="Buttons/Button2" to="." method="_on_button_pressed" binds= [true]]

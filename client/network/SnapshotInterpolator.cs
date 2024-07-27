@@ -5,7 +5,7 @@ using ImGuiNET;
 /*
     Receives and presents the Player the snapshots emmited by the server.
 */
-public partial class SnapshotInterpolator : Node
+public partial class SnapshotInterpolator : NetworkedNode
 {
     [Export] private int _minBufferTime = 3;
 
@@ -18,6 +18,7 @@ public partial class SnapshotInterpolator : Node
 
     public override void _Ready()
     {
+        base._Ready();
         _bufferTime = 6; //TODO: magic number
     }
 
@@ -28,9 +29,19 @@ public partial class SnapshotInterpolator : Node
         InterpolateStates(tickToProcess);
     }
 
-    public void ProcessTick(int currentTick)
+    protected override void OnProcessTick(int currentTick, int currentRemoteTick)
     {
         _currentTick = currentTick;
+    }
+
+    protected override void OnServerPacketReceived(NetMessage.ICommand command)
+    {
+        if (command is NetMessage.GameSnapshot snapshot)
+        {
+            // Add snapshot tu buffer if we don't have any or if it is a future one
+            if (_snapshotBuffer.Count <= 0 || snapshot.Tick > _snapshotBuffer[^1].Tick)
+                _snapshotBuffer.Add(snapshot);
+        }
     }
 
     public void SetEntityArray(Node entities)
@@ -76,14 +87,6 @@ public partial class SnapshotInterpolator : Node
         }
     }
 
-    public void PushState(NetMessage.GameSnapshot snapshot)
-    {
-        if (_snapshotBuffer.Count <= 0 || snapshot.Tick > _snapshotBuffer[^1].Tick)
-        {
-            _snapshotBuffer.Add(snapshot);
-        }
-    }
-
     public void SetBufferTime(int bufferTime)
     {
         _bufferTime = bufferTime + _minBufferTime;
@@ -100,9 +103,8 @@ public partial class SnapshotInterpolator : Node
             ImGui.Text($"Buffer Size {_snapshotBuffer.Count} snapshots");
             ImGui.Text($"Buffer Time {_bufferTime} ticks");
 
-            int bufferTimeMs = (int)(_bufferTime * PlayerMovement.FrameDelta * 1000);
+            int bufferTimeMs = (int)(_bufferTime * PhysicsUtils.FrameTime * 1000);
             ImGui.Text($"World State is {bufferTimeMs}ms in the past");
         }
     }
-
 }

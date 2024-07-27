@@ -1,9 +1,9 @@
 [gd_scene load_steps=5 format=3 uid="uid://eykxehuqerja"]
 
-[ext_resource type="Script" path="res://client/ClientManager.cs" id="1_y3i7q"]
+[ext_resource type="Script" path="res://client/network/ClientManager.cs" id="1_y3i7q"]
 [ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_7x6yl"]
-[ext_resource type="Script" path="res://client/SnapshotInterpolator.cs" id="3_2ogc1"]
-[ext_resource type="Script" path="res://client/ClientClock.cs" id="3_skvws"]
+[ext_resource type="Script" path="res://client/network/SnapshotInterpolator.cs" id="3_2ogc1"]
+[ext_resource type="Script" path="res://client/network/ClientClock.cs" id="3_skvws"]
 
 [node name="Client" type="Node"]
 script = ExtResource("1_y3i7q")
