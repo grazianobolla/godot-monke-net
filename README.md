@@ -14,7 +14,7 @@ Most of the code is inside the client/ and server/ folders.
 You can use it to speed up your developing process, it is based on the client/auth-server model.
 
 ## Usage
-You will need Godot 4.X and C# with at least Net6, just run the game in Godot. If you are alone and want to connect to your own server, run 2 instances of the project by setting Dobug->Run Multiple Instances to _2 Instances_
+You will need Godot 4.2.X and C# with at least .NET 8, just run the game in Godot. If you are alone and want to connect to your own server, run 2 instances of the project by setting Dobug->Run Multiple Instances to _2 Instances_
 
 This diagram tries to explain how the project is structured (note that it may differ from actual code since I'm actively developing this):
 ![Diagram](https://github.com/grazianobolla/godot4-multiplayer-template/assets/35064738/fe528305-a02b-4204-b0d9-7380397190b9)
