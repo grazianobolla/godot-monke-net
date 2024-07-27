@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using Godot;
-using System;
+using ImGuiNET;
+using Vector2 = System.Numerics.Vector2;
 
 public partial class CustomSpawner : MultiplayerSpawner
 {
@@ -7,7 +9,8 @@ public partial class CustomSpawner : MultiplayerSpawner
     [Export] private PackedScene _serverPlayerScene;
     [Export] private PackedScene _dummyScene;
 
-    public static ClientPlayer LocalPlayer;
+    private static readonly Dictionary<int, Node3D> _spawnedNodes = new();
+    public static ClientPlayer LocalPlayer { get; private set; }
 
     public override void _Ready()
     {
@@ -15,6 +18,17 @@ public partial class CustomSpawner : MultiplayerSpawner
         this.SpawnFunction = customSpawnFunctionCallable;
 
         this.SetMultiplayerAuthority(Multiplayer.GetUniqueId());
+    }
+
+    public override void _Process(double delta)
+    {
+        base._Process(delta);
+        DrawGui();
+    }
+
+    public static Node3D GetSpawnedNode(int id)
+    {
+        return _spawnedNodes.GetValueOrDefault(id);
     }
 
     // This method is called on all Clients after someone joins the server,
@@ -28,9 +42,10 @@ public partial class CustomSpawner : MultiplayerSpawner
         if (localID == 1)
         {
             GD.Print("Spawned server character");
-            ServerPlayer player = _serverPlayerScene.Instantiate() as ServerPlayer;
+            ServerPlayer player = _serverPlayerScene.Instantiate<ServerPlayer>();
             player.Name = spawnedPlayerID.ToString();
             player.MultiplayerID = spawnedPlayerID;
+            _spawnedNodes.Add(spawnedPlayerID, player);
             return player;
         }
 
@@ -38,10 +53,11 @@ public partial class CustomSpawner : MultiplayerSpawner
         if (localID == spawnedPlayerID)
         {
             GD.Print("Spawned client player");
-            ClientPlayer player = _playerScene.Instantiate() as ClientPlayer;
+            ClientPlayer player = _playerScene.Instantiate<ClientPlayer>();
             player.Name = spawnedPlayerID.ToString();
             player.SetMultiplayerAuthority(spawnedPlayerID);
             LocalPlayer = player;
+            _spawnedNodes.Add(spawnedPlayerID, player);
             return player;
         }
 
@@ -49,10 +65,39 @@ public partial class CustomSpawner : MultiplayerSpawner
         // is from someone else: spawn dummy player
         {
             GD.Print("Spawned dummy");
-            Node player = _dummyScene.Instantiate();
+            Node3D player = _dummyScene.Instantiate<Node3D>();
             player.Name = spawnedPlayerID.ToString();
             player.SetMultiplayerAuthority(spawnedPlayerID);
+            _spawnedNodes.Add(spawnedPlayerID, player);
             return player;
         }
+    }
+
+    private static void DrawGui()
+    {
+        if (_spawnedNodes.Count == 0)
+            return;
+        
+        var io = ImGui.GetIO();
+        ImGui.SetNextWindowPos(io.DisplaySize with { Y= 0}, ImGuiCond.Always, new Vector2(1, 0));
+        if (ImGui.Begin("Player Information",
+                ImGuiWindowFlags.NoMove
+                | ImGuiWindowFlags.NoResize
+                | ImGuiWindowFlags.AlwaysAutoResize))
+        {
+            foreach (var nodesValue in _spawnedNodes.Values)
+            {
+                switch (nodesValue)
+                {
+                    case ServerPlayer serverPlayer:
+                        serverPlayer.DrawGui();
+                        break;
+                    case ClientPlayer clientPlayer:
+                        clientPlayer.DrawGui();
+                        break;
+                }
+            }
+        }
+        ImGui.End();
     }
 }

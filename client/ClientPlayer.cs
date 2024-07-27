@@ -1,13 +1,13 @@
-using Godot;
 using System.Collections.Generic;
-using NetMessage;
-using System;
+using System.Linq;
+using Godot;
 using ImGuiNET;
 using MemoryPack;
-using System.Linq;
+using NetMessage;
+using Vector2 = System.Numerics.Vector2;
 
 /*
-    Main player script, send movement packets to the server, does CSP, and reconciliation. 
+    Main player script, send movement packets to the server, does CSP, and reconciliation.
 */
 public partial class ClientPlayer : CharacterBody3D
 {
@@ -23,11 +23,6 @@ public partial class ClientPlayer : CharacterBody3D
     public override void _Ready()
     {
         _networkId = Multiplayer.GetUniqueId();
-    }
-
-    public override void _Process(double delta)
-    {
-        DisplayDebugInformation();
     }
 
     public void ProcessTick(int currentTick)
@@ -57,14 +52,17 @@ public partial class ClientPlayer : CharacterBody3D
 
     // Called when a UserState is received from the server
     // Here we validate that our prediction was correct
-    public void ReceiveState(NetMessage.EntityState state, int forTick)
+    public void ReceiveState(EntityState state, int forTick)
     {
         // Ignore any stamp that should have been received in the past
         if (forTick > _lastStampReceived)
             _lastStampReceived = forTick;
         else return;
 
-        _userInputs.RemoveAll(input => input.Tick <= forTick); // Delete all stored inputs up to that point, we don't need them anymore
+        // Delete all stored inputs up to that point, we don't need them anymore
+        for (int i = _userInputs.Count-1; i >= 0; i--)
+            if (_userInputs[i].Tick <= forTick)
+                _userInputs.RemoveAt(i);
 
         // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
         Transform3D expectedTransform = this.GlobalTransform;
@@ -111,7 +109,7 @@ public partial class ClientPlayer : CharacterBody3D
     // Sends all non-processed inputs to the server
     private void SendInputs(int currentTick)
     {
-        var userCmd = new NetMessage.UserCommand
+        var userCmd = new UserCommand
         {
             Tick = currentTick,
             Inputs = _userInputs.Select(i => i.Input).ToArray()
@@ -119,7 +117,7 @@ public partial class ClientPlayer : CharacterBody3D
 
         if (this.IsMultiplayerAuthority() && Multiplayer.GetUniqueId() != 1)
         {
-            byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
+            byte[] data = MemoryPackSerializer.Serialize<ICommand>(userCmd);
 
             (Multiplayer as SceneMultiplayer).SendBytes(data, 1,
                 MultiplayerPeer.TransferModeEnum.Unreliable, 0);
@@ -146,21 +144,13 @@ public partial class ClientPlayer : CharacterBody3D
         return userInput;
     }
 
-    private void DisplayDebugInformation()
+    public void DrawGui()
     {
-        ImGui.Begin("Player Network Information");
         ImGui.Text($"Network Id {_networkId}");
         ImGui.Text($"Position {Position.Snapped(Vector3.One * 0.01f)}");
         ImGui.Text($"Redundant Inputs {_userInputs.Count}");
         ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
         ImGui.Text($"Misspredictions {_misspredictionCounter}");
         ImGui.Checkbox("Automove?", ref _autoMoveEnabled);
-        ImGui.End();
-    }
-
-    private struct LocalInput
-    {
-        public int Tick;
-        public byte Input;
     }
 }

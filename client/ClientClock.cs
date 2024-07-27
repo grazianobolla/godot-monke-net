@@ -39,11 +39,6 @@ public partial class ClientClock : Node
         _minLatencyInTicks = PhysicsUtils.MsecToTick(_minLatency);
     }
 
-    public override void _Process(double delta)
-    {
-        DisplayDebugInformation();
-    }
-
     // Called every Physics Tick, same as in the server
     public void ProcessTick()
     {
@@ -118,7 +113,8 @@ public partial class ClientClock : Node
         }
 
         int count = 0;
-        samples.ForEach(s => count += s);
+        for (int i = 0; i < samples.Count; i++)
+            count += samples[i];
         return count / samples.Count;
     }
 
@@ -165,15 +161,16 @@ public partial class ClientClock : Node
         _multiplayer.SendBytes(data, 1, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
     }
 
-    private void DisplayDebugInformation()
+    public void DrawGui()
     {
-        ImGui.Begin("Network Clock Information");
-        ImGui.Text($"Synced Tick {GetCurrentRemoteTick()}");
-        ImGui.Text($"Local Tick {GetCurrentTick()}");
-        ImGui.Text($"Immediate Latency {_immediateLatencyMsec}ms");
-        ImGui.Text($"Average Latency {_averageLatencyInTicks} ticks");
-        ImGui.Text($"Latency Jitter {_jitterInTicks} ticks");
-        ImGui.Text($"Average Offset {_averageOffsetInTicks} ticks");
-        ImGui.End();
+        if (ImGui.CollapsingHeader("Network Clock Information"))
+        {
+            ImGui.Text($"Synced Tick {GetCurrentRemoteTick()}");
+            ImGui.Text($"Local Tick {GetCurrentTick()}");
+            ImGui.Text($"Immediate Latency {_immediateLatencyMsec}ms");
+            ImGui.Text($"Average Latency {_averageLatencyInTicks} ticks");
+            ImGui.Text($"Latency Jitter {_jitterInTicks} ticks");
+            ImGui.Text($"Average Offset {_averageOffsetInTicks} ticks");
+        }
     }
 }
