@@ -1,253 +1,137 @@
-#if !GODOT_MOBILE
+#if GODOT_PC
+#nullable enable
 using Godot;
-using ImGuiNET;
+using ImGuiGodot.Internal;
 using System;
-using Vector3 = System.Numerics.Vector3;
-using Vector4 = System.Numerics.Vector4;
 
 namespace ImGuiGodot;
 
 public static class ImGuiGD
 {
+    private static readonly IBackend _backend;
+
     /// <summary>
     /// Deadzone for all axes
     /// </summary>
-    public static float JoyAxisDeadZone { get; set; } = 0.15f;
+    public static float JoyAxisDeadZone
+    {
+        get => _backend.JoyAxisDeadZone;
+        set => _backend.JoyAxisDeadZone = value;
+    }
 
     /// <summary>
-    /// Swap the functionality of the activate (face down) and cancel (face right) buttons
-    /// </summary>
-    public static bool JoyButtonSwapAB { get; set; } = false;
-
-    /// <summary>
-    /// Try to calculate how many pixels squared per point. Should be 1 or 2 on non-mobile displays
-    /// </summary>
-    public static int DpiFactor => Math.Max(1, DisplayServer.ScreenGetDpi() / 96);
-
-    /// <summary>
-    /// Adjust the scale based on <see cref="DpiFactor"/>
-    /// </summary>
-    public static bool ScaleToDpi { get; set; } = true;
-
-    /// <summary>
-    /// Setting this property will reload fonts and modify the ImGuiStyle
+    /// Setting this property will reload fonts and modify the ImGuiStyle.
+    /// Can only be set outside of a process frame (eg, use CallDeferred)
     /// </summary>
     public static float Scale
     {
-        get => _scale;
+        get => _backend.Scale;
         set
         {
-            if (_inProcessFrame)
-                throw new InvalidOperationException("scale cannot be changed during process frame");
-
-            if (_scale != value && value >= 0.25f)
+            if (_backend.Scale != value && value >= 0.25f)
             {
-                _scale = value;
+                _backend.Scale = value;
                 RebuildFontAtlas();
             }
         }
     }
-    private static float _scale = 1.0f;
 
-    private static bool _inProcessFrame = false;
+    public static bool Visible
+    {
+        get => _backend.Visible;
+        set => _backend.Visible = value;
+    }
+
+    static ImGuiGD()
+    {
+        _backend = ClassDB.ClassExists("ImGuiGD") ? new BackendNative() : new BackendNet();
+    }
 
     public static IntPtr BindTexture(Texture2D tex)
     {
         return (IntPtr)tex.GetRid().Id;
     }
 
-    public static void Init(Window mainWindow, Rid mainSubViewport, float? scale = null, RendererType renderer = RendererType.RenderingDevice)
-    {
-        if (IntPtr.Size != sizeof(ulong))
-        {
-            throw new PlatformNotSupportedException("imgui-godot requires 64-bit pointers");
-        }
-
-        if (scale != null)
-        {
-            _scale = scale.Value;
-        }
-
-        // fall back to Canvas in OpenGL compatibility mode
-        if (renderer == RendererType.RenderingDevice && RenderingServer.GetRenderingDevice() == null)
-        {
-            renderer = RendererType.Canvas;
-        }
-
-        // there's no way to get the actual current thread model, eg if --render-thread is used
-        int threadModel = (int)ProjectSettings.GetSetting("rendering/driver/threads/thread_model");
-
-        Internal.IRenderer internalRenderer;
-        try
-        {
-            internalRenderer = renderer switch
-            {
-                RendererType.Dummy => new Internal.DummyRenderer(),
-                RendererType.Canvas => new Internal.CanvasRenderer(),
-                RendererType.RenderingDevice => threadModel == 2 ? new Internal.RdRendererThreadSafe() : new Internal.RdRenderer(),
-                _ => throw new ArgumentException("Invalid renderer", nameof(renderer))
-            };
-        }
-        catch (Exception e)
-        {
-            if (renderer == RendererType.RenderingDevice)
-            {
-                GD.PushWarning($"imgui-godot: falling back to Canvas renderer ({e.Message})");
-                internalRenderer = new Internal.CanvasRenderer();
-            }
-            else
-            {
-                GD.PushError("imgui-godot: failed to init renderer");
-                internalRenderer = new Internal.DummyRenderer();
-            }
-        }
-
-        Internal.State.Instance = new(mainWindow, mainSubViewport, internalRenderer);
-        Internal.State.Instance.Renderer.InitViewport(mainSubViewport);
-    }
-
     public static void ResetFonts()
     {
-        Internal.State.Instance.Fonts.ResetFonts();
+        _backend.ResetFonts();
     }
 
-    public static void AddFont(FontFile fontData, int fontSize, bool merge = false)
+    public static void AddFont(
+        FontFile fontData,
+        int fontSize,
+        bool merge = false,
+        ushort[]? glyphRanges = null)
     {
-        Internal.State.Instance.Fonts.AddFont(fontData, fontSize, merge);
+        _backend.AddFont(fontData, fontSize, merge, glyphRanges);
+    }
+
+    /// <summary>
+    /// Add a font using glyph ranges from ImGui.GetIO().Fonts.GetGlyphRanges*()
+    /// </summary>
+    /// <param name="glyphRanges">pointer to an array of ushorts terminated by 0</param>
+    public static unsafe void AddFont(FontFile fontData, int fontSize, bool merge, nint glyphRanges)
+    {
+        ushort* p = (ushort*)glyphRanges;
+        int len = 1;
+        while (p[len++] != 0) ;
+        ushort[] gr = new ushort[len];
+        for (int i = 0; i < len; ++i)
+            gr[i] = p[i];
+        _backend.AddFont(fontData, fontSize, merge, gr);
     }
 
     public static void AddFontDefault()
     {
-        Internal.State.Instance.Fonts.AddFont(null, 13, false);
+        _backend.AddFontDefault();
     }
 
     public static void RebuildFontAtlas()
     {
-        if (_inProcessFrame)
-            throw new InvalidOperationException("fonts cannot be changed during process frame");
-
-        Internal.State.Instance.Fonts.RebuildFontAtlas(ScaleToDpi ? Scale * DpiFactor : Scale);
+        _backend.RebuildFontAtlas();
     }
 
-    public static void Update(double delta, Vector2 displaySize)
+    public static void Connect(Callable callable)
     {
-        var io = ImGui.GetIO();
-        io.DisplaySize = new(displaySize.X, displaySize.Y);
-        io.DeltaTime = (float)delta;
-
-        Internal.State.Instance.Input.Update(io);
-
-        _inProcessFrame = true;
-        ImGui.NewFrame();
+        _backend.Connect(callable);
     }
 
-    public static void Render()
+    public static void Connect(Action action)
     {
-        ImGui.Render();
-
-        ImGui.UpdatePlatformWindows();
-        Internal.State.Instance.Renderer.RenderDrawData();
-        _inProcessFrame = false;
-    }
-
-    public static void Shutdown()
-    {
-        Internal.State.Instance.Renderer.Shutdown();
-        if (ImGui.GetCurrentContext() != IntPtr.Zero)
-            ImGui.DestroyContext();
+        Connect(Callable.From(action));
     }
 
     /// <summary>
-    /// EXPERIMENTAL! Please report bugs, with steps to reproduce.
+    /// Changes the main viewport to either a new <see cref="Window"/>
+    /// or a <see cref="SubViewport"/>.
     /// </summary>
-    public static void ExperimentalEnableViewports()
+    public static void SetMainViewport(Viewport vp)
     {
-        var io = ImGui.GetIO();
-        io.BackendFlags |= ImGuiBackendFlags.PlatformHasViewports;
-        io.ConfigFlags |= ImGuiConfigFlags.ViewportsEnable;
+        _backend.SetMainViewport(vp);
+    }
 
-        if (OS.GetName() != "Windows")
+    /// <summary>
+    /// Must call from a tool script before doing anything else
+    /// </summary>
+    public static bool ToolInit()
+    {
+        if (_backend is BackendNative nbe)
         {
-            GD.PushWarning("ImGui Viewports have issues on macOS and Linux https://github.com/ocornut/imgui/wiki/Multi-Viewports#issues");
+            nbe.ToolInit();
+            return true;
         }
 
-        var mainvp = ImGuiLayer.Instance.GetViewport();
-        if (mainvp.GuiEmbedSubwindows)
-        {
-            GD.PushWarning("ImGui Viewports: 'display/window/subwindows/embed_subwindows' needs to be disabled");
-            mainvp.GuiEmbedSubwindows = false;
-        }
+        return false;
     }
 
-    /// <returns>
-    /// True if the InputEvent was consumed
-    /// </returns>
-    public static bool ProcessInput(InputEvent evt, Window window)
+    internal static bool SubViewportWidget(SubViewport svp)
     {
-        return Internal.State.Instance.Input.ProcessInput(evt, window);
+        return _backend.SubViewportWidget(svp);
     }
 
-    /// <summary>
-    /// Extension method to translate between <see cref="Key"/> and <see cref="ImGuiKey"/>
-    /// </summary>
-    public static ImGuiKey ToImGuiKey(this Key key)
+    public static void SetIniFilename(string filename)
     {
-        return Internal.Input.ConvertKey(key);
+        _backend.SetIniFilename(filename);
     }
-
-    /// <summary>
-    /// Extension method to translate between <see cref="JoyButton"/> and <see cref="ImGuiKey"/>
-    /// </summary>
-    public static ImGuiKey ToImGuiKey(this JoyButton button)
-    {
-        return Internal.Input.ConvertJoyButton(button);
-    }
-
-    /// <summary>
-    /// Convert <see cref="Color"/> to ImGui color RGBA
-    /// </summary>
-    public static Vector4 ToVector4(this Color color)
-    {
-        return new Vector4(color.R, color.G, color.B, color.A);
-    }
-
-    /// <summary>
-    /// Convert <see cref="Color"/> to ImGui color RGB
-    /// </summary>
-    public static Vector3 ToVector3(this Color color)
-    {
-        return new Vector3(color.R, color.G, color.B);
-    }
-
-    /// <summary>
-    /// Convert RGB <see cref="Vector3"/> to <see cref="Color"/>
-    /// </summary>
-    public static Color ToColor(this Vector3 vec)
-    {
-        return new Color(vec.X, vec.Y, vec.Z);
-    }
-
-    /// <summary>
-    /// Convert RGBA <see cref="Vector4"/> to <see cref="Color"/>
-    /// </summary>
-    public static Color ToColor(this Vector4 vec)
-    {
-        return new Color(vec.X, vec.Y, vec.Z, vec.W);
-    }
-
-    /// <summary>
-    /// Set IniFilename, converting Godot path to native
-    /// </summary>
-    public static void SetIniFilename(this ImGuiIOPtr io, string fileName)
-    {
-        Internal.State.Instance.SetIniFilename(io, fileName);
-    }
-}
-
-public enum RendererType
-{
-    Dummy,
-    Canvas,
-    RenderingDevice
 }
 #endif

@@ -9,13 +9,15 @@ public partial class ServerPlayer : CharacterBody3D
 {
 	public int MultiplayerID { get; set; } = 0;
 	public int InstantLatency { get; set; } = 0;
+	public float LateralLookAngle { get; set; } = 0;
 
-	private Dictionary<int, byte> _pendingInputs = new();
+	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
 	private int _skippedTicks = 0;
 	private int _inputQueueSize = 0;
 
+
 #nullable enable
-	private byte? _lastInputProcessed = null;
+	private NetMessage.UserInput? _lastInputProcessed = null;
 #nullable disable
 
 	public override void _Process(double delta)
@@ -25,7 +27,7 @@ public partial class ServerPlayer : CharacterBody3D
 
 	public void ProcessPendingCommands(int currentTick)
 	{
-		if (_pendingInputs.TryGetValue(currentTick, out byte input))
+		if (_pendingInputs.TryGetValue(currentTick, out NetMessage.UserInput input))
 		{
 			AdvancePhysics(input);
 			_lastInputProcessed = input;
@@ -39,7 +41,7 @@ public partial class ServerPlayer : CharacterBody3D
 		}
 		else if (_lastInputProcessed.HasValue)
 		{
-			AdvancePhysics((byte)_lastInputProcessed);
+			AdvancePhysics((NetMessage.UserInput)_lastInputProcessed);
 			_skippedTicks++;
 		}
 	}
@@ -61,25 +63,21 @@ public partial class ServerPlayer : CharacterBody3D
 		}
 	}
 
-	private void AdvancePhysics(byte input)
+	private void AdvancePhysics(NetMessage.UserInput input)
 	{
-		this.Velocity = PlayerMovement.ComputeMotion(
-			this.GetRid(),
-			this.GlobalTransform,
-			this.Velocity,
-			PlayerMovement.InputToDirection(input));
-
-		Position += this.Velocity * PlayerMovement.FrameDelta;
+		this.Velocity = MovementCalculator.ComputeVelocity(this, input);
+		this.LateralLookAngle = input.LateralLookAngle;
+		MoveAndSlide();
 	}
-
 
 	public NetMessage.EntityState GetCurrentState()
 	{
 		return new NetMessage.EntityState
 		{
 			Id = MultiplayerID,
-			PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },
-			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z }
+			PosArray = [this.Position.X, this.Position.Y, this.Position.Z],
+			VelArray = [this.Velocity.X, this.Velocity.Y, this.Velocity.Z],
+			LateralLookAngle = this.LateralLookAngle
 		};
 	}
 

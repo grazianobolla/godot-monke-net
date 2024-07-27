@@ -23,7 +23,14 @@ namespace NetMessage
     {
         public int Tick;    // This is the Tick stamp for the latest generated input (Inputs[Inputs.Length])
                             // all other Ticks are (Tick - index)
-        public byte[] Inputs;
+        public UserInput[] Inputs;
+    }
+
+    [MemoryPackable]
+    public partial struct UserInput
+    {
+        public byte Keys;
+        public float LateralLookAngle;
     }
 
     // Game state for a given point in time
@@ -41,6 +48,7 @@ namespace NetMessage
         public int Id; // Entity Id
         public float[] PosArray; // Entity Position
         public float[] VelArray; // Entity velocity
+        public float LateralLookAngle; // Entity velocity
 
         [MemoryPackIgnore]
         public Vector3 Position

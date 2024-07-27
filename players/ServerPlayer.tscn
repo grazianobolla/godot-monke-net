@@ -1,13 +1,12 @@
 [gd_scene load_steps=5 format=3 uid="uid://1fbyoad8h8gr"]
 
 [ext_resource type="Script" path="res://server/ServerPlayer.cs" id="1_o80wb"]
+[ext_resource type="Shape3D" uid="uid://i7s27dvu4bkw" path="res://shared/models/PlayerCollisionShape.tres" id="2_tombl"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ojigt"]
 resource_local_to_scene = true
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_jo7y7"]
 
 [node name="ServerPlayer" type="CharacterBody3D"]
 collision_layer = 0
@@ -18,4 +17,4 @@ material_override = SubResource("StandardMaterial3D_ojigt")
 mesh = SubResource("CapsuleMesh_x0vba")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("CapsuleShape3D_jo7y7")
+shape = ExtResource("2_tombl")
