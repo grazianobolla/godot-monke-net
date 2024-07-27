@@ -1,4 +1,4 @@
-[gd_scene load_steps=17 format=3 uid="uid://i7750q1y5hnq"]
+[gd_scene load_steps=18 format=3 uid="uid://i7750q1y5hnq"]
 
 [ext_resource type="Script" path="res://scripts/MenuController.gd" id="1_n3q4e"]
 [ext_resource type="Script" path="res://debug/debug_label.gd" id="2_uv7ob"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://dp0u7dohrllcb" path="res://players/ClientPlayer.tscn" id="4_35anr"]
 [ext_resource type="PackedScene" uid="uid://1fbyoad8h8gr" path="res://players/ServerPlayer.tscn" id="5_lgfx3"]
 [ext_resource type="PackedScene" uid="uid://dgltayb5g40lt" path="res://players/DummyPlayer.tscn" id="6_82wv5"]
+[ext_resource type="Material" uid="uid://ct434hyvf7a3y" path="res://3d/orange.tres" id="7_7uv18"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_hftyp"]
 sky_top_color = Color(0.262745, 0.521569, 0.878431, 1)
@@ -112,16 +113,19 @@ sides = 16
 
 [node name="CSGBox3D2" type="CSGBox3D" parent="MapProps"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -1, -2)
+material_override = ExtResource("7_7uv18")
 use_collision = true
 size = Vector3(4, 1, 2)
 
 [node name="Ramp3D" type="CSGPolygon3D" parent="MapProps"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, -1)
+material_override = ExtResource("7_7uv18")
 use_collision = true
 polygon = PackedVector2Array(0, 0, 0, 1, 0, 1, 3, 0)
 
 [node name="Ramp3D2" type="CSGPolygon3D" parent="MapProps"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.5, -2)
+material_override = ExtResource("7_7uv18")
 use_collision = true
 polygon = PackedVector2Array(0, 0, 0, 1, 0, 1, 3, 0)
 
