@@ -15,7 +15,6 @@ public partial class ClientManager : Node
 
 	public static ClientManager Instance { get; private set; }
 
-	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
 	private ClientClock _clock;
 	private Node _entityArray;
@@ -63,8 +62,7 @@ public partial class ClientManager : Node
 	{
 		ENetMultiplayerPeer peer = new();
 		peer.CreateClient(_address, _port);
-		_multiplayer.MultiplayerPeer = peer;
-		GetTree().SetMultiplayer(_multiplayer);
+		Multiplayer.MultiplayerPeer = peer;
 		GD.Print("Client connected to ", _address, ":", _port);
 	}
 
@@ -76,7 +74,7 @@ public partial class ClientManager : Node
 				| ImGuiWindowFlags.NoResize
 				| ImGuiWindowFlags.AlwaysAutoResize))
 		{
-			ImGui.Text($"Network ID {_multiplayer.GetUniqueId()}");
+			ImGui.Text($"Network ID {Multiplayer.GetUniqueId()}");
 			ImGui.Text($"Framerate {Engine.GetFramesPerSecond()}fps");
 			ImGui.Text($"Physics Tick {Engine.PhysicsTicksPerSecond}hz");
 			_clock.DisplayDebugInformation();
