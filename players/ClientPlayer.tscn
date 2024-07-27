@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=3 uid="uid://dp0u7dohrllcb"]
 
-[ext_resource type="Script" path="res://client/ClientPlayer.cs" id="1_8wwu4"]
+[ext_resource type="Script" path="res://client/player/ClientPlayer.cs" id="1_k8cwv"]
 [ext_resource type="Script" path="res://client/player/FirstPersonCameraController.cs" id="2_s2twb"]
 [ext_resource type="Shape3D" uid="uid://i7s27dvu4bkw" path="res://shared/models/PlayerCollisionShape.tres" id="3_icclt"]
 [ext_resource type="Script" path="res://client/network/PlayerMovement.cs" id="4_8yyqd"]
@@ -12,7 +12,7 @@ albedo_color = Color(1, 0, 1, 1)
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
 [node name="Player" type="CharacterBody3D"]
-script = ExtResource("1_8wwu4")
+script = ExtResource("1_k8cwv")
 
 [node name="RotationHelperY" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
@@ -25,7 +25,7 @@ metadata/_edit_lock_ = true
 
 [node name="Camera" type="Camera3D" parent="RotationHelperY/RotationHelperX"]
 current = true
-fov = 80.0
+fov = 90.0
 metadata/_edit_lock_ = true
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
