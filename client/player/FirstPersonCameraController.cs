@@ -40,4 +40,9 @@ public partial class FirstPersonCameraController : Node3D
 	{
 		return rotationHelperY.Rotation.Y;
 	}
+
+	public void RotateCameraLateral(float amount)
+	{
+		rotationHelperY.RotateY(amount);
+	}
 }

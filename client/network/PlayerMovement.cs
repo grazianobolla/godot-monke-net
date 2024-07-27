@@ -33,6 +33,9 @@ public partial class PlayerMovement : NetworkedNode
 
 	protected override void OnProcessTick(int currentTick, int currentRemoteTick)
 	{
+		if (!NetworkReady)
+			return;
+
 		LocalInputData localInputData = GenerateUserInput(currentRemoteTick);
 
 		if (_autoMoveEnabled)
@@ -169,14 +172,8 @@ public partial class PlayerMovement : NetworkedNode
 	// For Debug Only
 	private void SolveAutoMove()
 	{
-		if ((_player.Position.X > 0.3f || _player.Position.Z > 0.3f) && _automoveInput == 0b0001_1001)
-		{
-			_automoveInput = 0b0001_0110;
-		}
-		else if ((_player.Position.X < -0.3f || _player.Position.Z < -0.3f) && _automoveInput == 0b0001_0110)
-		{
-			_automoveInput = 0b0001_1001;
-		}
+		_automoveInput = 0b0001_0001;
+		_firstPersonCameraController.RotateCameraLateral(2.0f * PhysicsUtils.FrameTime);
 	}
 
 	public void DisplayDebugInformation()
