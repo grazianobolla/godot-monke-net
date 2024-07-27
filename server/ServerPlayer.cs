@@ -9,10 +9,12 @@ public partial class ServerPlayer : CharacterBody3D
 {
 	public int MultiplayerID { get; set; } = 0;
 	public int InstantLatency { get; set; } = 0;
+	public float LateralLookAngle { get; set; } = 0;
 
 	private Dictionary<int, NetMessage.UserInput> _pendingInputs = new();
 	private int _skippedTicks = 0;
 	private int _inputQueueSize = 0;
+
 
 #nullable enable
 	private NetMessage.UserInput? _lastInputProcessed = null;
@@ -64,6 +66,7 @@ public partial class ServerPlayer : CharacterBody3D
 	private void AdvancePhysics(NetMessage.UserInput input)
 	{
 		this.Velocity = MovementCalculator.ComputeVelocity(this, input);
+		this.LateralLookAngle = input.LateralLookAngle;
 		MoveAndSlide();
 	}
 
@@ -72,8 +75,9 @@ public partial class ServerPlayer : CharacterBody3D
 		return new NetMessage.EntityState
 		{
 			Id = MultiplayerID,
-			PosArray = new float[3] { this.Position.X, this.Position.Y, this.Position.Z },
-			VelArray = new float[3] { this.Velocity.X, this.Velocity.Y, this.Velocity.Z }
+			PosArray = [this.Position.X, this.Position.Y, this.Position.Z],
+			VelArray = [this.Velocity.X, this.Velocity.Y, this.Velocity.Z],
+			LateralLookAngle = this.LateralLookAngle
 		};
 	}
 

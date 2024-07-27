@@ -48,6 +48,7 @@ namespace NetMessage
         public int Id; // Entity Id
         public float[] PosArray; // Entity Position
         public float[] VelArray; // Entity velocity
+        public float LateralLookAngle; // Entity velocity
 
         [MemoryPackIgnore]
         public Vector3 Position

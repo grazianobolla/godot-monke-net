@@ -81,6 +81,14 @@ public partial class SnapshotInterpolator : NetworkedNode
                     if (dummy != null && dummy.IsMultiplayerAuthority() == false)
                     {
                         dummy.Position = pastState.Position.Lerp(futureState.Position, (float)_interpolationFactor);
+
+                        var pastRot = dummy.Rotation;
+                        pastRot.Y = pastState.LateralLookAngle;
+
+                        var newRot = dummy.Rotation;
+                        pastRot.Y = futureState.LateralLookAngle;
+
+                        dummy.Rotation = pastRot.Lerp(newRot, (float)_interpolationFactor);
                     }
                 }
             }

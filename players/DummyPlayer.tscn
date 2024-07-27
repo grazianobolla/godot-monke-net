@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://dgltayb5g40lt"]
+[gd_scene load_steps=5 format=3 uid="uid://dgltayb5g40lt"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n6bau"]
 resource_local_to_scene = true
@@ -6,8 +6,25 @@ albedo_color = Color(0.941176, 0.615686, 0, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_x0vba"]
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_uypgd"]
+albedo_color = Color(0, 0, 0, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_hk0gu"]
+radius = 0.05
+height = 0.1
+
 [node name="Dummy" type="Node3D"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_n6bau")
 mesh = SubResource("CapsuleMesh_x0vba")
+
+[node name="EyesMesh" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.6, -0.45)
+material_override = SubResource("StandardMaterial3D_uypgd")
+mesh = SubResource("SphereMesh_hk0gu")
+
+[node name="EyesMesh2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.6, -0.45)
+material_override = SubResource("StandardMaterial3D_uypgd")
+mesh = SubResource("SphereMesh_hk0gu")
