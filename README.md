@@ -1,7 +1,8 @@
-# Godot 4 Multiplayer Template
+# Godot Monke-Net
 
-> As of 20/02/24 I am actively working on this, I suggest you try the "develop" branch, it has better comments, clearer and improved logic and better debug information. Once I feel its ready I will merge into the main branch and start working on documentation.
+The final goal of this project is to create an Addon for Godot that allows you to easily develop multiplayer solutions in a fast and robust way, especially for frenetic real-time games. Although the project now only exists in C#, in the future it will be ported to a GDExtension to allow both GDScript and C# to be used, but this is a long way off today. In the current state of the project (if you download the project from this repository and open it in Godot) you will see a completely networked First Person Controller, with very robust implementations of Client Side Prediction and Reconciliation, as well as you will be able to see other clients perfectly thanks to Snapshot Interpolation. It's a very good start to working on an FPS game. Although it is not very flexible, in the future Nodes will be created that will make the work much easier, and implementing Vehicles or Platforms on the network will be just a matter of dragging and dropping a script/node.
 
+## What does it include now?
 This multiplayer template includes the implementation of:
 
 - Client Side Prediction and Reconciliation of the Player
@@ -13,10 +14,7 @@ Most of the code is inside the client/ and server/ folders.
 You can use it to speed up your developing process, it is based on the client/auth-server model.
 
 ## Usage
-You will need Godot 4.X and C# with at least Net6
-
-## What it is
-This example demonstrates how to implement a client-server architecture in Godot using the Godot networking API, this can work as a base for a proper game or just to learn how this techniques can be implemented. I did not use RPC calls, I sent packed bytes manually over the network.
+You will need Godot 4.X and C# with at least Net6, just run the game in Godot. If you are alone and want to connect to your own server, run 2 instances of the project by setting Dobug->Run Multiple Instances to _2 Instances_
 
 This diagram tries to explain how the project is structured (note that it may differ from actual code since I'm actively developing this):
 ![Diagram](https://github.com/grazianobolla/godot4-multiplayer-template/assets/35064738/fe528305-a02b-4204-b0d9-7380397190b9)
@@ -27,4 +25,3 @@ This video shows the project in action, I'm simulating a network with 150ms (+ 8
 Keep in mind I can't show Client Side Prediction on a video, you will have to download the project yourself!
 
 **Contact me on Discord (Raz#4584) I will be happy to help**
-
