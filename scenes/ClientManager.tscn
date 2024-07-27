@@ -1,12 +1,12 @@
 [gd_scene load_steps=5 format=3 uid="uid://eykxehuqerja"]
 
-[ext_resource type="Script" path="res://client/network/ClientManager.cs" id="1_y3i7q"]
-[ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_7x6yl"]
-[ext_resource type="Script" path="res://client/network/SnapshotInterpolator.cs" id="3_2ogc1"]
-[ext_resource type="Script" path="res://client/network/ClientClock.cs" id="3_skvws"]
+[ext_resource type="Script" path="res://client/network/ClientManager.cs" id="1_h8wpc"]
+[ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_cwm73"]
+[ext_resource type="Script" path="res://client/network/ClientClock.cs" id="3_3woa3"]
+[ext_resource type="Script" path="res://client/network/SnapshotInterpolator.cs" id="4_5f20g"]
 
-[node name="Client" type="Node"]
-script = ExtResource("1_y3i7q")
+[node name="ClientManager" type="Node"]
+script = ExtResource("1_h8wpc")
 
 [node name="Debug" type="Control" parent="."]
 layout_mode = 3
@@ -15,7 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_7x6yl")
+script = ExtResource("2_cwm73")
 metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="Debug"]
@@ -30,12 +30,12 @@ text = "Client Side"
 horizontal_alignment = 2
 
 [node name="ClientClock" type="Node" parent="."]
-script = ExtResource("3_skvws")
+script = ExtResource("3_3woa3")
 
 [node name="Timer" type="Timer" parent="ClientClock"]
 autostart = true
 
 [node name="SnapshotInterpolator" type="Node" parent="."]
-script = ExtResource("3_2ogc1")
+script = ExtResource("4_5f20g")
 
 [connection signal="timeout" from="ClientClock/Timer" to="ClientClock" method="OnTimerOut"]

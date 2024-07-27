@@ -14,16 +14,14 @@ public abstract partial class NetworkedNode : Node
     private int _networkId;
     private bool _networkReady = false;
     private SceneMultiplayer _multiplayer;
-    private ClientManager _clientManager;
 
     public override void _Ready()
     {
         _multiplayer = (SceneMultiplayer)this.Multiplayer;
         _multiplayer.PeerPacket += OnPacketReceived;
 
-        _clientManager = GetNode<ClientManager>("/root/Main/Client");
-        _clientManager.ClientTick += OnProcessTick;
-        _clientManager.NetworkReady += OnNetworkReady;
+        ClientManager.Instance.ClientTick += OnProcessTick;
+        ClientManager.Instance.NetworkReady += OnNetworkReady;
 
         _networkId = _multiplayer.GetUniqueId();
     }

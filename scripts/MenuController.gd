@@ -1,9 +1,9 @@
 extends Node3D
 
-var _server_scene = preload("res://scenes/Server.tscn")
-var _client_scene = preload("res://scenes/Client.tscn")
+var _server_scene = preload ("res://scenes/ServerManager.tscn")
+var _client_scene = preload ("res://scenes/ClientManager.tscn")
 
-func _on_button_pressed(host:bool):
+func _on_button_pressed(host: bool):
 		if host:
 			$Control/Label.text = "Server Side"
 			self.add_child(_server_scene.instantiate())

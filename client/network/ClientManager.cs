@@ -2,6 +2,7 @@ using Godot;
 using ImGuiNET;
 
 /*
+*	Singleton, call using ClientManager.Instance
 	Network manager for the client, handles server connection and routes packages.
 */
 public partial class ClientManager : Node
@@ -12,6 +13,8 @@ public partial class ClientManager : Node
 	[Signal] public delegate void ClientTickEventHandler(int currentTick, int currentRemoteTick);
 	[Signal] public delegate void NetworkReadyEventHandler();
 
+	public static ClientManager Instance { get; private set; }
+
 	private SceneMultiplayer _multiplayer = new();
 	private SnapshotInterpolator _snapshotInterpolator;
 	private ClientClock _clock;
@@ -20,6 +23,8 @@ public partial class ClientManager : Node
 
 	public override void _EnterTree()
 	{
+		Instance = this;
+
 		_entityArray = GetNode("/root/Main/EntityArray");
 		_networkDebug = GetNode<NetworkDebug>("Debug");
 

@@ -8,13 +8,17 @@ public partial class ServerManager : Node
 {
 	[Export] private int _port = 9999;
 
+	public static ServerManager Instance { get; private set; }
+
 	private SceneMultiplayer _multiplayer = new();
 	private Godot.Collections.Array<Godot.Node> entityArray;
 	private ServerClock _serverClock;
-
 	private int _currentTick = 0;
+
 	public override void _EnterTree()
 	{
+		Instance = this;
+
 		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 
 		StartListening();
