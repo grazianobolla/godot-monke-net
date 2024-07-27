@@ -1,4 +1,5 @@
-#if !GODOT_MOBILE
+#if GODOT_PC
+#nullable enable
 using Godot;
 using ImGuiNET;
 using System;
@@ -6,22 +7,16 @@ using CursorShape = Godot.DisplayServer.CursorShape;
 
 namespace ImGuiGodot.Internal;
 
-internal sealed class Input
+internal class Input
 {
+    internal SubViewport? PreviousSubViewport { get; set; }
     internal SubViewport? CurrentSubViewport { get; set; }
     internal System.Numerics.Vector2 CurrentSubViewportPos { get; set; }
     private Vector2 _mouseWheel = Vector2.Zero;
     private ImGuiMouseCursor _currentCursor = ImGuiMouseCursor.None;
-    private readonly Window _mainWindow;
-    private readonly bool _hasMouse;
+    private readonly bool _hasMouse = DisplayServer.HasFeature(DisplayServer.Feature.Mouse);
 
-    public Input(Window mainWindow)
-    {
-        _mainWindow = mainWindow;
-        _hasMouse = DisplayServer.HasFeature(DisplayServer.Feature.Mouse);
-    }
-
-    private void UpdateMouse(ImGuiIOPtr io)
+    protected virtual void UpdateMousePos(ImGuiIOPtr io)
     {
         var mousePos = DisplayServer.MouseGetPosition();
 
@@ -29,23 +24,35 @@ internal sealed class Input
         {
             if (io.WantSetMousePos)
             {
-#if GODOT4_1_OR_GREATER
                 // WarpMouse is relative to the current focused window
-                int[] windows = DisplayServer.GetWindowList();
-                foreach (int w in windows)
+                foreach (int w in DisplayServer.GetWindowList())
                 {
                     if (DisplayServer.WindowIsFocused(w))
                     {
                         var winPos = DisplayServer.WindowGetPosition(w);
-                        Godot.Input.WarpMouse(new(io.MousePos.X - winPos.X, io.MousePos.Y - winPos.Y));
+                        Godot.Input
+                            .WarpMouse(new(io.MousePos.X - winPos.X, io.MousePos.Y - winPos.Y));
                         break;
                     }
                 }
-#endif
             }
             else
             {
                 io.AddMousePosEvent(mousePos.X, mousePos.Y);
+                uint viewportID = 0;
+                int windowID = DisplayServer.GetWindowAtScreenPosition(mousePos);
+                if (windowID != -1)
+                {
+                    unsafe
+                    {
+                        var vp = ImGui.FindViewportByPlatformHandle(windowID);
+                        if (vp.NativePtr != null)
+                        {
+                            viewportID = vp.ID;
+                        }
+                    }
+                }
+                io.AddMouseViewportEvent(viewportID);
             }
         }
         else
@@ -56,10 +63,15 @@ internal sealed class Input
             }
             else
             {
-                var winPos = _mainWindow.Position;
+                var winPos = State.Instance.Layer.GetWindow().Position;
                 io.AddMousePosEvent(mousePos.X - winPos.X, mousePos.Y - winPos.Y);
             }
         }
+    }
+
+    private void UpdateMouse(ImGuiIOPtr io)
+    {
+        UpdateMousePos(io);
 
         // scrolling works better if we allow no more than one event per frame
         if (_mouseWheel != Vector2.Zero)
@@ -88,36 +100,42 @@ internal sealed class Input
         if (_hasMouse)
             UpdateMouse(io);
 
+        PreviousSubViewport = CurrentSubViewport;
         CurrentSubViewport = null;
     }
 
-    public bool ProcessInput(InputEvent evt, Window window)
+    protected void ProcessSubViewportWidget(InputEvent evt)
     {
-        var io = ImGui.GetIO();
-        bool viewportsEnable = io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable);
-
-        var windowPos = Vector2I.Zero;
-        if (viewportsEnable)
-            windowPos = window.Position;
-
         if (CurrentSubViewport != null)
         {
+            if (CurrentSubViewport != PreviousSubViewport)
+                CurrentSubViewport.Notification((int)Node.NotificationVpMouseEnter);
+
             var vpEvent = evt.Duplicate() as InputEvent;
             if (vpEvent is InputEventMouse mouseEvent)
             {
-                mouseEvent.Position = new Vector2(windowPos.X + mouseEvent.GlobalPosition.X - CurrentSubViewportPos.X,
-                    windowPos.Y + mouseEvent.GlobalPosition.Y - CurrentSubViewportPos.Y)
+                var io = ImGui.GetIO();
+                var mousePos = DisplayServer.MouseGetPosition();
+                var windowPos = Vector2I.Zero;
+                if (!io.ConfigFlags.HasFlag(ImGuiConfigFlags.ViewportsEnable))
+                    windowPos = State.Instance.Layer.GetWindow().Position;
+
+                mouseEvent.Position = new Vector2(
+                    mousePos.X - windowPos.X - CurrentSubViewportPos.X,
+                    mousePos.Y - windowPos.Y - CurrentSubViewportPos.Y)
                     .Clamp(Vector2.Zero, CurrentSubViewport.Size);
             }
             CurrentSubViewport.PushInput(vpEvent, true);
-#if !GODOT4_1_OR_GREATER
-            if (!CurrentSubViewport.IsInputHandled())
-            {
-                CurrentSubViewport.PushUnhandledInput(vpEvent, true);
-            }
-#endif
         }
+        else
+        {
+            PreviousSubViewport?.Notification((int)Node.NotificationVpMouseExit);
+        }
+    }
 
+    protected bool HandleEvent(InputEvent evt)
+    {
+        var io = ImGui.GetIO();
         bool consumed = false;
 
         if (evt is InputEventMouseMotion mm)
@@ -131,11 +149,6 @@ internal sealed class Input
             {
                 case MouseButton.Left:
                     io.AddMouseButtonEvent((int)ImGuiMouseButton.Left, mb.Pressed);
-#if GODOT_WINDOWS && !GODOT4_1_OR_GREATER
-                    // if the left mouse button is released, the mouse almost certainly should not be captured
-                    if (viewportsEnable && !mb.Pressed)
-                        Viewports.MouseCaptureWorkaround();
-#endif
                     break;
                 case MouseButton.Right:
                     io.AddMouseButtonEvent((int)ImGuiMouseButton.Right, mb.Pressed);
@@ -161,7 +174,7 @@ internal sealed class Input
                 case MouseButton.WheelRight:
                     _mouseWheel.X = mb.Factor;
                     break;
-            };
+            }
             consumed = io.WantCaptureMouse;
             mb.Dispose();
         }
@@ -203,7 +216,7 @@ internal sealed class Input
             {
                 bool pressed = true;
                 float v = jm.AxisValue;
-                if (Math.Abs(v) < ImGuiGD.JoyAxisDeadZone)
+                if (Math.Abs(v) < State.Instance.JoyAxisDeadZone)
                 {
                     v = 0f;
                     pressed = false;
@@ -228,13 +241,19 @@ internal sealed class Input
                     case JoyAxis.TriggerRight:
                         io.AddKeyAnalogEvent(ImGuiKey.GamepadR2, pressed, v);
                         break;
-                };
+                }
                 consumed = true;
                 jm.Dispose();
             }
         }
 
         return consumed;
+    }
+
+    public virtual bool ProcessInput(InputEvent evt)
+    {
+        ProcessSubViewportWidget(evt);
+        return HandleEvent(evt);
     }
 
     public static void ProcessNotification(long what)
@@ -247,7 +266,7 @@ internal sealed class Input
             case MainLoop.NotificationApplicationFocusOut:
                 ImGui.GetIO().AddFocusEvent(false);
                 break;
-        };
+        }
     }
 
     private static void UpdateKeyMods(ImGuiIOPtr io)
@@ -277,9 +296,9 @@ internal sealed class Input
         JoyButton.Start => ImGuiKey.GamepadStart,
         JoyButton.Back => ImGuiKey.GamepadBack,
         JoyButton.Y => ImGuiKey.GamepadFaceUp,
-        JoyButton.A => ImGuiGD.JoyButtonSwapAB ? ImGuiKey.GamepadFaceRight : ImGuiKey.GamepadFaceDown,
+        JoyButton.A => ImGuiKey.GamepadFaceDown,
         JoyButton.X => ImGuiKey.GamepadFaceLeft,
-        JoyButton.B => ImGuiGD.JoyButtonSwapAB ? ImGuiKey.GamepadFaceDown : ImGuiKey.GamepadFaceRight,
+        JoyButton.B => ImGuiKey.GamepadFaceRight,
         JoyButton.DpadUp => ImGuiKey.GamepadDpadUp,
         JoyButton.DpadDown => ImGuiKey.GamepadDpadDown,
         JoyButton.DpadLeft => ImGuiKey.GamepadDpadLeft,
