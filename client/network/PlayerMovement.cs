@@ -10,10 +10,10 @@ using NetMessage;
 */
 public partial class PlayerMovement : NetworkedNode
 {
-	[Export] private float MaxDeviationAllowedThousands = 0.1f;                     // Allows for some very deviation when comparing results with the server state (0.1 == 0.0001 units of deviation allowed)
+	[Export] private float MaxDeviationAllowedThousands = 0.1f;                     // Allows for some very small deviation when comparing results with the server state (0.1 == 0.0001 units of deviation allowed)
 	[Export] private FirstPersonCameraController _firstPersonCameraController;
 
-	private readonly List<LocalInputData> _userInputs = new();
+	private readonly List<LocalInputData> _userInputs = [];
 	private CharacterBody3D _player;
 	private int _lastStampReceived = 0;
 	private int _misspredictionCounter = 0;
