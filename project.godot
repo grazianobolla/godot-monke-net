@@ -18,6 +18,7 @@ config/icon="res://icon.svg"
 [autoload]
 
 ImGuiRoot="*res://addons/imgui-godot/data/ImGuiRoot.tscn"
+NetworkManager="*res://shared/NetworkManager.cs"
 
 [display]
 

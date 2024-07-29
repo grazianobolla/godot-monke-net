@@ -1,4 +1,6 @@
-[gd_scene load_steps=5 format=3 uid="uid://dgltayb5g40lt"]
+[gd_scene load_steps=6 format=3 uid="uid://dgltayb5g40lt"]
+
+[ext_resource type="Script" path="res://client/dummy/DummyPlayer.cs" id="1_7pmqo"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n6bau"]
 resource_local_to_scene = true
@@ -14,6 +16,7 @@ radius = 0.05
 height = 0.1
 
 [node name="Dummy" type="Node3D"]
+script = ExtResource("1_7pmqo")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_n6bau")

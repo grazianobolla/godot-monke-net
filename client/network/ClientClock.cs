@@ -35,7 +35,7 @@ public partial class ClientClock : NetworkedNode
         _minLatencyInTicks = PhysicsUtils.MsecToTick(_minLatency);
     }
 
-    protected override void OnServerPacketReceived(NetMessage.ICommand command)
+    protected override void OnCommandReceived(NetMessage.ICommand command)
     {
         if (command is NetMessage.Sync sync)
         {
@@ -144,8 +144,7 @@ public partial class ClientClock : NetworkedNode
             ServerTime = 0
         };
 
-        byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync);
-        SendBytesToServer(data, SendMode.UDP, 1);
+        SendCommandToServer(sync, NetworkManager.PacketMode.Unreliable, 1);
     }
 
     public void DisplayDebugInformation()

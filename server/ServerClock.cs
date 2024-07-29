@@ -54,7 +54,7 @@ public partial class ServerClock : Node
 		if (command is NetMessage.Sync sync)
 		{
 			sync.ServerTime = _currentTick;
-			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1);
+			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1); //FIXME: create enum for enet channels
 		}
 	}
 

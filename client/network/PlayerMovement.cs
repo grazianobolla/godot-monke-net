@@ -10,10 +10,10 @@ using NetMessage;
 */
 public partial class PlayerMovement : NetworkedNode
 {
-	[Export] private float MaxDeviationAllowedThousands = 0.1f;                     // Allows for some very deviation when comparing results with the server state (0.1 == 0.0001 units of deviation allowed)
+	[Export] private float MaxDeviationAllowedThousands = 0.1f;                     // Allows for some very small deviation when comparing results with the server state (0.1 == 0.0001 units of deviation allowed)
 	[Export] private FirstPersonCameraController _firstPersonCameraController;
 
-	private readonly List<LocalInputData> _userInputs = new();
+	private readonly List<LocalInputData> _userInputs = [];
 	private CharacterBody3D _player;
 	private int _lastStampReceived = 0;
 	private int _misspredictionCounter = 0;
@@ -33,6 +33,9 @@ public partial class PlayerMovement : NetworkedNode
 
 	protected override void OnProcessTick(int currentTick, int currentRemoteTick)
 	{
+		if (!NetworkReady)
+			return;
+
 		LocalInputData localInputData = GenerateUserInput(currentRemoteTick);
 
 		if (_autoMoveEnabled)
@@ -46,7 +49,7 @@ public partial class PlayerMovement : NetworkedNode
 		localInputData.Position = _player.GlobalPosition;
 	}
 
-	protected override void OnServerPacketReceived(ICommand command)
+	protected override void OnCommandReceived(NetMessage.ICommand command)
 	{
 		if (command is NetMessage.GameSnapshot snapshot)
 		{
@@ -75,8 +78,7 @@ public partial class PlayerMovement : NetworkedNode
 			Inputs = _userInputs.Select(i => i.Input).ToArray()
 		};
 
-		byte[] bin = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
-		this.SendBytesToServer(bin, SendMode.UDP, 0);
+		SendCommandToServer(userCmd, NetworkManager.PacketMode.Unreliable, 0);
 	}
 
 	private void ProcessServerState(NetMessage.EntityState incomingState, int incomingStateTick)
@@ -169,14 +171,8 @@ public partial class PlayerMovement : NetworkedNode
 	// For Debug Only
 	private void SolveAutoMove()
 	{
-		if ((_player.Position.X > 0.3f || _player.Position.Z > 0.3f) && _automoveInput == 0b0001_1001)
-		{
-			_automoveInput = 0b0001_0110;
-		}
-		else if ((_player.Position.X < -0.3f || _player.Position.Z < -0.3f) && _automoveInput == 0b0001_0110)
-		{
-			_automoveInput = 0b0001_1001;
-		}
+		_automoveInput = 0b0001_0001;
+		_firstPersonCameraController.RotateCameraLateral(2.0f * PhysicsUtils.FrameTime);
 	}
 
 	public void DisplayDebugInformation()

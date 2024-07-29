@@ -34,7 +34,7 @@ public partial class SnapshotInterpolator : NetworkedNode
         _currentTick = currentTick;
     }
 
-    protected override void OnServerPacketReceived(NetMessage.ICommand command)
+    protected override void OnCommandReceived(NetMessage.ICommand command)
     {
         if (command is NetMessage.GameSnapshot snapshot)
         {
@@ -76,19 +76,11 @@ public partial class SnapshotInterpolator : NetworkedNode
                     NetMessage.EntityState futureState = nextSnapshot.States[i];
                     NetMessage.EntityState pastState = prevSnapshot.States[i];
 
-                    var dummy = _entityArray.GetNodeOrNull<Node3D>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
+                    var entity = _entityArray.GetNodeOrNull<Node>(futureState.Id.ToString()); //FIXME: remove GetNode for the love of god
 
-                    if (dummy != null && dummy.IsMultiplayerAuthority() == false)
+                    if (entity != null && entity is IInterpolatedEntity interpolatedEntity)
                     {
-                        dummy.Position = pastState.Position.Lerp(futureState.Position, (float)_interpolationFactor);
-
-                        var pastRot = dummy.Rotation;
-                        pastRot.Y = pastState.LateralLookAngle;
-
-                        var newRot = dummy.Rotation;
-                        pastRot.Y = futureState.LateralLookAngle;
-
-                        dummy.Rotation = pastRot.Lerp(newRot, (float)_interpolationFactor);
+                        interpolatedEntity.HandleStateInterpolation(pastState, futureState, (float)_interpolationFactor);
                     }
                 }
             }
