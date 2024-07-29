@@ -1,8 +1,9 @@
 using Godot;
 
 /*
-    This node can be inherited anywhere in the project, and will allow you to receive send commands to the server
+    This node can be inherited anywhere in your game, and will allow you to receive send commands to the server
 */
+namespace Client;
 public abstract partial class ClientNetworkNode : Node
 {
     protected virtual void OnCommandReceived(NetMessage.ICommand command) { }

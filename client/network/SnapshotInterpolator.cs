@@ -2,6 +2,8 @@ using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
 
+namespace Client;
+
 /*
     Receives and presents the Player the snapshots emmited by the server.
 */

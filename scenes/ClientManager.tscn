@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://client/network/ClientManager.cs" id="1_h8wpc"]
 [ext_resource type="Script" path="res://shared/network/NetworkDebug.cs" id="2_jn0hm"]
-[ext_resource type="Script" path="res://client/network/ClientClock.cs" id="3_3woa3"]
+[ext_resource type="Script" path="res://client/network/ClientNetworkClock.cs" id="3_ej4qx"]
 [ext_resource type="Script" path="res://client/network/SnapshotInterpolator.cs" id="4_5f20g"]
 
 [node name="ClientManager" type="Node"]
@@ -30,8 +30,7 @@ text = "Client Side"
 horizontal_alignment = 2
 
 [node name="ClientClock" type="Node" parent="."]
-script = ExtResource("3_3woa3")
-_sampleSize = 3
+script = ExtResource("3_ej4qx")
 
 [node name="Timer" type="Timer" parent="ClientClock"]
 autostart = true

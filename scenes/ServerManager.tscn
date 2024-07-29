@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://server/ServerManager.cs" id="1_x5lin"]
 [ext_resource type="Script" path="res://shared/network/NetworkDebug.cs" id="2_v628a"]
-[ext_resource type="Script" path="res://server/ServerClock.cs" id="3_1yy7j"]
+[ext_resource type="Script" path="res://server/ServerNetworkClock.cs" id="3_60ghs"]
 
 [node name="ServerManager" type="Node"]
 script = ExtResource("1_x5lin")
@@ -28,4 +28,4 @@ text = "Server Side"
 horizontal_alignment = 2
 
 [node name="ServerClock" type="Node" parent="."]
-script = ExtResource("3_1yy7j")
+script = ExtResource("3_60ghs")

@@ -1,7 +1,8 @@
 using Godot;
 using ImGuiNET;
 using MemoryPack;
-using System.Linq;
+
+namespace Server;
 
 public partial class ServerManager : Node
 {
@@ -14,7 +15,7 @@ public partial class ServerManager : Node
 	public static ServerManager Instance { get; private set; }
 
 	private Godot.Collections.Array<Godot.Node> entityArray;
-	private ServerClock _serverClock;
+	private ServerNetworkClock _serverClock;
 	private int _currentTick = 0;
 
 	public override void _EnterTree()
@@ -24,7 +25,7 @@ public partial class ServerManager : Node
 		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 
 		StartListening();
-		_serverClock = GetNode<ServerClock>("ServerClock");
+		_serverClock = GetNode<ServerNetworkClock>("ServerClock");
 		_serverClock.NetworkProcessTick += OnNetworkProcess;
 	}
 

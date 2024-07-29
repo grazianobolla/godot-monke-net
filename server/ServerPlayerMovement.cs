@@ -4,6 +4,8 @@ using NetMessage;
 using System.Collections.Generic;
 using System.Linq;
 
+namespace Server;
+
 /*
     Main server player movement script, received and applies inputs from the client. 
 */

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using ImGuiNET;
 using System.Linq;
 
+namespace Client;
+
 /*
     Main player movement script, send movement packets to the server, does CSP, and reconciliation. 
 */

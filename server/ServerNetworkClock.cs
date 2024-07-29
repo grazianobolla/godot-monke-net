@@ -1,9 +1,9 @@
 using Godot;
 using ImGuiNET;
-using MemoryPack;
-using System;
 
-public partial class ServerClock : ServerNetworkNode
+namespace Server;
+
+public partial class ServerNetworkClock : ServerNetworkNode
 {
 	[Signal] public delegate void NetworkProcessTickEventHandler(double delta);
 

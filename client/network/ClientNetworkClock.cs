@@ -1,13 +1,14 @@
 using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
-using MemoryPack;
+
+namespace Client;
 
 /*
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
     This Node should be self contained.
 */
-public partial class ClientClock : ClientNetworkNode
+public partial class ClientNetworkClock : ClientNetworkNode
 {
     // Called every time latency is calculated
     [Signal] public delegate void LatencyCalculatedEventHandler(int latencyAverageTicks, int jitterAverageTicks);

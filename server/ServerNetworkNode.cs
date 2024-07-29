@@ -1,5 +1,7 @@
 using Godot;
 
+namespace Server;
+
 /*
     This node can be inherited anywhere in the project, and will allow you to receive and send commands from/to a client/s
 */
