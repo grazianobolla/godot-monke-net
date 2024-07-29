@@ -3,14 +3,12 @@ using ImGuiNET;
 using MemoryPack;
 using System.Linq;
 
-//
 public partial class ServerManager : Node
 {
 	[Export] private int _port = 9999;
 
 	public static ServerManager Instance { get; private set; }
 
-	private SceneMultiplayer _multiplayer = new();
 	private Godot.Collections.Array<Godot.Node> entityArray;
 	private ServerClock _serverClock;
 	private int _currentTick = 0;
@@ -62,10 +60,8 @@ public partial class ServerManager : Node
 			snapshot.States[i] = player.GetCurrentState();
 		}
 
-		byte[] data = MemoryPackSerializer.Serialize<NetMessage.ICommand>(snapshot);
-
-		_multiplayer.SendBytes(data, 0,
-			MultiplayerPeer.TransferModeEnum.Unreliable, 0);
+		byte[] bin = MemoryPackSerializer.Serialize<NetMessage.ICommand>(snapshot);
+		NetworkManager.Instance.SendBytes(bin, 0, 0, NetworkManager.PacketMode.Unreliable);
 	}
 
 	// Route received Input package to the correspondant Network ID
@@ -80,35 +76,28 @@ public partial class ServerManager : Node
 
 	}
 
-	private void OnPeerConnected(long id)
+	private void OnPlayerConnected(long id)
 	{
 		Node playerInstance = GetNode<MultiplayerSpawner>("/root/Main/MultiplayerSpawner").Spawn(id);
 		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
-		GD.Print($"Peer {id} connected");
+		GD.Print($"Player {id} connected");
 	}
 
-	private void OnPeerDisconnected(long id)
+	private void OnPlayerDisconnected(long id)
 	{
 		var player = GetNode($"/root/Main/EntityArray/{id}");
 		entityArray.Remove(player);
 		player.QueueFree();
-		GD.Print($"Peer {id} disconnected");
+		GD.Print($"Player {id} disconnected");
 	}
 
 	// Starts the server
 	private void StartListening()
 	{
-		_multiplayer.PeerConnected += OnPeerConnected;
-		_multiplayer.PeerDisconnected += OnPeerDisconnected;
-		_multiplayer.PeerPacket += OnPacketReceived;
-
-		ENetMultiplayerPeer peer = new();
-		peer.CreateServer(_port);
-
-		_multiplayer.MultiplayerPeer = peer;
-		GetTree().SetMultiplayer(_multiplayer);
-
-		GD.Print("Server listening on ", _port);
+		NetworkManager.Instance.CreateServer(_port);
+		NetworkManager.Instance.PlayerConnected += OnPlayerConnected;
+		NetworkManager.Instance.PlayerDisconnected += OnPlayerDisconnected;
+		NetworkManager.Instance.PacketReceived += OnPacketReceived;
 	}
 
 	private void DisplayDebugInformation()

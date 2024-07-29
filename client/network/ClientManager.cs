@@ -1,9 +1,11 @@
+using System;
+using System.Net.NetworkInformation;
 using Godot;
 using ImGuiNET;
+using MemoryPack;
 
 /*
 *	Singleton, call using ClientManager.Instance
-	Network manager for the client, handles server connection and routes packages.
 */
 public partial class ClientManager : Node
 {
@@ -12,6 +14,8 @@ public partial class ClientManager : Node
 
 	[Signal] public delegate void ClientTickEventHandler(int currentTick, int currentRemoteTick);
 	[Signal] public delegate void NetworkReadyEventHandler();
+	public delegate void CommandReceivedEventHandler(NetMessage.ICommand command);
+	public event CommandReceivedEventHandler CommandReceived;
 
 	public static ClientManager Instance { get; private set; }
 
@@ -52,18 +56,33 @@ public partial class ClientManager : Node
 		EmitSignal(SignalName.ClientTick, currentTick, currentRemoteTick);
 	}
 
+	public void SendCommandToServer(NetMessage.ICommand command, NetworkManager.PacketMode mode, int channel)
+	{
+		byte[] bin = MemoryPackSerializer.Serialize<NetMessage.ICommand>(command);
+		NetworkManager.Instance.SendBytes(bin, 1, channel, mode);
+	}
+
+	public int GetNetworkId()
+	{
+		return NetworkManager.Instance.GetNetworkId();
+	}
+
 	private void OnLatencyCalculated(int latencyAverageTicks, int jitterAverageTicks)
 	{
 		_snapshotInterpolator.SetBufferTime(latencyAverageTicks + jitterAverageTicks);
 		EmitSignal(SignalName.NetworkReady);
 	}
 
+	private void OnPacketReceived(long id, byte[] bin)
+	{
+		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(bin);
+		CommandReceived?.Invoke(command);
+	}
+
 	private void ConnectClient()
 	{
-		ENetMultiplayerPeer peer = new();
-		peer.CreateClient(_address, _port);
-		Multiplayer.MultiplayerPeer = peer;
-		GD.Print("Client connected to ", _address, ":", _port);
+		NetworkManager.Instance.ConnectToServer(_address, _port);
+		NetworkManager.Instance.PacketReceived += OnPacketReceived;
 	}
 
 	private void DisplayDebugInformation()

@@ -49,7 +49,7 @@ public partial class PlayerMovement : NetworkedNode
 		localInputData.Position = _player.GlobalPosition;
 	}
 
-	protected override void OnServerPacketReceived(ICommand command)
+	protected override void OnCommandReceived(NetMessage.ICommand command)
 	{
 		if (command is NetMessage.GameSnapshot snapshot)
 		{
@@ -78,8 +78,7 @@ public partial class PlayerMovement : NetworkedNode
 			Inputs = _userInputs.Select(i => i.Input).ToArray()
 		};
 
-		byte[] bin = MemoryPackSerializer.Serialize<NetMessage.ICommand>(userCmd);
-		this.SendBytesToServer(bin, SendMode.UDP, 0);
+		SendCommandToServer(userCmd, NetworkManager.PacketMode.Unreliable, 0);
 	}
 
 	private void ProcessServerState(NetMessage.EntityState incomingState, int incomingStateTick)

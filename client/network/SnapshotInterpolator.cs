@@ -34,7 +34,7 @@ public partial class SnapshotInterpolator : NetworkedNode
         _currentTick = currentTick;
     }
 
-    protected override void OnServerPacketReceived(NetMessage.ICommand command)
+    protected override void OnCommandReceived(NetMessage.ICommand command)
     {
         if (command is NetMessage.GameSnapshot snapshot)
         {
