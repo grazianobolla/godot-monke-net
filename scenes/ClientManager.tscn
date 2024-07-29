@@ -1,7 +1,7 @@
 [gd_scene load_steps=5 format=3 uid="uid://eykxehuqerja"]
 
 [ext_resource type="Script" path="res://client/network/ClientManager.cs" id="1_h8wpc"]
-[ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_cwm73"]
+[ext_resource type="Script" path="res://shared/network/NetworkDebug.cs" id="2_cwm73"]
 [ext_resource type="Script" path="res://client/network/ClientClock.cs" id="3_3woa3"]
 [ext_resource type="Script" path="res://client/network/SnapshotInterpolator.cs" id="4_5f20g"]
 
