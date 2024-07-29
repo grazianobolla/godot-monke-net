@@ -1,7 +1,7 @@
 using Godot;
 
 /*
-    This node can be inherited anywhere in the project, and will allow you to receive send commands to the server
+    This node can be inherited anywhere in the project, and will allow you to receive and send commands from/to a client/s
 */
 public abstract partial class ServerNetworkNode : Node
 {
@@ -19,7 +19,7 @@ public abstract partial class ServerNetworkNode : Node
         ServerManager.Instance.SendCommandToClient(peerId, command, mode, channel);
     }
 
-    protected static int NetworkId
+    protected int NetworkId
     {
         get { return ServerManager.Instance.GetNetworkId(); }
     }

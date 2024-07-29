@@ -11,6 +11,11 @@ public partial class ServerClock : ServerNetworkNode
 	private double _netTickCounter = 0;
 	private int _currentTick = 0;
 
+	public override void _Ready()
+	{
+		base._Ready();
+	}
+
 	public override void _Process(double delta)
 	{
 		DisplayDebugInformation();

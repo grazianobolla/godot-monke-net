@@ -31,6 +31,7 @@ horizontal_alignment = 2
 
 [node name="ClientClock" type="Node" parent="."]
 script = ExtResource("3_3woa3")
+_sampleSize = 3
 
 [node name="Timer" type="Timer" parent="ClientClock"]
 autostart = true

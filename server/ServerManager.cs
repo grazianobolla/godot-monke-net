@@ -25,7 +25,7 @@ public partial class ServerManager : Node
 
 		StartListening();
 		_serverClock = GetNode<ServerClock>("ServerClock");
-		_serverClock.NetworkProcessTick += NetworkProcess;
+		_serverClock.NetworkProcessTick += OnNetworkProcess;
 	}
 
 	public override void _Process(double delta)
@@ -37,11 +37,11 @@ public partial class ServerManager : Node
 	{
 		_currentTick = _serverClock.ProcessTick();
 		EmitSignal(SignalName.ServerTick, _currentTick);
-		foreach (var player in entityArray.OfType<ServerPlayer>())
-		{
-			player.ProcessPendingCommands(_currentTick);
-		}
+	}
 
+	private void OnNetworkProcess(double delta)
+	{
+		BroadcastSnapshot(_currentTick);
 	}
 
 	public void SendCommandToClient(int peerId, NetMessage.ICommand command, NetworkManager.PacketMode mode, int channel)
@@ -53,11 +53,6 @@ public partial class ServerManager : Node
 	public int GetNetworkId()
 	{
 		return NetworkManager.Instance.GetNetworkId();
-	}
-
-	private void NetworkProcess(double delta)
-	{
-		BroadcastSnapshot(_currentTick);
 	}
 
 	// Pack and send GameSnapshot with all entities and their information
@@ -84,13 +79,6 @@ public partial class ServerManager : Node
 	{
 		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
 		CommandReceived?.Invoke(id, command);
-
-		if (command is NetMessage.UserCommand userCommand)
-		{
-			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here
-			player.PushCommand(userCommand);
-		}
-
 	}
 
 	private void OnPlayerConnected(long id)

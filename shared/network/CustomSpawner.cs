@@ -30,7 +30,7 @@ public partial class CustomSpawner : MultiplayerSpawner
             GD.Print("Spawned server character");
             ServerPlayer player = _serverPlayerScene.Instantiate() as ServerPlayer;
             player.Name = spawnedPlayerID.ToString();
-            player.MultiplayerID = spawnedPlayerID;
+            player.PlayerId = spawnedPlayerID;
             return player;
         }
 
