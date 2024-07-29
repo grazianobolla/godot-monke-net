@@ -8,7 +8,7 @@ using NetMessage;
 /*
     Main player movement script, send movement packets to the server, does CSP, and reconciliation. 
 */
-public partial class PlayerMovement : NetworkedNode
+public partial class PlayerMovement : ClientNetworkNode
 {
 	[Export] private float MaxDeviationAllowedThousands = 0.1f;                     // Allows for some very small deviation when comparing results with the server state (0.1 == 0.0001 units of deviation allowed)
 	[Export] private FirstPersonCameraController _firstPersonCameraController;

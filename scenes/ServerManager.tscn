@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://bog1us6frffkj"]
 
 [ext_resource type="Script" path="res://server/ServerManager.cs" id="1_x5lin"]
-[ext_resource type="Script" path="res://shared/network/NetworkDebug.cs" id="2_qtnvb"]
+[ext_resource type="Script" path="res://shared/network/NetworkDebug.cs" id="2_v628a"]
 [ext_resource type="Script" path="res://server/ServerClock.cs" id="3_1yy7j"]
 
 [node name="ServerManager" type="Node"]
@@ -14,7 +14,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_qtnvb")
+script = ExtResource("2_v628a")
 
 [node name="Label" type="Label" parent="Debug"]
 layout_mode = 1

@@ -7,7 +7,7 @@ using MemoryPack;
     Syncs the clients clock with the servers one, in the process it calculates latency and other debug information.
     This Node should be self contained.
 */
-public partial class ClientClock : NetworkedNode
+public partial class ClientClock : ClientNetworkNode
 {
     // Called every time latency is calculated
     [Signal] public delegate void LatencyCalculatedEventHandler(int latencyAverageTicks, int jitterAverageTicks);

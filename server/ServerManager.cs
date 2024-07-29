@@ -7,6 +7,10 @@ public partial class ServerManager : Node
 {
 	[Export] private int _port = 9999;
 
+	[Signal] public delegate void ServerTickEventHandler(int currentTick);
+	public delegate void CommandReceivedEventHandler(long peerId, NetMessage.ICommand command); // Using a C# signal here because the Godot signal wouldn't accept NetMessage.ICommand
+	public event CommandReceivedEventHandler CommandReceived;
+
 	public static ServerManager Instance { get; private set; }
 
 	private Godot.Collections.Array<Godot.Node> entityArray;
@@ -32,12 +36,23 @@ public partial class ServerManager : Node
 	public override void _PhysicsProcess(double delta)
 	{
 		_currentTick = _serverClock.ProcessTick();
-
+		EmitSignal(SignalName.ServerTick, _currentTick);
 		foreach (var player in entityArray.OfType<ServerPlayer>())
 		{
 			player.ProcessPendingCommands(_currentTick);
 		}
 
+	}
+
+	public void SendCommandToClient(int peerId, NetMessage.ICommand command, NetworkManager.PacketMode mode, int channel)
+	{
+		byte[] bin = MemoryPackSerializer.Serialize<NetMessage.ICommand>(command);
+		NetworkManager.Instance.SendBytes(bin, peerId, channel, mode);
+	}
+
+	public int GetNetworkId()
+	{
+		return NetworkManager.Instance.GetNetworkId();
 	}
 
 	private void NetworkProcess(double delta)
@@ -68,6 +83,8 @@ public partial class ServerManager : Node
 	private void OnPacketReceived(long id, byte[] data)
 	{
 		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
+		CommandReceived?.Invoke(id, command);
+
 		if (command is NetMessage.UserCommand userCommand)
 		{
 			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here

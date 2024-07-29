@@ -10,6 +10,12 @@ public partial class NetworkManager : Node
 		Reliable, Unreliable
 	}
 
+	public enum AudienceMode : int
+	{
+		Broadcast = 0,
+		Server = 1
+	}
+
 	[Signal] public delegate void PlayerConnectedEventHandler(long id);
 	[Signal] public delegate void PlayerDisconnectedEventHandler(long id);
 	[Signal] public delegate void PacketReceivedEventHandler(long id, byte[] bin);
