@@ -1,6 +1,8 @@
 using Godot;
 using NetMessage;
 
+namespace Client;
+
 public partial class DummyPlayer : Node3D, IInterpolatedEntity
 {
 	public void HandleStateInterpolation(EntityState pastState, EntityState futureState, float interpolationFactor)
@@ -15,5 +17,4 @@ public partial class DummyPlayer : Node3D, IInterpolatedEntity
 
 		Rotation = pastRot.Lerp(newRot, interpolationFactor);
 	}
-
 }

@@ -1,6 +1,8 @@
 using Godot;
 using System;
 
+namespace Client;
+
 public partial class FirstPersonCameraController : Node3D
 {
 	[Export] float mouse_sensitivity = 0.05f;

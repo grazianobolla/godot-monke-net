@@ -1,8 +1,8 @@
 [gd_scene load_steps=5 format=3 uid="uid://eykxehuqerja"]
 
 [ext_resource type="Script" path="res://client/network/ClientManager.cs" id="1_h8wpc"]
-[ext_resource type="Script" path="res://shared/NetworkDebug.cs" id="2_cwm73"]
-[ext_resource type="Script" path="res://client/network/ClientClock.cs" id="3_3woa3"]
+[ext_resource type="Script" path="res://shared/network/NetworkDebug.cs" id="2_jn0hm"]
+[ext_resource type="Script" path="res://client/network/ClientNetworkClock.cs" id="3_ej4qx"]
 [ext_resource type="Script" path="res://client/network/SnapshotInterpolator.cs" id="4_5f20g"]
 
 [node name="ClientManager" type="Node"]
@@ -15,7 +15,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-script = ExtResource("2_cwm73")
+script = ExtResource("2_jn0hm")
 metadata/_edit_lock_ = true
 
 [node name="Label" type="Label" parent="Debug"]
@@ -30,7 +30,7 @@ text = "Client Side"
 horizontal_alignment = 2
 
 [node name="ClientClock" type="Node" parent="."]
-script = ExtResource("3_3woa3")
+script = ExtResource("3_ej4qx")
 
 [node name="Timer" type="Timer" parent="ClientClock"]
 autostart = true

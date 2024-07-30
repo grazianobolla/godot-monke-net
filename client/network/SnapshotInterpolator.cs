@@ -2,10 +2,12 @@ using Godot;
 using System.Collections.Generic;
 using ImGuiNET;
 
+namespace Client;
+
 /*
     Receives and presents the Player the snapshots emmited by the server.
 */
-public partial class SnapshotInterpolator : NetworkedNode
+public partial class SnapshotInterpolator : ClientNetworkNode
 {
     [Export] private int _minBufferTime = 3;
 

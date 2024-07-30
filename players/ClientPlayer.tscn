@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://client/player/ClientPlayer.cs" id="1_k8cwv"]
 [ext_resource type="Script" path="res://client/player/FirstPersonCameraController.cs" id="2_s2twb"]
 [ext_resource type="Shape3D" uid="uid://i7s27dvu4bkw" path="res://shared/models/PlayerCollisionShape.tres" id="3_icclt"]
-[ext_resource type="Script" path="res://client/network/PlayerMovement.cs" id="4_8yyqd"]
+[ext_resource type="Script" path="res://client/network/ClientPlayerMovement.cs" id="4_5y8c8"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_n5ck7"]
 resource_local_to_scene = true
@@ -36,5 +36,5 @@ mesh = SubResource("CapsuleMesh_x0vba")
 shape = ExtResource("3_icclt")
 
 [node name="PlayerMovement" type="Node" parent="." node_paths=PackedStringArray("_firstPersonCameraController")]
-script = ExtResource("4_8yyqd")
+script = ExtResource("4_5y8c8")
 _firstPersonCameraController = NodePath("../RotationHelperY/RotationHelperX")

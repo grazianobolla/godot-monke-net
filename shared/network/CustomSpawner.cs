@@ -7,7 +7,7 @@ public partial class CustomSpawner : MultiplayerSpawner
     [Export] private PackedScene _serverPlayerScene;
     [Export] private PackedScene _dummyScene;
 
-    public static ClientPlayer LocalPlayer;
+    public static Client.ClientPlayer LocalPlayer;
 
     public override void _Ready()
     {
@@ -30,7 +30,7 @@ public partial class CustomSpawner : MultiplayerSpawner
             GD.Print("Spawned server character");
             ServerPlayer player = _serverPlayerScene.Instantiate() as ServerPlayer;
             player.Name = spawnedPlayerID.ToString();
-            player.MultiplayerID = spawnedPlayerID;
+            player.PlayerId = spawnedPlayerID;
             return player;
         }
 
@@ -38,7 +38,7 @@ public partial class CustomSpawner : MultiplayerSpawner
         if (localID == spawnedPlayerID)
         {
             GD.Print("Spawned client player");
-            ClientPlayer player = _playerScene.Instantiate() as ClientPlayer;
+            var player = _playerScene.Instantiate() as Client.ClientPlayer;
             player.Name = spawnedPlayerID.ToString();
             player.SetMultiplayerAuthority(spawnedPlayerID);
             LocalPlayer = player;

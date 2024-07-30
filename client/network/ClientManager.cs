@@ -1,8 +1,8 @@
-using System;
-using System.Net.NetworkInformation;
 using Godot;
 using ImGuiNET;
 using MemoryPack;
+
+namespace Client;
 
 /*
 *	Singleton, call using ClientManager.Instance
@@ -14,13 +14,14 @@ public partial class ClientManager : Node
 
 	[Signal] public delegate void ClientTickEventHandler(int currentTick, int currentRemoteTick);
 	[Signal] public delegate void NetworkReadyEventHandler();
-	public delegate void CommandReceivedEventHandler(NetMessage.ICommand command);
+
+	public delegate void CommandReceivedEventHandler(NetMessage.ICommand command); // Using a C# signal here because the Godot signal wouldn't accept NetMessage.ICommand
 	public event CommandReceivedEventHandler CommandReceived;
 
 	public static ClientManager Instance { get; private set; }
 
 	private SnapshotInterpolator _snapshotInterpolator;
-	private ClientClock _clock;
+	private ClientNetworkClock _clock;
 	private Node _entityArray;
 	private NetworkDebug _networkDebug;
 
@@ -32,7 +33,7 @@ public partial class ClientManager : Node
 		_networkDebug = GetNode<NetworkDebug>("Debug");
 
 		// Stores NetworkClock node instance
-		_clock = GetNode<ClientClock>("ClientClock");
+		_clock = GetNode<ClientNetworkClock>("ClientClock");
 		_clock.LatencyCalculated += OnLatencyCalculated;
 
 		// Stores SnapshotInterpolator node instance

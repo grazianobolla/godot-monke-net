@@ -1,22 +1,19 @@
 using Godot;
 using ImGuiNET;
-using MemoryPack;
-using System;
 
-public partial class ServerClock : Node
+namespace Server;
+
+public partial class ServerNetworkClock : ServerNetworkNode
 {
-	[Signal]
-	public delegate void NetworkProcessTickEventHandler(double delta);
-
-	private SceneMultiplayer _multiplayer;
+	[Signal] public delegate void NetworkProcessTickEventHandler(double delta);
 
 	[Export] private int _netTickrate = 30;
 	private double _netTickCounter = 0;
 	private int _currentTick = 0;
+
 	public override void _Ready()
 	{
-		_multiplayer = GetTree().GetMultiplayer() as SceneMultiplayer;
-		_multiplayer.PeerPacket += OnPacketReceived;
+		base._Ready();
 	}
 
 	public override void _Process(double delta)
@@ -47,14 +44,12 @@ public partial class ServerClock : Node
 	}
 
 	// When we receive a sync packet from a Client, we return it with the current Clock data
-	private void OnPacketReceived(long id, byte[] data)
+	protected override void OnCommandReceived(long id, NetMessage.ICommand command)
 	{
-		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
-
 		if (command is NetMessage.Sync sync)
 		{
 			sync.ServerTime = _currentTick;
-			_multiplayer.SendBytes(MemoryPackSerializer.Serialize<NetMessage.ICommand>(sync), (int)id, MultiplayerPeer.TransferModeEnum.Unreliable, 1); //FIXME: create enum for enet channels
+			SendCommandToClient((int)id, sync, NetworkManager.PacketMode.Unreliable, 1);
 		}
 	}
 

@@ -1,16 +1,21 @@
 using Godot;
 using ImGuiNET;
 using MemoryPack;
-using System.Linq;
+
+namespace Server;
 
 public partial class ServerManager : Node
 {
 	[Export] private int _port = 9999;
 
+	[Signal] public delegate void ServerTickEventHandler(int currentTick);
+	public delegate void CommandReceivedEventHandler(long peerId, NetMessage.ICommand command); // Using a C# signal here because the Godot signal wouldn't accept NetMessage.ICommand
+	public event CommandReceivedEventHandler CommandReceived;
+
 	public static ServerManager Instance { get; private set; }
 
 	private Godot.Collections.Array<Godot.Node> entityArray;
-	private ServerClock _serverClock;
+	private ServerNetworkClock _serverClock;
 	private int _currentTick = 0;
 
 	public override void _EnterTree()
@@ -20,8 +25,8 @@ public partial class ServerManager : Node
 		entityArray = GetNode("/root/Main/EntityArray").GetChildren();
 
 		StartListening();
-		_serverClock = GetNode<ServerClock>("ServerClock");
-		_serverClock.NetworkProcessTick += NetworkProcess;
+		_serverClock = GetNode<ServerNetworkClock>("ServerClock");
+		_serverClock.NetworkProcessTick += OnNetworkProcess;
 	}
 
 	public override void _Process(double delta)
@@ -32,17 +37,23 @@ public partial class ServerManager : Node
 	public override void _PhysicsProcess(double delta)
 	{
 		_currentTick = _serverClock.ProcessTick();
-
-		foreach (var player in entityArray.OfType<ServerPlayer>())
-		{
-			player.ProcessPendingCommands(_currentTick);
-		}
-
+		EmitSignal(SignalName.ServerTick, _currentTick);
 	}
 
-	private void NetworkProcess(double delta)
+	private void OnNetworkProcess(double delta)
 	{
 		BroadcastSnapshot(_currentTick);
+	}
+
+	public void SendCommandToClient(int peerId, NetMessage.ICommand command, NetworkManager.PacketMode mode, int channel)
+	{
+		byte[] bin = MemoryPackSerializer.Serialize<NetMessage.ICommand>(command);
+		NetworkManager.Instance.SendBytes(bin, peerId, channel, mode);
+	}
+
+	public int GetNetworkId()
+	{
+		return NetworkManager.Instance.GetNetworkId();
 	}
 
 	// Pack and send GameSnapshot with all entities and their information
@@ -68,12 +79,7 @@ public partial class ServerManager : Node
 	private void OnPacketReceived(long id, byte[] data)
 	{
 		var command = MemoryPackSerializer.Deserialize<NetMessage.ICommand>(data);
-		if (command is NetMessage.UserCommand userCommand)
-		{
-			ServerPlayer player = GetNode($"/root/Main/EntityArray/{id}") as ServerPlayer; //FIXME: do not use GetNode here
-			player.PushCommand(userCommand);
-		}
-
+		CommandReceived?.Invoke(id, command);
 	}
 
 	private void OnPlayerConnected(long id)

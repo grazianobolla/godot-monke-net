@@ -1,6 +1,10 @@
 using Godot;
 
-public abstract partial class NetworkedNode : Node
+/*
+    This node can be inherited anywhere in your game, and will allow you to receive send commands to the server
+*/
+namespace Client;
+public abstract partial class ClientNetworkNode : Node
 {
     protected virtual void OnCommandReceived(NetMessage.ICommand command) { }
     protected virtual void OnProcessTick(int currentTick, int currentRemoteTick) { }
@@ -24,7 +28,7 @@ public abstract partial class NetworkedNode : Node
         _networkReady = true;
     }
 
-    protected int NetworkId
+    protected static int NetworkId
     {
         get { return ClientManager.Instance.GetNetworkId(); }
     }
