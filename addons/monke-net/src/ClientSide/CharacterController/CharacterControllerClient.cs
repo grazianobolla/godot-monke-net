@@ -18,7 +18,8 @@ public abstract partial class CharacterControllerClient<TInputMessage, TEntitySt
     protected abstract void HandleReconciliation(CharacterBody3D body, TEntityState incomingState);
     protected abstract TInputMessage CaptureCurrentInput();
 
-    [Export] private CharacterBody3D _characterBody;
+    [Export] protected CharacterBody3D CharacterBody;
+
     private int _lastStampReceived = 0;
     private int _misspredictionCounter = 0;
     private readonly List<LocalInputData> _userInputs = [];
@@ -26,7 +27,6 @@ public abstract partial class CharacterControllerClient<TInputMessage, TEntitySt
     public override void _Ready()
     {
         base._Ready();
-        _characterBody = GetParent<CharacterBody3D>();
     }
 
     public override void _Process(double delta)
@@ -43,7 +43,7 @@ public abstract partial class CharacterControllerClient<TInputMessage, TEntitySt
         _userInputs.Add(localInputData);
         SendInputs(currentRemoteTick);
         AdvancePhysics(localInputData);
-        localInputData.Position = _characterBody.Position;
+        localInputData.Position = CharacterBody.Position;
     }
 
     protected override void OnCommandReceived(IPackableMessage command)
@@ -62,8 +62,8 @@ public abstract partial class CharacterControllerClient<TInputMessage, TEntitySt
 
     private void AdvancePhysics(LocalInputData localInputData)
     {
-        _characterBody.Velocity = CalculateVelocity(_characterBody, localInputData.Input);
-        _characterBody.MoveAndSlide();
+        CharacterBody.Velocity = CalculateVelocity(CharacterBody, localInputData.Input);
+        CharacterBody.MoveAndSlide();
     }
 
     /// <summary>
@@ -112,20 +112,20 @@ public abstract partial class CharacterControllerClient<TInputMessage, TEntitySt
         if (deviation)
         {
             // Re-apply all inputs that haven't been processed by the server starting from the last acked state (the one just received)
-            HandleReconciliation(_characterBody, incomingStateCasted);
+            HandleReconciliation(CharacterBody, incomingStateCasted);
 
             for (int i = 0; i < _userInputs.Count; i++) // Re-apply all inputs
             {
                 var inputData = _userInputs[i];
-                _characterBody.Velocity = CalculateVelocity(_characterBody, inputData.Input);
+                CharacterBody.Velocity = CalculateVelocity(CharacterBody, inputData.Input);
 
                 // Applied workaround https://github.com/grazianobolla/godot4-multiplayer-template/issues/8
                 // To be honest I have no idea how this math works, but it does!
-                _characterBody.Velocity *= (float)this.GetPhysicsProcessDeltaTime() / (float)this.GetProcessDeltaTime();
-                _characterBody.MoveAndSlide();
-                _characterBody.Velocity /= (float)this.GetPhysicsProcessDeltaTime() / (float)this.GetProcessDeltaTime();
+                CharacterBody.Velocity *= (float)this.GetPhysicsProcessDeltaTime() / (float)this.GetProcessDeltaTime();
+                CharacterBody.MoveAndSlide();
+                CharacterBody.Velocity /= (float)this.GetPhysicsProcessDeltaTime() / (float)this.GetProcessDeltaTime();
 
-                inputData.Position = _characterBody.GlobalPosition; // Update the state for this input which was wrong since all states after a missprediction are wrong
+                inputData.Position = CharacterBody.GlobalPosition; // Update the state for this input which was wrong since all states after a missprediction are wrong
             }
 
             _misspredictionCounter++;
@@ -163,8 +163,8 @@ public abstract partial class CharacterControllerClient<TInputMessage, TEntitySt
     {
         if (ImGui.Begin("Player Data"))
         {
-            ImGui.Text($"Position ({_characterBody.GlobalPosition.X:0.00}, {_characterBody.GlobalPosition.Y:0.00}, {_characterBody.GlobalPosition.Z:0.00})");
-            ImGui.Text($"Velocity ({_characterBody.Velocity.X:0.00}, {_characterBody.Velocity.Y:0.00}, {_characterBody.Velocity.Z:0.00})");
+            ImGui.Text($"Position ({CharacterBody.GlobalPosition.X:0.00}, {CharacterBody.GlobalPosition.Y:0.00}, {CharacterBody.GlobalPosition.Z:0.00})");
+            ImGui.Text($"Velocity ({CharacterBody.Velocity.X:0.00}, {CharacterBody.Velocity.Y:0.00}, {CharacterBody.Velocity.Z:0.00})");
             ImGui.Text($"Redundant Inputs {_userInputs.Count}");
             ImGui.Text($"Last Stamp Rec. {_lastStampReceived}");
             ImGui.Text($"Misspredictions {_misspredictionCounter}");
