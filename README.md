@@ -28,7 +28,7 @@ This repository is the developing environment for the addon, including tests and
 <video src="https://github.com/user-attachments/assets/af4b5049-51e4-44cd-b38f-22c4ce614369" width="600px"></video>
 <sup>Example recorded with 200ms lag, 5% packet loss, 10% out of order, 10% duplicated, 10% throttle in Clumsy 0.3</sup>
 
-## 📐 Project Structure
+## 📐 Project Structure (WIP)
 MonkeNet is structured in different "components" that are Nodes inside the Godot engine, these components work together to provide different functionalities. Usually for the same funcionality there is a Client component and a Server component altough they do different things. Here there are some examples:
 
 - `ClientEntityManager.cs` might handle *requesting* an entity on the server while `ServerEntityManager.cs` actually takes that request and spawns the entity.
