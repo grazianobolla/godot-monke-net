@@ -43,10 +43,12 @@ public partial class MonkeNetManager : Node
         serverManager.Initialize(_networkManager, port);
     }
 
+    // Scans the assembly and registers all Messages for the MessageSerializer
     private static void RegisterNetworkMessages()
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
         var types = assembly.GetTypes().Where(t => typeof(IPackableMessage).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
         foreach (var t in types)
         {
             var attrib = Attribute.GetCustomAttribute(t, typeof(RegisterMessageAttribute)) ??
