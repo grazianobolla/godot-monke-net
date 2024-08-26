@@ -11,6 +11,7 @@ script = ExtResource("1_u8ovh")
 
 [node name="ClientClock" type="Node" parent="."]
 script = ExtResource("2_d4j3l")
+_sampleSize = 3
 
 [node name="Timer" type="Timer" parent="ClientClock"]
 autostart = true

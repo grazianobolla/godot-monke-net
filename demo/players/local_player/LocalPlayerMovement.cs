@@ -1,7 +1,6 @@
 using Godot;
 using ImGuiNET;
 using MonkeNet.Client;
-using MonkeNet.Shared;
 
 namespace GameDemo;
 
@@ -16,7 +15,7 @@ public partial class LocalPlayerMovement : CharacterControllerClient<CharacterIn
     [Export] private FirstPersonCameraController _firstPersonCameraController;
 
     // If _autoMoveEnabled is ON the player is always pressing some inputs and moving, useful for testing
-    private byte _automoveInput = 0b0001_1001;
+    private byte _automoveInput = 0b0000_0010;
     private bool _autoMoveEnabled = false;
 
     public override void _Process(double delta)
@@ -70,8 +69,14 @@ public partial class LocalPlayerMovement : CharacterControllerClient<CharacterIn
 
     private void SolveAutoMove()
     {
-        _automoveInput = 0b0001_0001;
-        _firstPersonCameraController.RotateCameraYaw(1.0f * PhysicsUtils.DeltaTime);
+        if (CharacterBody.Position.Z > 5f && _automoveInput == 0b0000_0010)
+        {
+            _automoveInput = 0b0000_0001;
+        }
+        else if (CharacterBody.Position.Z < -5f && _automoveInput == 0b0000_0001)
+        {
+            _automoveInput = 0b0000_0010;
+        }
     }
 
     private new void DisplayDebugInformation()

@@ -2,10 +2,9 @@
 
 [ext_resource type="Script" path="res://demo/players/server_player/ServerPlayer.cs" id="1_cinm7"]
 [ext_resource type="Script" path="res://demo/players/server_player/ServerPlayerMovement.cs" id="2_0q8yc"]
+[ext_resource type="Shape3D" uid="uid://v8sm8j50vvh3" path="res://demo/players/PlayerHull.tres" id="2_75adm"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ysstd"]
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_ry084"]
 
 [node name="ServerPlayer" type="CharacterBody3D"]
 script = ExtResource("1_cinm7")
@@ -14,7 +13,7 @@ script = ExtResource("1_cinm7")
 mesh = SubResource("CapsuleMesh_ysstd")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("CapsuleShape3D_ry084")
+shape = ExtResource("2_75adm")
 
 [node name="PlayerMovement" type="Node" parent="."]
 script = ExtResource("2_0q8yc")

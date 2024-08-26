@@ -1,6 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://b8b17u47wg4nh"]
 
 [ext_resource type="Script" path="res://demo/players/local_player/LocalPlayerMovement.cs" id="1_les8e"]
+[ext_resource type="Shape3D" uid="uid://v8sm8j50vvh3" path="res://demo/players/PlayerHull.tres" id="2_3afaq"]
 [ext_resource type="Script" path="res://demo/players/local_player/FirstPersonCameraController.cs" id="2_q1b5c"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2bt7m"]
@@ -8,8 +9,6 @@ albedo_color = Color(0.98613, 0.349683, 1, 1)
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_y0eya"]
 material = SubResource("StandardMaterial3D_2bt7m")
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_x3j47"]
 
 [node name="LocalPlayer" type="CharacterBody3D"]
 
@@ -29,8 +28,9 @@ fov = 90.0
 mesh = SubResource("CapsuleMesh_y0eya")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
-shape = SubResource("CapsuleShape3D_x3j47")
+shape = ExtResource("2_3afaq")
 
-[node name="PlayerMovement" type="Node" parent="." node_paths=PackedStringArray("_firstPersonCameraController")]
+[node name="PlayerMovement" type="Node" parent="." node_paths=PackedStringArray("_firstPersonCameraController", "CharacterBody")]
 script = ExtResource("1_les8e")
 _firstPersonCameraController = NodePath("../RotationHelperY/RotationHelperX")
+CharacterBody = NodePath("..")
