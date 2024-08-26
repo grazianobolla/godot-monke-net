@@ -1,5 +1,5 @@
 # 🐒 Monke-Net
-<a href="https://discord.gg/g56ZqXy5"><img alt="Static Badge" src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=ffffff"></a> ![GitHub License](https://img.shields.io/github/license/grazianobolla/godot-monke-net) [![CodeFactor](https://www.codefactor.io/repository/github/grazianobolla/godot-monke-net/badge)](https://www.codefactor.io/repository/github/grazianobolla/godot-monke-net)
+<a href="https://discord.gg/EmyhsVZCnZ"><img alt="Static Badge" src="https://img.shields.io/badge/Discord-5865F2?logo=discord&logoColor=ffffff"></a> ![GitHub License](https://img.shields.io/github/license/grazianobolla/godot-monke-net) [![CodeFactor](https://www.codefactor.io/repository/github/grazianobolla/godot-monke-net/badge)](https://www.codefactor.io/repository/github/grazianobolla/godot-monke-net)
 
 C# Godot Addon that facilitates creating robust multiplayer games using the Client-Authoritative Server architecture, including client side prediction, entity interpolation, lag compensation and more!
 
@@ -55,4 +55,4 @@ The `MonkeNetManager` class is a singleton that can be used anywhere in your pro
 
 ---
 
-If you have any questions, [please contact me on Discord](https://discord.gg/g56ZqXy5), I'll be happy to help.
+If you have any questions, [please contact me on Discord](https://discord.gg/EmyhsVZCnZ), I'll be happy to help.
