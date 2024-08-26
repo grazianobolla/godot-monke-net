@@ -43,15 +43,20 @@ public partial class MonkeNetManager : Node
         serverManager.Initialize(_networkManager, port);
     }
 
+    // Scans the assembly and registers all Messages for the MessageSerializer
     private static void RegisterNetworkMessages()
     {
         Assembly assembly = Assembly.GetExecutingAssembly();
         var types = assembly.GetTypes().Where(t => typeof(IPackableMessage).IsAssignableFrom(t) && !t.IsInterface && !t.IsAbstract);
+
         foreach (var t in types)
         {
-            RegisterMessageAttribute attrib = (RegisterMessageAttribute)Attribute.GetCustomAttribute(t, typeof(RegisterMessageAttribute));
+            var attrib = Attribute.GetCustomAttribute(t, typeof(RegisterMessageAttribute)) ??
+                throw new MonkeNetException($"The type {t.FullName} doesn't have the {typeof(RegisterMessageAttribute).Name} attribute!");
+
+            RegisterMessageAttribute registerMessageAttribute = (RegisterMessageAttribute)attrib;
             var messageInstance = Activator.CreateInstance(t);
-            MessageSerializer.Types.Add((byte)attrib.MessageType, (IPackableMessage)messageInstance);
+            MessageSerializer.Types.Add((byte)registerMessageAttribute.MessageType, (IPackableMessage)messageInstance);
             GD.Print($"Registered network message {t.FullName}");
         }
     }
