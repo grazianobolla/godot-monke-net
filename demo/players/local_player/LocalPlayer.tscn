@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://b8b17u47wg4nh"]
+
+[ext_resource type="Script" path="res://demo/players/local_player/LocalPlayerMovement.cs" id="1_les8e"]
+[ext_resource type="Script" path="res://demo/players/local_player/FirstPersonCameraController.cs" id="2_q1b5c"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2bt7m"]
+albedo_color = Color(0.98613, 0.349683, 1, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_y0eya"]
+material = SubResource("StandardMaterial3D_2bt7m")
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_x3j47"]
+
+[node name="LocalPlayer" type="CharacterBody3D"]
+
+[node name="RotationHelperY" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+metadata/_edit_lock_ = true
+
+[node name="RotationHelperX" type="Node3D" parent="RotationHelperY"]
+script = ExtResource("2_q1b5c")
+metadata/_edit_lock_ = true
+
+[node name="Camera" type="Camera3D" parent="RotationHelperY/RotationHelperX"]
+current = true
+fov = 90.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_y0eya")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_x3j47")
+
+[node name="PlayerMovement" type="Node" parent="." node_paths=PackedStringArray("_firstPersonCameraController")]
+script = ExtResource("1_les8e")
+_firstPersonCameraController = NodePath("../RotationHelperY/RotationHelperX")

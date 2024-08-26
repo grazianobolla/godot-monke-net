@@ -1,0 +1,14 @@
+[gd_scene load_steps=4 format=3 uid="uid://bog1us6frffkj"]
+
+[ext_resource type="Script" path="res://addons/monke-net/src/ServerSide/ServerManager.cs" id="1_sjtyc"]
+[ext_resource type="Script" path="res://addons/monke-net/src/ServerSide/ServerNetworkClock.cs" id="2_jgjwk"]
+[ext_resource type="Script" path="res://addons/monke-net/src/ServerSide/Entities/ServerEntityManager.cs" id="3_e5hxh"]
+
+[node name="ServerManager" type="Node"]
+script = ExtResource("1_sjtyc")
+
+[node name="ServerClock" type="Node" parent="."]
+script = ExtResource("2_jgjwk")
+
+[node name="EntityManager" type="Node" parent="."]
+script = ExtResource("3_e5hxh")

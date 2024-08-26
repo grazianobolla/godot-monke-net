@@ -1,0 +1,103 @@
+[gd_scene load_steps=7 format=3 uid="uid://rauc3mu03xvj"]
+
+[ext_resource type="Script" path="res://demo/MainScene.cs" id="1_a3xwa"]
+[ext_resource type="Material" uid="uid://bqguau4l77phy" path="res://demo/map/Obstacles1.tres" id="2_kwgue"]
+[ext_resource type="Environment" uid="uid://c5xw5iwomn8qo" path="res://demo/map/DefaultEnvironment.tres" id="4_4tv7j"]
+[ext_resource type="Script" path="res://demo/GameEntitySpawner.cs" id="4_7cfa4"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lcinv"]
+albedo_color = Color(0.101961, 0.101961, 0.101961, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_obp5r"]
+albedo_color = Color(0.344328, 1, 0.126361, 1)
+
+[node name="MainScene" type="Node3D"]
+script = ExtResource("1_a3xwa")
+
+[node name="Menu" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SpawnButton" type="Button" parent="Menu"]
+layout_mode = 0
+offset_left = 456.0
+offset_right = 602.0
+offset_bottom = 31.0
+text = "Spawn Player"
+
+[node name="HostButton" type="Button" parent="Menu"]
+layout_mode = 0
+offset_right = 152.0
+offset_bottom = 31.0
+text = "Host Server"
+
+[node name="ConnectButton" type="Button" parent="Menu"]
+layout_mode = 0
+offset_top = 32.0
+offset_right = 152.0
+offset_bottom = 63.0
+text = "Connect to Server"
+
+[node name="Map" type="Node" parent="."]
+
+[node name="Floor" type="CSGBox3D" parent="Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -2.5, 0)
+use_collision = true
+size = Vector3(30, 1, 30)
+material = SubResource("StandardMaterial3D_lcinv")
+
+[node name="Wall1" type="CSGBox3D" parent="Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.5, -1, 0)
+use_collision = true
+size = Vector3(2, 2, 12)
+material = ExtResource("2_kwgue")
+
+[node name="Wall2" type="CSGBox3D" parent="Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, -1, -1)
+use_collision = true
+size = Vector3(2, 2, 2)
+material = ExtResource("2_kwgue")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Map"]
+transform = Transform3D(0.686106, 0.361498, -0.63133, 0.109382, 0.806681, 0.580776, 0.719232, -0.46753, 0.513927, 0, 8, 10)
+shadow_enabled = true
+directional_shadow_mode = 0
+
+[node name="Ramp1" type="CSGPolygon3D" parent="Map"]
+transform = Transform3D(1.31134e-07, 0, 1, 0, 1, 0, -1, 0, 1.31134e-07, -8.5, -1, -6)
+use_collision = true
+polygon = PackedVector2Array(0, -1, 0, 1, 4, -1, 3, -1)
+depth = 2.0
+material = ExtResource("2_kwgue")
+
+[node name="Ramp2" type="CSGPolygon3D" parent="Map"]
+transform = Transform3D(1, 0, -1.74845e-07, 0, 1, 0, 1.74845e-07, 0, 1, -6.5, -1, 0)
+use_collision = true
+polygon = PackedVector2Array(0, -1, 0, 1, 4, -1, 3, -1)
+depth = 2.0
+material = ExtResource("2_kwgue")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="Map"]
+environment = ExtResource("4_4tv7j")
+
+[node name="MenuCamera" type="Camera3D" parent="Map"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 5, 0)
+projection = 1
+size = 30.0
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="Map"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.5, -1, -4)
+use_collision = true
+radius = 1.0
+material = SubResource("StandardMaterial3D_obp5r")
+
+[node name="EntitySpawner" type="Node" parent="."]
+script = ExtResource("4_7cfa4")
+
+[connection signal="pressed" from="Menu/SpawnButton" to="." method="OnSpawnButtonPressed"]
+[connection signal="pressed" from="Menu/HostButton" to="." method="OnHostButtonPressed"]
+[connection signal="pressed" from="Menu/ConnectButton" to="." method="OnConnectButtonPressed"]

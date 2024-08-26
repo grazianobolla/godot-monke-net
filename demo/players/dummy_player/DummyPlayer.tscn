@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://cfx1rqvxuku42"]
+
+[ext_resource type="Script" path="res://demo/players/dummy_player/DummyPlayer.cs" id="1_0vlpo"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_umr18"]
+albedo_color = Color(1, 0.674533, 0.271927, 1)
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_4o0c6"]
+material = SubResource("StandardMaterial3D_umr18")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_d4bwy"]
+albedo_color = Color(0.0703125, 0.0703125, 0.0703125, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_ub3sc"]
+material = SubResource("StandardMaterial3D_d4bwy")
+radius = 0.2
+height = 0.4
+
+[node name="DummyPlayer" type="Node3D"]
+script = ExtResource("1_0vlpo")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_4o0c6")
+
+[node name="Eye1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2, 0.6, -0.4)
+mesh = SubResource("SphereMesh_ub3sc")
+
+[node name="Eye2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.6, -0.4)
+mesh = SubResource("SphereMesh_ub3sc")
