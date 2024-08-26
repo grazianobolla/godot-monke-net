@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://bchfwceouveq2"]
+
+[ext_resource type="Script" path="res://addons/monke-net/src/Shared/MonkeNetManager/MonkeNetManager.cs" id="1_f83ke"]
+[ext_resource type="Script" path="res://addons/monke-net/src/Shared/Network/NetworkManagerEnet.cs" id="2_7pmc0"]
+
+[node name="MonkeNetInstance" type="Node"]
+script = ExtResource("1_f83ke")
+
+[node name="NetworkManagerEnet" type="Node" parent="."]
+script = ExtResource("2_7pmc0")

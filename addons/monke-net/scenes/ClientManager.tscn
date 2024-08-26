@@ -1,0 +1,27 @@
+[gd_scene load_steps=6 format=3 uid="uid://eykxehuqerja"]
+
+[ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/ClientManager.cs" id="1_u8ovh"]
+[ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/ClientNetworkClock.cs" id="2_d4j3l"]
+[ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/SnapshotInterpolator.cs" id="3_uqx2a"]
+[ext_resource type="Script" path="res://addons/monke-net/src/Shared/Network/NetworkDebug.cs" id="4_qtu4m"]
+[ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/Entities/ClientEntityManager.cs" id="5_likij"]
+
+[node name="ClientManager" type="Node"]
+script = ExtResource("1_u8ovh")
+
+[node name="ClientClock" type="Node" parent="."]
+script = ExtResource("2_d4j3l")
+
+[node name="Timer" type="Timer" parent="ClientClock"]
+autostart = true
+
+[node name="SnapshotInterpolator" type="Node" parent="."]
+script = ExtResource("3_uqx2a")
+
+[node name="NetworkDebug" type="Node" parent="."]
+script = ExtResource("4_qtu4m")
+
+[node name="EntityManager" type="Node" parent="."]
+script = ExtResource("5_likij")
+
+[connection signal="timeout" from="ClientClock/Timer" to="ClientClock" method="OnTimerOut"]
