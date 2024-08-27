@@ -31,6 +31,7 @@ mesh = SubResource("CapsuleMesh_y0eya")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_x3j47")
 
-[node name="PlayerMovement" type="Node" parent="." node_paths=PackedStringArray("_firstPersonCameraController")]
+[node name="PlayerMovement" type="Node" parent="." node_paths=PackedStringArray("_firstPersonCameraController", "CharacterBody")]
 script = ExtResource("1_les8e")
 _firstPersonCameraController = NodePath("../RotationHelperY/RotationHelperX")
+CharacterBody = NodePath("..")
