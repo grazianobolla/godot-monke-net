@@ -111,7 +111,6 @@ public struct GameSnapshot : IPackableMessage
 }
 
 [RegisterMessage(MessageTypeEnum.CharacterControllerData, typeof(CharacterControllerInput))]
-
 public struct CharacterControllerInput : IPackableMessage
 {
     public int Tick { get; set; } // This is the Tick stamp for the latest generated input (Inputs[Inputs.Length]), all other Ticks are (Tick - index)

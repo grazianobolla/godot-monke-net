@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/ClientManager.cs" id="1_u8ovh"]
 [ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/ClientNetworkClock.cs" id="2_d4j3l"]
-[ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/SnapshotInterpolator.cs" id="3_uqx2a"]
+[ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/Entities/SnapshotInterpolator.cs" id="3_uqx2a"]
 [ext_resource type="Script" path="res://addons/monke-net/src/Shared/Network/NetworkDebug.cs" id="4_qtu4m"]
 [ext_resource type="Script" path="res://addons/monke-net/src/ClientSide/Entities/ClientEntityManager.cs" id="5_likij"]
 
