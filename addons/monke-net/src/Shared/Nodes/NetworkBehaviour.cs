@@ -5,7 +5,7 @@ namespace MonkeNet.Shared;
 
 [GlobalClass, Icon("res://addons/monke-net/resources/circle_nodes_solid.png")]
 
-public partial class NetworkBehaviour : MonkeNetNode
+public abstract partial class NetworkBehaviour : MonkeNetNode
 {
     public int EntityId { get; set; }
     public byte EntityType { get; set; }

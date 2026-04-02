@@ -9,13 +9,13 @@
 [node name="LocalBall" type="RigidBody3D" unique_id=1602080397]
 collision_layer = 0
 
+[node name="ClientPredictedEntity" type="Node" parent="." unique_id=1958913607 node_paths=PackedStringArray("_rigidBody")]
+script = ExtResource("2_7vow4")
+_rigidBody = NodePath("..")
+metadata/_custom_type_script = "uid://2rptuj0wp7kx"
+
 [node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=683380154]
 mesh = SubResource("SphereMesh_rf2cd")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2065844183]
 shape = SubResource("SphereShape3D_a814b")
-
-[node name="ClientPredictedEntity" type="Node" parent="." unique_id=1958913607 node_paths=PackedStringArray("_rigidBody")]
-script = ExtResource("2_7vow4")
-_rigidBody = NodePath("..")
-metadata/_custom_type_script = "uid://2rptuj0wp7kx"
