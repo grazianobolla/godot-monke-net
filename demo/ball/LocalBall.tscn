@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cdm6b7x3omwnr"]
 
 [ext_resource type="Script" uid="uid://b8b0gwk6gllyg" path="res://demo/ball/LocalBallPrediction.cs" id="2_7vow4"]
+[ext_resource type="Script" uid="uid://d4b1e6581aumb" path="res://addons/monke-net/src/Shared/Nodes/NetworkBehaviour.cs" id="2_m0thw"]
 
 [sub_resource type="SphereMesh" id="SphereMesh_rf2cd"]
 
@@ -19,3 +20,7 @@ mesh = SubResource("SphereMesh_rf2cd")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=2065844183]
 shape = SubResource("SphereShape3D_a814b")
+
+[node name="NetworkBehaviour" type="Node" parent="." unique_id=1606310916]
+script = ExtResource("2_m0thw")
+metadata/_custom_type_script = "uid://d4b1e6581aumb"
