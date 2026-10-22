@@ -13,6 +13,7 @@ public struct EntityStateMessage : IEntityStateData
     public Vector3 AngularVelocity { get; set; } // Entity velocity
     public Vector3 Rotation { get; set; }
     public float Yaw { get; set; } // Looking angle
+    public byte InputKeys { get; set; } // Last input keys processed by the server, used by remote clients to extrapolate
 
     public void ReadBytes(MessageReader reader)
     {
@@ -22,6 +23,7 @@ public struct EntityStateMessage : IEntityStateData
         AngularVelocity = reader.ReadVector3();
         Rotation = reader.ReadVector3();
         Yaw = reader.ReadSingle();
+        InputKeys = reader.ReadByte();
     }
 
     public readonly void WriteBytes(MessageWriter writer)
@@ -32,6 +34,7 @@ public struct EntityStateMessage : IEntityStateData
         writer.Write(AngularVelocity);
         writer.Write(Rotation);
         writer.Write(Yaw);
+        writer.Write(InputKeys);
     }
 
     public readonly IPackableElement GetCopy() => this;

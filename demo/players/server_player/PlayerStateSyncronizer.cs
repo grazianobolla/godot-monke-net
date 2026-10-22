@@ -11,11 +11,13 @@ public partial class PlayerStateSyncronizer : ServerStateSyncronizer
     [Export] private SharedPlayerMovement _playerMovement;
 
     public float Yaw { get; set; }
+    public byte InputKeys { get; set; }
 
     public override void OnProcessTick(int tick, IPackableElement genericInput)
     {
         CharacterInputMessage input = (CharacterInputMessage)genericInput;
         Yaw = input.CameraYaw;
+        InputKeys = input.Keys;
         _playerMovement.AdvancePhysics(input);
     }
 
@@ -26,6 +28,7 @@ public partial class PlayerStateSyncronizer : ServerStateSyncronizer
         {
             EntityId = this.EntityId,
             Yaw = this.Yaw,
+            InputKeys = this.InputKeys,
             Position = _characterBody.Position,
             Velocity = _characterBody.Velocity
         };

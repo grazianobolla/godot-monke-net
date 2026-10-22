@@ -15,6 +15,7 @@ public partial class ClientPredictionManager : InternalClientComponent
 {
     private readonly List<PredictedState> _predictedStates = [];
     private int _lastTickReceived = 0;
+    private int _lastPredictedTick = 0;
     private int _misspredictionsCount = 0;
     private int _missedLocalState = 0;
 
@@ -35,10 +36,15 @@ public partial class ClientPredictionManager : InternalClientComponent
 
     public void Predict(int tick, IPackableElement input)
     {
+        _lastPredictedTick = tick;
+
         MonkeNetManager.Instance.EntitySpawner.Entities.ForEach(entity =>
         {
             var clientPredictedEntity = entity.GetComponent<ClientPredictedEntity>();
             clientPredictedEntity?.OnProcessTick(tick, input);
+
+            var clientExtrapolatedEntity = entity.GetComponent<ClientExtrapolatedEntity>();
+            clientExtrapolatedEntity?.OnExtrapolateTick();
         });
     }
 
@@ -67,6 +73,8 @@ public partial class ClientPredictionManager : InternalClientComponent
 
     private void ProcessServerState(GameSnapshotMessage receivedSnapshot)
     {
+        ExtrapolateEntities(receivedSnapshot);
+
         var predictedStateData = _predictedStates.Find(prediction => prediction.Tick == receivedSnapshot.Tick);
         _predictedStates.RemoveAll(predictedState => predictedState.Tick <= receivedSnapshot.Tick);
 
@@ -88,6 +96,27 @@ public partial class ClientPredictionManager : InternalClientComponent
                 _misspredictionsCount++;
                 RollbackAndResimulate(receivedSnapshot.States, predictedStateData);
                 return;
+            }
+        }
+    }
+
+    // Move extrapolated entities to the authoritative state and advance them up to the current local tick, they are never rolled back
+    private void ExtrapolateEntities(GameSnapshotMessage receivedSnapshot)
+    {
+        int ticksToExtrapolate = System.Math.Max(0, _lastPredictedTick - receivedSnapshot.Tick);
+
+        foreach (IEntityStateData authoritativeState in receivedSnapshot.States)
+        {
+            var clientExtrapolatedEntity = EntitySpawner.Instance.GetEntityById(authoritativeState.EntityId)
+                .GetComponent<ClientExtrapolatedEntity>();
+
+            if (clientExtrapolatedEntity == null)
+                continue;
+
+            clientExtrapolatedEntity.HandleAuthoritativeState(authoritativeState);
+            for (int i = 0; i < ticksToExtrapolate; i++)
+            {
+                clientExtrapolatedEntity.OnExtrapolateTick();
             }
         }
     }
